@@ -14,9 +14,9 @@ datasource db {
 
 model Metrics {
   id            Int     @id @default(autoincrement())
-  cpuPercentage Float
-  serverName    String  @default("local-server")
-  createdAt     DateTime @default(now())
+  cpuPercentage Float   @map("cpu_percentage")
+  serverName    String  @default("local-server") @map("server_name")
+  createdAt     DateTime @default(now()) @map("created_at")
 
   @@index([createdAt])
 }
