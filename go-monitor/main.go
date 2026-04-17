@@ -39,7 +39,7 @@ func main() {
 			log.Printf("Error enviando  POST: %v\n", err)
 			continue
 		}
-		defer resp.Body.Close()
+		 resp.Body.Close()
 		fmt.Printf("POST enviando, status: %d\n", resp.StatusCode)
 	}
 
