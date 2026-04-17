@@ -1,9 +1,9 @@
 import Fastify from "fastify";
 import cors from "@fastify/cors";
-import { PrismaClient } from '@prisma/client';
+import { db } from "./server/db";
+import { metricsTable } from "./server/db/schema";
 
 const fastify = Fastify({ logger: true });
-const prisma = new PrismaClient();
 
 fastify.register(cors);
 
@@ -25,12 +25,10 @@ fastify.post<{ Body: { cpu_percentage: number } }>(
     }
 
     try {
-      const metric = await prisma.metrics.create({
-        data: {
-          cpuPercentage: cpu_percentage,
-          serverName: "local-server",
-        },
-      });
+      const metric = await db.insert(metricsTable).values({
+        cpuPercentage: cpu_percentage,
+        serverName: "local-server",
+      }).returning();;
 
       return reply.status(200).send({
         message: "Metrica guardada exitosamente",
@@ -51,8 +49,6 @@ fastify.get("/health", async (request, reply) => {
 
 const start = async () => {
   try {
-    await prisma.$connect();
-
     await fastify.listen({ port: 3001, host: "0.0.0.0" });
   } catch (error) {
     fastify.log.error(error);
@@ -61,8 +57,9 @@ const start = async () => {
 };
 
 process.on("SIGINT", async () => {
-  await prisma.$disconnect();
+  console.log("Cerrando servidor...");
   process.exit(0);
 });
+
 
 start();
