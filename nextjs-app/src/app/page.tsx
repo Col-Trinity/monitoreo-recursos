@@ -6,15 +6,14 @@ import { api } from "@/trpc/react"
 export default function Home() {
   const { data, isLoading, isError } = api.metrics.getAll.useQuery(
     undefined,
-    { refetchInterval: 2000 }
+    { refetchInterval: 10000 }
   )
 
   const ultimos20 = data
-    ?.slice(-20)
-    .map((d) => ({
+    ?.map((d) => ({
       ...d,
       cpuPercentage: parseFloat(d.cpuPercentage.toFixed(2)),
-      hora: new Date(d.createdAt).toLocaleTimeString(),
+      hora: new Date(d.createdAt ?? new Date()).toLocaleTimeString(),
     }))
 
   return (
