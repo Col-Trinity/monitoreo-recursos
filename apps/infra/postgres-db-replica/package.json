@@ -1,0 +1,9 @@
+{
+  "name": "@watchdog/infra-postgres-db-replica",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "sh -c 'cd ../../.. && docker compose logs -f postgres-replica'",
+    "clean": "rm -rf .turbo"
+  }
+}

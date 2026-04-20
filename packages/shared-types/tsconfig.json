@@ -1,0 +1,4 @@
+{
+  "extends": "@watchdog/tsconfig/base.json",
+  "include": ["src/**/*"]
+}

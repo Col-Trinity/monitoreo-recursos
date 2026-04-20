@@ -1,255 +1,116 @@
-# 📊 Monitoreo de Recursos de Sistemas
+# Watchdog — Monitoreo de Recursos
 
-MVP de un sistema de monitoreo que captura el % de uso de CPU en tiempo real.
+Monorepo con agente Go, API Fastify, worker BullMQ y frontend Next.js.
 
-## 🎯 Requisitos MVP
+## Stack
 
-- [x] Servicio Go: Lee CPU% del sistema
-- [x] Servicio Go: Envía datos por HTTP.POST cada 5 segundos
-- [x] Servicio Nodejs+Fastify: Recibe POST en /metrics
-- [x] Servicio Nodejs+Fastify: Guarda en PostgreSQL
-- [x] API NextJS: Lee historial de CPU% de BD
-- [x] Frontend NextJS: Muestra gráfico de línea
+- **Orquestación:** pnpm workspaces + Turborepo + Taskfile + `go.work`
+- **Runtime:** Node 20+, Go 1.26+, PostgreSQL 16 (primary + replica), Redis 7
+- **Apps:** `agent` (Go), `api` (Fastify), `worker` (BullMQ), `web` (Next.js 15)
+- **Packages compartidos:** `db` (Drizzle), `env` (zod), `shared-types`, `tsconfig`
 
-## 🛠️ Tech Stack
+## Requisitos
 
-- **Backend:** Go, Nodejs (Fastify), NextJS
-- **Base de datos:** PostgreSQL + Prisma ORM
-- **Frontend:** NextJS T3, Recharts
-- **Infra:** Docker
+- Docker + Docker Compose
+- Node.js 20+, pnpm 10+
+- Go 1.26+
+- [Taskfile](https://taskfile.dev/installation/) (`brew install go-task`)
 
-## 🚀 Cómo correr el MVP
-## Requisitos previos
-
-- **Docker** instalado ([Descargar](https://www.docker.com/products/docker-desktop))
-- **Node.js 18+** con pnpm ([Instalar](https://pnpm.io/installation))
-- **Go 1.20+** ([Descargar](https://golang.org/dl))
-
-
-### Instalar Docker (si no lo tienes)
-**En Ubuntu/Debian**
+## Setup (una vez)
 
 ```bash
-sudo apt update
-sudo apt install docker.io docker-compose
-sudo usermod -aG docker $USER
-newgrp docker
+cp .env.example .env
+task setup
 ```
 
-**En Windows/Mac:**
-Descargar [Docker Desktop](https://www.docker.com/products/docker-desktop)
+Esto instala dependencias (pnpm + `air` para hot-reload de Go), levanta Postgres + replica + Redis, y corre migraciones.
 
-**Verificar instalación:**
-```bash
-docker --version
-docker compose --version
-```
-
-### PASO 1: Clonar el repositorio
+## Desarrollo diario
 
 ```bash
-git clone https://github.com/Col-Trinity/monitoreo-recursos
-cd monitoreo-recursos
+task dev          # levanta TODO: docker + api + worker + web + agent, con hot-reload
 ```
 
-### PASO 2: Instalar dependencias 
-
-**Go (no necesita instalacion, solo descargar módulos):**
-```bash
-cd go-monitor
-go mod download
-cd ..
-```
-**Node.js:**
-```bash
-cd nodejs-api
-pnpm install
-cd ..
-```
-**Nextjs:**
-```bash
-cd nextjs-app
-pnpm install
-cd ..
-```
-
-### PASO 3: Configurar variables de entorno
-**`nodejs-api/.env`:**
-DATABASE_URL="postgresql://monitor_user:monitor_password@localhost:5433/monitoreo_recursos"
-
-**`nextjs-app/.env`:**
-DATABASE_URL="postgresql://monitor_user:monitor_password@localhost:5433/monitoreo_recursos"
-AUTH_DISCORD_ID=dummy
-AUTH_DISCORD_SECRET=dummy
-AUTH_SECRET=your-random-secret
-
-### PASO 4: Levantar PostgreSQL con Docker
+Parciales (si necesitás debug aislado):
 
 ```bash
-cd database
-docker compose up
+task dev:ts       # solo api + worker + web (sin Go)
+task dev:api
+task dev:web
+task dev:worker
+task dev:agent
 ```
-(Dejar corriendo en esta terminal)
 
-### PASO 5: Aplicar migraciones con Drizzle
+Turbo agrupa los logs con prefijo por app (TUI interactiva). `Ctrl+C` baja todo y detiene los containers.
 
-**En `nodejs-api/` (nueva terminal):**
+## Base de datos
+
 ```bash
-cd nodejs-api
-pnpm db:generate
-pnpm db:migrate
+task db:generate   # genera nueva migración desde packages/db/src/schema
+task db:migrate    # aplica migraciones pendientes
+task db:studio     # abre Drizzle Studio
+task db:reset      # DROP + recrea + re-migra (destructivo, pide confirmación)
 ```
-**En `nextjs-app/` (nueva terminal):**
+
+El schema vive en `packages/db/src/schema/` y es **la única fuente de verdad**; api y web lo consumen vía `@watchdog/db`.
+
+## Tests
+
 ```bash
-cd nextjs-app
-pnpm drizzle-kit generate
-pnpm drizzle-kit migrate
+task test                    # todos
+pnpm turbo run test:unit
+pnpm turbo run test:integration
+pnpm turbo run test:e2e
 ```
 
-### PASO 6: Levantar los servicios
-**Terminal 1 - Go (lee CPU y envía datos):**
-```bash
-cd go-monitor
-go run main.go
+## Layout
+
+```
+watchdog/
+├── apps/
+│   ├── agent/       Go — recolector de métricas (cmd/, internal/)
+│   ├── api/         Fastify — HTTP + SSE
+│   ├── worker/      BullMQ — background jobs
+│   └── web/         Next.js — UI + tRPC
+├── packages/
+│   ├── db/          Drizzle schema + read/write clients
+│   ├── env/         parser de env (zod)
+│   ├── shared-types/  contratos compartidos api ↔ web ↔ worker
+│   └── tsconfig/    tsconfig base (node, nextjs)
+├── scripts/
+├── go.work
+├── pnpm-workspace.yaml
+├── turbo.json
+├── Taskfile.yml
+├── docker-compose.yml
+└── .env.example
 ```
 
-**Terminal 2 - Node.js + Fastify (recibe y guarda):**
-```bash
-cd nodejs-api
-pnpm dev
+## Ports locales
+
+| Servicio | Puerto |
+|---|---|
+| web (Next.js) | 3000 |
+| api (Fastify) | 3001 |
+| postgres primary | 5433 |
+| postgres replica | 5434 |
+| redis | 6379 |
+
+## Read/write split
+
+```ts
+import { dbWrite, dbRead } from "@watchdog/db";
+
+await dbWrite().insert(metricsTable).values(...);
+const rows = await dbRead().select().from(metricsTable);
 ```
 
-**Terminal 3 - Next.js (frontend + API):**
-```bash
-cd nextjs-app
-pnpm dev
-```
+Usá `dbWrite()` para mutaciones y `dbRead()` para queries de solo lectura (pega a la replica cuando `DATABASE_READ_URL` está seteada).
 
-### PASO 7: Acceder a la aplicación
+## Troubleshooting
 
-Abre tu navegador y ve a:
-http://localhost:3000
+**"air: command not found"** → `task tools:install` o `go install github.com/air-verse/air@latest`.
 
-¡Deberías ver un gráfico de línea actualizándose con datos de CPU en tiempo real! 📈
+**Postgres no arranca** → `task docker:nuke && task setup`.
 
-
-## 🏗️ Arquitectura
-┌─────────────────────────────────────┐
-│  GO Service (puerto 8080)           │
-│  └─ Lee CPU% cada 5 segundos        │
-│  └─ Envía POST a Nodejs             │
-└────────────┬────────────────────────┘
-↓ POST /metrics
-┌─────────────────────────────────────┐
-│  Node.js + Fastify (puerto 3001)    │
-│  └─ Recibe datos de Go              │
-│  └─ Valida (0-100%)                 │
-│  └─ Guarda en PostgreSQL            │
-└────────────┬────────────────────────┘
-↓ INSERT
-┌─────────────────────────────────────┐
-│  PostgreSQL (puerto 5433)           │
-│  └─ Tabla: metrics                  │
-└────────────┬────────────────────────┘
-↑ SELECT
-┌─────────────────────────────────────┐
-│  Next.js (puerto 3000)              │
-│  ├─ API Route tRPC: /api/trpc       │
-│  └─ Frontend: Gráfico Recharts      │
-└─────────────────────────────────────┘
-## 📂 Estructura
-monitoreo-recursos/
-├── go-monitor/              ← Servicio Go (Lee CPU)
-│   ├── main.go
-│   ├── go.mod
-│   └── go.sum
-├── nodejs-api/              ← API Node.js + Fastify (Recibe y guarda)
-│   ├── src/
-│   │   ├── server.ts
-│   │   └── server/db/
-│   │       └── schema.ts
-│   ├── drizzle/             ← Migraciones
-│   ├── package.json
-│   ├── .env
-│   └── drizzle.config.ts
-├── nextjs-app/              ← Frontend + API tRPC
-│   ├── src/
-│   │   ├── app/
-│   │   │   └── page.tsx
-│   │   └── server/
-│   │       ├── api/routers/
-│   │       │   └── metrics.ts
-│   │       └── db/
-│   │           └── schema.ts
-│   ├── drizzle/             ← Migraciones
-│   ├── package.json
-│   ├── .env.local
-│   └── drizzle.config.ts
-├── database/                ← PostgreSQL setup
-│   ├── docker-compose.yml
-│   └── schema.sql
-└── docs/                    ← Documentación
-
-## 🔧 Tecnologías utilizadas
-
-### Backend
-- **Go:** Lectura de métricas del sistema con `gopsutil`
-- **Node.js:** Runtime para Fastify
-- **Fastify:** Framework HTTP ligero y rápido
-- **Drizzle ORM:** Query builder type-safe para PostgreSQL
-
-### Frontend
-- **Next.js T3 Stack:** Framework React con configuración recomendada
-- **tRPC:** RPC type-safe entre frontend y backend
-- **Recharts:** Librería de gráficos React
-- **Tailwind CSS:** Utilidad-first CSS
-
-### Base de datos
-- **PostgreSQL:** Base de datos relacional
-- **Drizzle ORM:** ORM moderno y type-safe
-
-## 📖 Flujo de datos
-
-1. **Go Service** lee el % de CPU del sistema cada 5 segundos
-2. **Go Service** envía un POST con los datos a `http://localhost:3001/metrics`
-3. **Fastify** recibe el POST, valida los datos (0-100%) y guarda en PostgreSQL
-4. **Next.js tRPC API** lee todos los datos de la tabla `metrics`
-5. **Frontend React** consume el endpoint tRPC y dibuja un gráfico actualizado
-
-## 🚨 Troubleshooting
-
-### PostgreSQL no inicia
-```bash
-docker compose down
-docker compose up
-```
-
-### "Table does not exist"
-Asegúrate de haber corrido:
-```bash
-pnpm drizzle-kit generate
-pnpm drizzle-kit migrate
-```
-
-### Puerto ya en uso
-- PostgreSQL: 5433
-- Fastify: 3001
-- Next.js: 3000
-
-Si alguno está en uso, cambia el puerto en la configuración.
-
-## 📝 Autores
-
-- **Abel** 
-- **Gia** 
-
-## 📅 Fecha de entrega
-
-MVP completado: Sábado, 18 de abril de 2026
-
-## 📚 Documentación adicional
-
-- [Documentación de Go](./docs/go-guide.md)
-- [Documentación de Fastify](./docs/fastify-guide.md)
-- [Documentación de tRPC](./docs/trpc-guide.md)
-- [Arquitectura del proyecto](./docs/arquitectura.md)
+**Puertos ocupados** → editar mapeos en `docker-compose.yml` y `.env`.

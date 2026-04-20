@@ -1,0 +1,9 @@
+{
+  "name": "@watchdog/infra-postgres-db",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "sh -c 'cd ../../.. && docker compose logs -f postgres'",
+    "clean": "rm -rf .turbo"
+  }
+}

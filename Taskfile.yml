@@ -1,0 +1,184 @@
+version: "3"
+
+dotenv: [".env"]
+
+vars:
+  COMPOSE: docker compose
+
+tasks:
+  default:
+    desc: List available tasks
+    cmds:
+      - task --list
+    silent: true
+
+  setup:
+    desc: First-time setup — install deps, build shared packages, start DB, run migrations
+    cmds:
+      - pnpm install
+      - task: tools:install
+      - task: go:sync
+      - task: docker:up
+      - task: db:wait
+      - task: db:migrate
+      - echo "Ready. Run 'task dev' to start all apps."
+
+  tools:install:
+    desc: Install local Go tools (air for hot-reload)
+    cmds:
+      - |
+        if ! command -v air > /dev/null 2>&1; then
+          echo "Installing air (Go hot-reload)..."
+          go install github.com/air-verse/air@latest
+        fi
+    status:
+      - command -v air > /dev/null 2>&1
+
+  go:sync:
+    desc: Download Go toolchain declared in go.work and sync each module's deps
+    env:
+      GOTOOLCHAIN: auto
+    vars:
+      GO_MODULES:
+        sh: awk '/^use/,/^)/ { if ($1 ~ /^\.\//) print $1 } /^use[[:space:]]+\.\// { print $2 }' go.work
+    cmds:
+      - go work sync
+      - for: { var: GO_MODULES }
+        cmd: cd {{.ITEM}} && go mod download
+
+  dev:
+    desc: Run everything in dev mode (docker + api + worker + web + agent)
+    deps: [docker:up]
+    cmds:
+      - task: db:wait
+      - defer: { task: docker:stop }
+      - pnpm turbo run dev --ui=tui
+
+  dev:ts:
+    desc: Only TS apps (api, worker, web). Use when debugging without Go agent.
+    deps: [docker:up]
+    cmds:
+      - task: db:wait
+      - pnpm turbo run dev --filter=!@watchdog/agent --ui=tui
+
+  dev:api:
+    desc: Only the API (plus dependencies)
+    deps: [docker:up]
+    cmds:
+      - pnpm turbo run dev --filter=@watchdog/api
+
+  dev:web:
+    desc: Only the web app
+    deps: [docker:up]
+    cmds:
+      - pnpm turbo run dev --filter=@watchdog/web
+
+  dev:worker:
+    desc: Only the worker
+    deps: [docker:up]
+    cmds:
+      - pnpm turbo run dev --filter=@watchdog/worker
+
+  dev:agent:
+    desc: Only the Go agent (requires air)
+    dir: apps/agent
+    cmds:
+      - air
+
+  docker:up:
+    desc: Start Postgres (primary + replica) and Redis
+    cmds:
+      - "{{.COMPOSE}} up -d postgres postgres-replica redis"
+    status:
+      - docker ps --filter "name=watchdog-postgres" --filter "status=running" --format "{{`{{.Names}}`}}" | grep -q watchdog-postgres
+
+  docker:stop:
+    desc: Stop containers (keep volumes)
+    cmds:
+      - "{{.COMPOSE}} stop"
+
+  docker:down:
+    desc: Stop and remove containers (keep volumes)
+    cmds:
+      - "{{.COMPOSE}} down"
+
+  docker:nuke:
+    desc: Stop containers and DELETE all data volumes. Destructive.
+    prompt: This will DELETE all local database data. Continue?
+    cmds:
+      - "{{.COMPOSE}} down -v"
+
+  docker:logs:
+    desc: Tail docker logs
+    cmds:
+      - "{{.COMPOSE}} logs -f"
+
+  db:wait:
+    desc: Wait until Postgres accepts connections
+    cmds:
+      - |
+        until {{.COMPOSE}} exec -T postgres pg_isready -U monitor_user > /dev/null 2>&1; do
+          echo "Waiting for Postgres..."; sleep 1;
+        done
+    silent: true
+
+  db:migrate:
+    desc: Apply Drizzle migrations
+    cmds:
+      - pnpm --filter @watchdog/db db:migrate
+
+  db:generate:
+    desc: Generate new Drizzle migration from schema changes
+    cmds:
+      - pnpm --filter @watchdog/db db:generate
+
+  db:push:
+    desc: Push schema to DB without migration (dev only)
+    cmds:
+      - pnpm --filter @watchdog/db db:push
+
+  db:studio:
+    desc: Open Drizzle Studio
+    cmds:
+      - pnpm --filter @watchdog/db db:studio
+
+  db:reset:
+    desc: Drop + recreate DB and re-run migrations. Destructive.
+    prompt: This will DROP the local database. Continue?
+    cmds:
+      - task: docker:nuke
+      - task: docker:up
+      - task: db:wait
+      - task: db:migrate
+
+  build:
+    desc: Build all apps and packages
+    cmds:
+      - pnpm turbo run build
+
+  test:
+    desc: Run all tests
+    cmds:
+      - pnpm turbo run test
+
+  lint:
+    desc: Lint all packages
+    cmds:
+      - pnpm turbo run lint
+
+  typecheck:
+    desc: Typecheck all packages
+    cmds:
+      - pnpm turbo run typecheck
+
+  clean:
+    desc: Clean all build outputs and node_modules
+    cmds:
+      - pnpm turbo run clean
+      - rm -rf node_modules
+
+  agent:build:
+    desc: Build the Go agent binary
+    dir: apps/agent
+    cmds:
+      - go build -o bin/agent ./cmd/agent

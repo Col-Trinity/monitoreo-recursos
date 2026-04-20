@@ -1,0 +1,15 @@
+{
+  "name": "@watchdog/agent",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "dotenv -e ../../.env -- ./scripts/dev.sh",
+    "build": "go build -o bin/agent ./cmd/agent",
+    "start": "./bin/agent",
+    "test:unit": "go test ./...",
+    "clean": "rm -rf bin tmp .turbo"
+  },
+  "devDependencies": {
+    "dotenv-cli": "^8.0.0"
+  }
+}

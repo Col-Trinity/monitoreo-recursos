@@ -1,0 +1,9 @@
+{
+  "name": "@watchdog/infra-redis",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "sh -c 'cd ../../.. && docker compose logs -f redis'",
+    "clean": "rm -rf .turbo"
+  }
+}
