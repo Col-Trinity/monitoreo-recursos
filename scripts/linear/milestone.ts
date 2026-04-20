@@ -10,10 +10,7 @@ import type { Ticket } from "./types.js";
  * exists on the project, it's reused (and description/targetDate are updated).
  * Tickets: we check by (milestone, title) — existing ones skipped.
  */
-export async function syncMilestone(
-  ctx: Context,
-  weekNumber: number,
-): Promise<void> {
+export async function syncMilestone(ctx: Context, weekNumber: number): Promise<void> {
   const { file, config } = loadMilestone(weekNumber);
   const { milestone, tickets } = config;
 
@@ -23,9 +20,7 @@ export async function syncMilestone(
 
   // Ensure labels used by this milestone's tickets exist
   const neededLabels = new Set(tickets.flatMap((t) => t.labels));
-  const missing = [...neededLabels].filter(
-    (n) => !ctx.labelByName.has(n.toLowerCase()),
-  );
+  const missing = [...neededLabels].filter((n) => !ctx.labelByName.has(n.toLowerCase()));
   if (missing.length > 0) {
     log.warn(`${missing.length} label(s) missing, syncing labels first…`);
     await ensureLabels(ctx);
@@ -114,7 +109,5 @@ export async function syncMilestone(
     log.ok(`Created ${issue?.identifier ?? "?"}: ${t.title}`);
   }
 
-  log.ok(
-    `M${weekNumber} done — ${toCreate.length} created, ${toSkip.length} skipped.`,
-  );
+  log.ok(`M${weekNumber} done — ${toCreate.length} created, ${toSkip.length} skipped.`);
 }

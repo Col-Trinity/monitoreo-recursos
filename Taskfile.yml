@@ -171,6 +171,35 @@ tasks:
     cmds:
       - pnpm turbo run typecheck
 
+  format:
+    desc: Format all code (Prettier + gofmt)
+    cmds:
+      - pnpm run format
+      - task: format:go
+
+  format:check:
+    desc: Check formatting without writing (Prettier + gofmt)
+    cmds:
+      - pnpm run format:check
+      - task: format:go:check
+
+  format:go:
+    desc: Run gofmt on Go sources
+    dir: apps/agent
+    cmds:
+      - gofmt -w .
+
+  format:go:check:
+    desc: Check Go formatting (fails if unformatted)
+    dir: apps/agent
+    cmds:
+      - |
+        out=$(gofmt -l .)
+        if [ -n "$out" ]; then
+          echo "Unformatted Go files:"; echo "$out"; exit 1
+        fi
+    silent: true
+
   clean:
     desc: Clean all build outputs and node_modules
     cmds:

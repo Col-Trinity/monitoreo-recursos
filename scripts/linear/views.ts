@@ -22,7 +22,8 @@ function buildViews(projectId: string, userIdByEmail: Map<string, string>): View
   const views: ViewDef[] = [
     {
       name: "Watch-Dog — Roadmap por milestone",
-      description: "Todos los tickets abiertos del proyecto, agrupados por milestone. Vista maestra del plan.",
+      description:
+        "Todos los tickets abiertos del proyecto, agrupados por milestone. Vista maestra del plan.",
       filterData: {
         project: { id: { eq: projectId } },
         state: { type: { nin: ["completed", "canceled"] } },

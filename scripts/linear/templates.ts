@@ -57,8 +57,7 @@ _¿Cuál elegimos y por qué?_
   },
   {
     name: "ADR (Architectural Decision Record)",
-    description:
-      "Registro de decisión arquitectónica. Inmutable una vez merged.",
+    description: "Registro de decisión arquitectónica. Inmutable una vez merged.",
     templateData: {
       title: "[ADR] ",
       priority: 2,

@@ -6,9 +6,7 @@ import { log } from "./utils.js";
  * Populates ctx.labelByName with new ids on --apply.
  */
 export async function ensureLabels(ctx: Context): Promise<void> {
-  const missing = ctx.index.labels.filter(
-    (l) => !ctx.labelByName.has(l.name.toLowerCase()),
-  );
+  const missing = ctx.index.labels.filter((l) => !ctx.labelByName.has(l.name.toLowerCase()));
   if (missing.length === 0) {
     log.ok(`Labels already exist (${ctx.index.labels.length} total).`);
     return;

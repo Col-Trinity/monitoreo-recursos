@@ -35,9 +35,7 @@ export async function buildContext(
   });
   const project = projects.nodes[0];
   if (!project) {
-    throw new Error(
-      `Project "${index.project.name}" not found in team ${team.key}.`,
-    );
+    throw new Error(`Project "${index.project.name}" not found in team ${team.key}.`);
   }
 
   // Resolve users
@@ -48,9 +46,7 @@ export async function buildContext(
   }
   for (const a of index.assignees) {
     if (!userByEmail.has(a.email.toLowerCase())) {
-      throw new Error(
-        `Assignee ${a.email} not found in workspace (invite them to Linear first).`,
-      );
+      throw new Error(`Assignee ${a.email} not found in workspace (invite them to Linear first).`);
     }
   }
 

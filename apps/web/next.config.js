@@ -11,7 +11,11 @@ await import("./src/env.js");
 
 /** @type {import("next").NextConfig} */
 const config = {
-  transpilePackages: ["@watchdog/db", "@watchdog/env", "@watchdog/shared-types"],
+  transpilePackages: [
+    "@watchdog/db",
+    "@watchdog/env",
+    "@watchdog/shared-types",
+  ],
 };
 
 export default config;

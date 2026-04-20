@@ -14,9 +14,7 @@ const worker = new Worker(
 );
 
 worker.on("ready", () => console.log("[worker] ready"));
-worker.on("failed", (job, err) =>
-  console.error(`[worker] ${job?.name}#${job?.id} failed:`, err),
-);
+worker.on("failed", (job, err) => console.error(`[worker] ${job?.name}#${job?.id} failed:`, err));
 
 async function shutdown() {
   console.log("[worker] shutting down...");

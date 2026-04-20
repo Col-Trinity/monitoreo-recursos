@@ -3,12 +3,11 @@ import { metricsTable } from "@watchdog/db";
 import { desc } from "drizzle-orm";
 
 export const metricsRouter = createTRPCRouter({
-  getAll: publicProcedure
-    .query(async ({ ctx }) => {
-      return await ctx.db
-          .select()
-          .from(metricsTable)
-          .orderBy(desc(metricsTable.createdAt))
-          .limit(20)
-    }),
+  getAll: publicProcedure.query(async ({ ctx }) => {
+    return await ctx.db
+      .select()
+      .from(metricsTable)
+      .orderBy(desc(metricsTable.createdAt))
+      .limit(20);
+  }),
 });

@@ -1,12 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import YAML from "yaml";
-import {
-  indexSchema,
-  milestoneSchema,
-  type IndexConfig,
-  type MilestoneConfig,
-} from "./types.js";
+import { indexSchema, milestoneSchema, type IndexConfig, type MilestoneConfig } from "./types.js";
 
 const PLAN_DIR = path.resolve(process.cwd(), "docs/linear-plan");
 

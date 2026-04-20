@@ -37,9 +37,7 @@ export async function syncRelations(ctx: Context): Promise<void> {
     // Resolve milestone id
     const project = await ctx.client.project(ctx.projectId);
     const milestones = await project.projectMilestones();
-    const milestoneObj = milestones.nodes.find(
-      (m) => m.name === config.milestone.name,
-    );
+    const milestoneObj = milestones.nodes.find((m) => m.name === config.milestone.name);
     if (!milestoneObj) {
       log.warn(`  milestone not in Linear, skipping`);
       continue;
@@ -88,9 +86,7 @@ export async function syncRelations(ctx: Context): Promise<void> {
       const blockedIssue = ordered[i]!;
       for (const blockerIdx of blocked) {
         if (blockerIdx < 1 || blockerIdx > ordered.length || blockerIdx === i + 1) {
-          log.warn(
-            `  invalid blockedBy=${blockerIdx} in "${ticket.title}" (self or out of range)`,
-          );
+          log.warn(`  invalid blockedBy=${blockerIdx} in "${ticket.title}" (self or out of range)`);
           continue;
         }
         const blockerIssue = ordered[blockerIdx - 1]!;
@@ -103,10 +99,7 @@ export async function syncRelations(ctx: Context): Promise<void> {
           continue;
         }
 
-        log.plan(
-          "CREATE",
-          `${blockerIssue.identifier} blocks ${blockedIssue.identifier}`,
-        );
+        log.plan("CREATE", `${blockerIssue.identifier} blocks ${blockedIssue.identifier}`);
 
         if (ctx.apply) {
           await ctx.client.createIssueRelation({

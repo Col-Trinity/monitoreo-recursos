@@ -88,13 +88,13 @@ watchdog/
 
 ## Ports locales
 
-| Servicio | Puerto |
-|---|---|
-| web (Next.js) | 3000 |
-| api (Fastify) | 3001 |
-| postgres primary | 5433 |
-| postgres replica | 5434 |
-| redis | 6379 |
+| Servicio         | Puerto |
+| ---------------- | ------ |
+| web (Next.js)    | 3000   |
+| api (Fastify)    | 3001   |
+| postgres primary | 5433   |
+| postgres replica | 5434   |
+| redis            | 6379   |
 
 ## Read/write split
 

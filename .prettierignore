@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+build/
+bin/
+.next/
+out/
+.turbo/
+coverage/
+
+# Lockfiles
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+go.sum
+
+# Generated
+drizzle/**/*.sql
+*.generated.ts
+*.generated.tsx
+
+# Go — handled by gofmt, no prettier
+*.go
+go.work
+go.mod
+
+# Binary / config files not meant to format
+*.pem
+*.ico
+*.png
+*.jpg
+*.gif
+*.svg
+
+# OS
+.DS_Store

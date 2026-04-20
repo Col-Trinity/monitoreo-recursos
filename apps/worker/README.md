@@ -7,6 +7,7 @@ Worker de background jobs basado en [BullMQ](https://docs.bullmq.io/) sobre Redi
 La API (`apps/api/`) sirve HTTP con Fastify y debe responder rápido. Cualquier trabajo pesado (procesamiento de métricas en batch, notificaciones, agregaciones, retries, jobs programados) bloquea el event loop si corre en el mismo proceso.
 
 Separar el worker te permite:
+
 - Escalar horizontalmente independiente de la API (más workers cuando hay backlog, sin tocar la API).
 - Tener reintentos, rate limiting y delayed jobs gratis vía BullMQ.
 - Caer la API sin perder trabajo en cola (los jobs sobreviven en Redis).
@@ -17,10 +18,14 @@ Separar el worker te permite:
 `src/index.ts` monta un `Worker` de BullMQ que escucha la cola `"default"` con concurrencia 4 y simplemente logea los jobs que recibe. Es un stub — ningún código del monorepo publica jobs todavía.
 
 ```ts
-const worker = new Worker("default", async (job) => {
-  console.log(`[worker] processing ${job.name}#${job.id}`, job.data);
-  return { ok: true };
-}, { connection, concurrency: 4 });
+const worker = new Worker(
+  "default",
+  async (job) => {
+    console.log(`[worker] processing ${job.name}#${job.id}`, job.data);
+    return { ok: true };
+  },
+  { connection, concurrency: 4 },
+);
 ```
 
 El worker ya está integrado al flujo de `task dev` — levanta junto con el resto y se conecta a Redis usando `REDIS_URL` del `.env` raíz. Si Redis está arriba, el worker queda esperando jobs.
@@ -28,6 +33,7 @@ El worker ya está integrado al flujo de `task dev` — levanta junto con el res
 ## Cómo se va a usar (cuando toque conectarlo)
 
 **Publicar un job desde la API (o cualquier otro lugar):**
+
 ```ts
 // Lógica en la api de escritura (lee http, publica en la queue)
 import { Queue } from "bullmq";
@@ -45,11 +51,15 @@ await queue.add("aggregate-hour", { serverName, bucketStart });
 
 ```ts
 // Donde quieras poner el codigo para leer de la cola y publicar en BD
-new Worker("metrics-aggregation", async (job) => {
-  if (job.name === "aggregate-hour") {
-    // ...
-  }
-}, { connection, concurrency: 2 });
+new Worker(
+  "metrics-aggregation",
+  async (job) => {
+    if (job.name === "aggregate-hour") {
+      // ...
+    }
+  },
+  { connection, concurrency: 2 },
+);
 ```
 
 **Nombres de cola compartidos:** mover los nombres a `packages/shared-types` para evitar typos entre productor y consumidor. Investigar si se puede hacer algo para evitar usar todo el boilerplate de new Queue, poniendo un texto y crear helpers que tengan todo el código.
