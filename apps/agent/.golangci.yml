@@ -1,0 +1,30 @@
+# Config de golangci-lint para el agent.
+# Ejecutar: task lint  (o desde apps/agent: golangci-lint run ./...)
+# Docs: https://golangci-lint.run/usage/configuration/
+
+run:
+  timeout: 3m
+  tests: true
+
+linters:
+  disable-all: true
+  enable:
+    # default set
+    - errcheck # errores no chequeados
+    - gosimple # simplificaciones
+    - govet # typecheck + bugs comunes (reemplaza `go vet`)
+    - ineffassign # assignments sin uso
+    - staticcheck # análisis estático amplio
+    - unused # código muerto
+    # extras útiles
+    - bodyclose # http.Response.Body sin cerrar
+    - gocritic # patrones dudosos
+    - gofmt # formato (redundante con `task format` pero útil en CI)
+    # - misspell      # deshabilitado: proyecto mezcla comentarios en español e inglés
+    - revive # reemplazo moderno de golint
+    - unconvert # conversiones innecesarias
+
+issues:
+  exclude-use-default: false
+  max-issues-per-linter: 0
+  max-same-issues: 0

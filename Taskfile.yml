@@ -24,15 +24,18 @@ tasks:
       - echo "Ready. Run 'task dev' to start all apps."
 
   tools:install:
-    desc: Install local Go tools (air for hot-reload)
+    desc: Install local Go tools (air for hot-reload, golangci-lint)
     cmds:
       - |
         if ! command -v air > /dev/null 2>&1; then
           echo "Installing air (Go hot-reload)..."
           go install github.com/air-verse/air@latest
         fi
-    status:
-      - command -v air > /dev/null 2>&1
+      - |
+        if ! command -v golangci-lint > /dev/null 2>&1 && [ ! -x "$(go env GOPATH)/bin/golangci-lint" ]; then
+          echo "Installing golangci-lint..."
+          go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
+        fi
 
   go:sync:
     desc: Download Go toolchain declared in go.work and sync each module's deps
@@ -150,6 +153,23 @@ tasks:
       - task: docker:up
       - task: db:wait
       - task: db:migrate
+
+  verify:
+    desc: |
+      Todo en orden: format:check → lint → typecheck → test. Falla rápido.
+      Correr antes de abrir un PR. Lo mismo que va a correr CI.
+    cmds:
+      - task: format:check
+      - task: lint
+      - task: typecheck
+      - task: test
+
+  fix:
+    desc: |
+      Arregla lo auto-arreglable: format + lint:fix. Útil antes de verify.
+    cmds:
+      - task: format
+      - pnpm turbo run lint -- --fix || true
 
   build:
     desc: Build all apps and packages

@@ -6,6 +6,8 @@
     "dev": "dotenv -e ../../.env -- ./scripts/dev.sh",
     "build": "go build -o bin/agent ./cmd/agent",
     "start": "./bin/agent",
+    "typecheck": "go vet ./...",
+    "lint": "./scripts/lint.sh",
     "test:unit": "go test ./...",
     "clean": "rm -rf bin tmp .turbo"
   },
