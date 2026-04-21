@@ -29,6 +29,8 @@ func getenv(key, fallback string) string {
 func main() {
 	// TODO: Move to new file `getConfig` read config, validate, return error
 	apiURL := getenv("AGENT_API_URL", "http://localhost:3001") + "/metrics"
+	healthPort := getenv("AGENT_HEALTH_PORT", "3003")
+	startHealthServer(healthPort)
 	intervalStr := getenv("AGENT_SAMPLE_INTERVAL", "5s")
 	interval, err := time.ParseDuration(intervalStr)
 	if err != nil {
