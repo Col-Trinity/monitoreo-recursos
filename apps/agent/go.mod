@@ -1,6 +1,6 @@
 module github.com/Col-Trinity/monitoreo-recursos/apps/agent
 
-go 1.24
+go 1.24.0
 
 require github.com/shirou/gopsutil/v3 v3.24.5
 
