@@ -129,6 +129,11 @@ tasks:
     desc: Apply Drizzle migrations
     cmds:
       - pnpm --filter @watchdog/db db:migrate
+   
+  db:seed:
+    desc: Seed the database with test data
+    cmds:
+      - pnpm --filter @watchdog/db db:seed
 
   db:generate:
     desc: Generate new Drizzle migration from schema changes
