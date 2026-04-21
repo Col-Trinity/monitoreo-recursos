@@ -10,6 +10,7 @@
     "./schema": "./src/schema/index.ts"
   },
   "scripts": {
+    "db:seed": "tsx --env-file=../../.env src/seed.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/migrate.ts",
     "db:push": "drizzle-kit push",
