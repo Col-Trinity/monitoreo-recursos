@@ -2,6 +2,11 @@
 
 Monorepo con agente Go, API Fastify, worker BullMQ y frontend Next.js.
 
+## Documentation
+
+- [Architecture overview](docs/architecture/overview.md)
+- [Data model](docs/architecture/data-model.md)
+
 ## Stack
 
 - **Orquestación:** pnpm workspaces + Turborepo + Taskfile + `go.work`
