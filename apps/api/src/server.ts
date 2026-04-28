@@ -19,8 +19,10 @@ fastify.post("/metrics", async (request, reply) => {
   const [metric] = await dbWrite()
     .insert(metricsTable)
     .values({
-      cpuPercentage: parsed.data.cpu_percentage,
-      serverName: parsed.data.server_name ?? "local-server",
+      agentId: "agentePrueba", //falta obtener agentId,Leer el token del request, Buscar en BD qué agent tiene esa apiKey, Obtener el agentId
+      value: parsed.data.cpu_percentage,
+      metricsType: "cpu",
+      hostname: parsed.data.server_name ?? "local-server",
     })
     .returning();
 

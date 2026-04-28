@@ -18,8 +18,8 @@ export default function Home() {
 
   const ultimos20 = data?.map((d) => ({
     ...d,
-    cpuPercentage: parseFloat(d.cpuPercentage.toFixed(2)),
-    hora: new Date(d.createdAt ?? new Date()).toLocaleTimeString(),
+    value: parseFloat((d.value ?? 0).toFixed(2)), // era cpuPercentage
+    hora: new Date(d.time ?? new Date()).toLocaleTimeString(), // era createdAt
   }));
 
   return (
