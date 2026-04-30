@@ -7,7 +7,7 @@ agent (Go) → api (Fastify) → queue (Redis) → worker (BullMQ) → db (Postg
 
 ## Services
 
-- **agent** — Go service that reads CPU usage every 5 seconds and sends it to the API
+- **agent** — Go service that collects system metrics (cpu, memory, disk, network) every 5 seconds and sends them to the API
 - **api** — Fastify server that receives metrics and stores them in the database
 - **queue** — Redis queue that will handle async job processing (coming soon)
 - **worker** — BullMQ worker that processes jobs from the queue (coming soon)
