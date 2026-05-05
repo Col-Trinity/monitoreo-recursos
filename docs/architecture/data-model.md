@@ -2,6 +2,8 @@
 
 ## users
 
+Stores the accounts that can log in to the platform.
+
 | Column            | Type      | Description                                       |
 | ----------------- | --------- | ------------------------------------------------- |
 | id                | uuid      | Primary key auto-generated                        |
@@ -16,6 +18,8 @@
 
 ## session
 
+Active login sessions for a user. A user can have multiple sessions across devices.
+
 | Column     | Type      | Description                              |
 | ---------- | --------- | ---------------------------------------- |
 | id         | uuid      | Primary key, auto-generated              |
@@ -26,6 +30,8 @@
 | lastUsedAt | timestamp | When the session was last used, nullable |
 
 ## workspaces
+
+Top-level tenant unit. All resources (agents, hosts, alerts) belong to a workspace.
 
 | Column      | Type      | Description                                      |
 | ----------- | --------- | ------------------------------------------------ |
@@ -38,6 +44,8 @@
 
 ## memberships
 
+Junction table between `users` and `workspaces`. Defines who belongs to a workspace and with what role.
+
 | Column      | Type      | Description                                             |
 | ----------- | --------- | ------------------------------------------------------- |
 | id          | uuid      | Primary key, auto-generated                             |
@@ -49,6 +57,8 @@
 | deletedAt   | timestamp | When the record was soft deleted, null if active        |
 
 ## agents
+
+Programs installed in the client's infrastructure that collect and send metrics to the API. Each agent authenticates with a unique API key.
 
 | Column        | Type      | Description                                      |
 | ------------- | --------- | ------------------------------------------------ |
@@ -77,14 +87,14 @@
 
 ## metrics
 
-| Column      | Type             | Description                                  |
-| ----------- | ---------------- | -------------------------------------------- |
-| id          | uuid             | Primary key, auto-generated                  |
-| agentId     | uuid             | FK → agents.id                               |
-| metricsType | enum             | Type of metric: memory, disk, cpu, network   |
-| value       | double precision | Measured value                               |
-| hostname    | varchar          | Hostname of the machine that sent the metric |
-| time        | timestamp        | When the metric was recorded, default now    |
+| Column      | Type             | Description                                            |
+| ----------- | ---------------- | ------------------------------------------------------ |
+| id          | uuid             | Part of composite PK (id, createdAt)                   |
+| agentId     | uuid             | FK → agents.id                                         |
+| metricsType | enum             | Type of metric: memory, disk, cpu, network             |
+| value       | double precision | Measured value                                         |
+| hostname    | varchar          | Hostname of the machine that sent the metric           |
+| createdAt   | timestamp        | When the metric was recorded, hypertable partition key |
 
 ## alerts_rules
 
