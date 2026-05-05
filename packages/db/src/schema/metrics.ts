@@ -6,7 +6,7 @@ export const metricsEnum = p.pgEnum("metrics_type", ["memory", "disk", "cpu", "n
 export const metricsTable = p.pgTable(
   "metrics",
   {
-    id: p.uuid().primaryKey().defaultRandom(),
+    id: p.uuid().notNull().defaultRandom(),
     agentId: p
       .uuid()
       .references(() => agentsTable.id)
@@ -14,14 +14,15 @@ export const metricsTable = p.pgTable(
     metricsType: metricsEnum("metrics_type").notNull(),
     value: p.doublePrecision("value"),
     hostname: p.varchar("host_name").notNull(),
-    time: p.timestamp().defaultNow().notNull(),
+    createdAt: p.timestamp("created_at").defaultNow().notNull()
   },
   (table) => ({
-    agentTimeIdx: p.index("agent_time_idx").on(table.agentId, table.time),
+    pk: p.primaryKey({ columns: [table.id, table.createdAt] }), // PK compuesto
+    agentTimeIdx: p.index("agent_time_idx").on(table.agentId, table.createdAt),
 
     uniqMetrics: p
       .uniqueIndex("uniq_metrcis")
-      .on(table.time, table.agentId, table.metricsType, table.hostname),
+      .on(table.createdAt, table.agentId, table.metricsType, table.hostname),
   }),
 );
 
