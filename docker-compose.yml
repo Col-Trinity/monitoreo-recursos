@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:16-alpine
+    image: timescale/timescaledb-ha:pg16
     container_name: watchdog-postgres
     environment:
       POSTGRES_USER: monitor_user
@@ -28,32 +28,22 @@ services:
       retries: 10
 
   postgres-replica:
-    image: postgres:16-alpine
+    image: timescale/timescaledb-ha:pg16
     container_name: watchdog-postgres-replica
-    user: postgres
+    user: root
+    entrypoint: ["/scripts/replica-entrypoint.sh"]
     depends_on:
       postgres:
         condition: service_healthy
     environment:
       PGUSER: replicator
       PGPASSWORD: replicator_password
-      PGDATA: /var/lib/postgresql/data/pgdata
-    entrypoint: ["/bin/sh", "-c"]
-    command:
-      - |
-        set -e
-        if [ ! -s "$$PGDATA/PG_VERSION" ]; then
-          mkdir -p "$$PGDATA"
-          until pg_basebackup --pgdata="$$PGDATA" -R --slot=replica_slot --host=postgres --port=5432 --username=replicator; do
-            echo "waiting for primary..."; sleep 2;
-          done
-          chmod 0700 "$$PGDATA"
-        fi
-        exec postgres -c hot_standby=on
+      PGDATA: /var/lib/postgresql/data
     ports:
       - "5434:5432"
     volumes:
       - postgres_replica_data:/var/lib/postgresql/data
+      - ./scripts/postgres/replica-entrypoint.sh:/scripts/replica-entrypoint.sh:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U monitor_user -d monitoreo_recursos"]
       interval: 2s
