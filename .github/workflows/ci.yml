@@ -1,0 +1,35 @@
+name: CI - Lint, TypeCheck, Build
+
+on: 
+  pull_request:
+    branches: [main]
+  push: 
+    branches: [main]
+jobs: 
+  ci: 
+     runs-on: ubuntu-latest
+     timeout-minutes: 15
+     steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+      - uses: pnpm/action-setup@v2
+        with: 
+          version: 10
+      - name: Install node.js dependencies
+        run: pnpm install
+      - uses: actions/setup-go@v4
+        with:
+          go-version: "1.24"
+      - name: Download Go modules
+        run: go work sync 
+      - name: Check Go formatting
+        run: task format:go:check
+      - name: Lint (Node.js)
+        run: task lint
+      - name: TypeCheck
+        run: task typecheck
+      - name: Build
+        run: task build
