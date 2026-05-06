@@ -24,7 +24,11 @@ jobs:
 
       - name: Install Node.js dependencies
         run: pnpm install
-      
+
+      - name: Install Task
+        run: |
+          curl -sL https://taskfile.dev/install.sh | sh -s -- -b /usr/local/bin
+          
       - uses: actions/setup-go@v4
         with:
           go-version: "1.24"
