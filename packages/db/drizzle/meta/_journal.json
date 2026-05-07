@@ -8,6 +8,13 @@
       "when": 1777353744538,
       "tag": "0000_red_meggan",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1777353800000,
+      "tag": "0001_metrics_hypertable",
+      "breakpoints": true
     }
   ]
 }
