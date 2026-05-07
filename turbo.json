@@ -2,7 +2,7 @@
   "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
   "globalDependencies": [".env", ".env.example"],
-  "globalEnv": ["NODE_ENV", "CI"],
+  "globalEnv": ["NODE_ENV", "CI", "SKIP_ENV_VALIDATION"],
   "tasks": {
     "dev": {
       "cache": false,
