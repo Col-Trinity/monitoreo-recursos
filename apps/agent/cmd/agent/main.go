@@ -78,7 +78,9 @@ func main() {
 				continue
 			}
 
-			resp.Body.Close()
+			if err := resp.Body.Close(); err != nil {
+				log.Printf("body close error: %v", err)
+			}
 			log.Printf("cpu=%.2f%% status=%d", percents[0], resp.StatusCode)
 		}
 	}
