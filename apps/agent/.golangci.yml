@@ -1,7 +1,7 @@
 # Config de golangci-lint para el agent.
 # Ejecutar: task lint  (o desde apps/agent: golangci-lint run ./...)
 # Docs: https://golangci-lint.run/usage/configuration/
-
+version: 2.12.2
 run:
   timeout: 3m
   tests: true
