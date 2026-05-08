@@ -15,6 +15,13 @@
       "when": 1777353800000,
       "tag": "0001_metrics_hypertable",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1777353900000,
+      "tag": "0002_metrics_retention_policy",
+      "breakpoints": true
     }
   ]
 }

@@ -1,0 +1,1 @@
+SELECT add_retention_policy('metrics', INTERVAL '7 days');

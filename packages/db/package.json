@@ -11,6 +11,7 @@
   },
   "scripts": {
     "db:seed": "tsx --env-file=../../.env src/seed.ts",
+    "db:retention-status": "tsx --env-file=../../.env scripts/retention-status.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx --env-file=../../.env src/migrate.ts",
     "db:push": "drizzle-kit push",

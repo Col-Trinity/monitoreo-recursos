@@ -135,6 +135,11 @@ tasks:
     cmds:
       - pnpm --filter @watchdog/db db:seed
 
+  db:retention-status:
+    desc: List active retention policies
+    cmds:
+      - pnpm --filter @watchdog/db db:retention-status
+      
   db:generate:
     desc: Generate new Drizzle migration from schema changes
     cmds:
