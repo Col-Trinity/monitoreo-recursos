@@ -7,7 +7,7 @@ export const metricsRouter = createTRPCRouter({
     return await ctx.db
       .select()
       .from(metricsTable)
-      .orderBy(desc(metricsTable.time))
+      .orderBy(desc(metricsTable.createdAt))
       .limit(20);
   }),
 });
