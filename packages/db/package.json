@@ -11,11 +11,11 @@
   },
   "scripts": {
     "db:seed": "tsx --env-file=../../.env src/seed.ts",
+    "db:bench": "tsx --env-file=../../.env scripts/bench-metrics.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx --env-file=../../.env src/migrate.ts",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "db:bench": "tsx --env-file=../../.env src/bench-metrics.ts",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "clean": "rm -rf .turbo drizzle/meta"
