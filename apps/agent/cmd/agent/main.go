@@ -66,6 +66,7 @@ func main() {
 			if len(percents) == 0 {
 				continue
 			}
+			// TODO: Change `ServerName` by `HostName`
 			payload := metricsPayload{CPUPercent: percents[0], ServerName: hostname}
 			body, err := json.Marshal(payload)
 			if err != nil {
