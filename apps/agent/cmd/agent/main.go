@@ -30,6 +30,7 @@ func main() {
 	// TODO: Move to new file `getConfig` read config, validate, return error
 	apiURL := getenv("AGENT_API_URL", "http://localhost:3001") + "/metrics"
 	healthPort := getenv("AGENT_HEALTH_PORT", "3003")
+	apiKey := getenv("AGENT_API_KEY", "dev-api-key-12345")
 	startHealthServer(healthPort)
 	intervalStr := getenv("AGENT_SAMPLE_INTERVAL", "5s")
 	interval, err := time.ParseDuration(intervalStr)
@@ -78,7 +79,7 @@ func main() {
 				continue
 			}
 			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("Authorization", "Bearer "+"dev-api-key-12345")
+			req.Header.Set("Authorization", "Bearer "+apiKey)
 
 			resp, err := client.Do(req)
 			if err != nil {
