@@ -64,10 +64,12 @@ async function benchmark() {
 
   // measurement of metrics
   console.log(`\nMidiendo queries...`);
-  const ayer = new Date(ahora.getTime() - 1440 * 60 * 1000);
   const tiempos = [];
 
   for (let i = 0; i < 100; i++) {
+    // const ayer = new Date(ahora.getTime() - 1440 * 60 * 1000);
+    const ayer = new Date(ahora.getTime() - Math.random() * 1440 * 60 * 1000);
+
     const inicio = Date.now();
 
     await db
@@ -83,6 +85,9 @@ async function benchmark() {
 
   console.log(`P50: ${tiempos[49]}ms`);
   console.log(`P99: ${tiempos[98]}ms`);
+
+  // exit program
+  process.exit(0);
 }
 
 benchmark();
