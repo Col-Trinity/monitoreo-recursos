@@ -22,14 +22,16 @@ fastify.post("/metrics", async (request, reply) => {
   const authHeader = request.headers.authorization;
 
   if (!authHeader) {
-    return reply.status(401).send({ error: "API key requerida" });
+    console.log("API key requerida");
+    return reply.status(403).send({ error: "API key requerida" });
   }
 
-  const apiKey = authHeader.split(" ")[1];
-
+  const apiKey = authHeader.split("Bearer ")[1];
   if (!apiKey) {
     return reply.status(401).send({ error: "Formato inválido, debe ser Bearer <api_key>" });
   }
+
+  // TODO: Hash Api-Key and search in database
 
   const [agent] = await dbRead().select().from(agentsTable).where(eq(agentsTable.apiKey, apiKey));
 

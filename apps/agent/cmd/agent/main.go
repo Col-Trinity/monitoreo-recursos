@@ -72,7 +72,15 @@ func main() {
 				continue
 			}
 			// TODO: Reemplazar `client.Post` por un SSE communication
-			resp, err := client.Post(apiURL, "application/json", bytes.NewReader(body))
+			req, err := http.NewRequest("POST", apiURL, bytes.NewReader(body))
+			if err != nil {
+				log.Printf("new request error: %v", err)
+				continue
+			}
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("Authorization", "Bearer "+"dev-api-key-12345")
+
+			resp, err := client.Do(req)
 			if err != nil {
 				log.Printf("POST error: %v", err)
 				continue
