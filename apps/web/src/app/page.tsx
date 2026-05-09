@@ -11,6 +11,8 @@ import {
 } from "recharts";
 import { api } from "@/trpc/react";
 
+const graphKeyColumn = "value";
+
 export default function Home() {
   const { data, isLoading, isError } = api.metrics.getAll.useQuery(undefined, {
     refetchInterval: 10000,
@@ -18,7 +20,7 @@ export default function Home() {
 
   const ultimos20 = data?.map((d) => ({
     ...d,
-    value: parseFloat((d.value ?? 0).toFixed(2)), // era cpuPercentage
+    [graphKeyColumn]: parseFloat((d.value ?? 0).toFixed(2)),
     hora: new Date(d.createdAt ?? new Date()).toLocaleTimeString(),
   }));
 
@@ -36,9 +38,9 @@ export default function Home() {
             <Tooltip />
             <Line
               type="monotone"
-              dataKey="cpuPercentage"
+              dataKey={graphKeyColumn}
               stroke="#8884d8"
-              dot={false}
+              dot={true}
             />
           </LineChart>
         </ResponsiveContainer>

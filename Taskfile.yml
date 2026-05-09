@@ -120,7 +120,7 @@ tasks:
     desc: Wait until Postgres accepts connections
     cmds:
       - |
-        until {{.COMPOSE}} exec -T postgres pg_isready -U monitor_user > /dev/null 2>&1; do
+        until {{.COMPOSE}} exec -T postgres pg_isready -U monitor_user -d monitoreo_recursos > /dev/null 2>&1; do
           echo "Waiting for Postgres..."; sleep 1;
         done
     silent: true
