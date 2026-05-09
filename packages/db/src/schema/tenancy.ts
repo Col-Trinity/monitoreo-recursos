@@ -6,31 +6,41 @@ export const workspacesTable = p.pgTable("workspaces", {
   name: p.varchar("name").notNull(),
   description: p.varchar("description").notNull(),
   createdAt: p.timestamp("created_at").defaultNow().notNull(),
-  updatedAt: p.timestamp("updated_at").defaultNow().notNull(),
+  updatedAt: p.timestamp("updated_at").defaultNow().notNull().$onUpdate(() => new Date()),
   deletedAt: p.timestamp("deleted_at"),
 });
 
+// TODO: Delete role `member`. 
+// Owner: Lectura, Escritura, Borrar.
+// Admin: Lectura, Escritura.
+// Viewer: Lectura.
 export const roleEnum = p.pgEnum("role", ["owner", "admin", "member", "viewer"]);
 export const membershipsTable = p.pgTable(
   "memberships",
   {
+    // TODO: Borrar `id` y generar migracion donde `userId` y `workspaceId` sean PK compuesto
     id: p.uuid("id").primaryKey().defaultRandom(),
     userId: p
       .uuid("user_id")
       .notNull()
-      .references(() => usersTable.id),
+      .references(() => usersTable.id, {
+        onDelete: "cascade"
+      }),
 
     workspaceId: p
       .uuid("workspace_id")
       .notNull()
-      .references(() => workspacesTable.id),
+      .references(() => workspacesTable.id, { 
+        onDelete: "cascade"
+      }),
 
     role: roleEnum("role").notNull(),
     createdAt: p.timestamp("created_at").defaultNow().notNull(),
-    updatedAt: p.timestamp("updated_at").defaultNow().notNull(),
+    updatedAt: p.timestamp("updated_at").defaultNow().notNull().$onUpdate(() => new Date()),
     deletedAt: p.timestamp("deleted_at"),
   },
   (table) => ({
+    // TODO: Delete this index as is unnecesary because the composed index is already indexing it
     userIdx: p.index("memberships_user_id_idx").on(table.userId),
 
     workspaceIdx: p.index("memberships_workspace_id_idx").on(table.workspaceId),
@@ -51,11 +61,11 @@ export const agentsTable = p.pgTable(
 
     name: p.varchar("name").notNull(),
     description: p.varchar("description").notNull(),
-    apiKey: p.varchar("api_key").unique().notNull(),
+    apiKey: p.varchar("api_key").unique().notNull(), // TODO: STORE HASHED 
     active: p.boolean("active").notNull().default(true),
     lastHeartbeat: p.timestamp("last_heartbeat"),
     createdAt: p.timestamp("created_at").defaultNow().notNull(),
-    updatedAt: p.timestamp("updated_at").defaultNow().notNull(),
+    updatedAt: p.timestamp("updated_at").defaultNow().notNull().$onUpdate(() => new Date()),
     deletedAt: p.timestamp("deleted_at"),
   },
   (table) => ({
@@ -63,6 +73,7 @@ export const agentsTable = p.pgTable(
   }),
 );
 
+// TODO: Delete this table and keep `host_name` in metrics
 export const hostsTable = p.pgTable(
   "hosts",
   {
