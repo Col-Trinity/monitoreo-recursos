@@ -260,6 +260,37 @@ Para Watch-Dog, elegimos `7 days` porque:
 - Datos más antiguos no son útiles para análisis actual
 - Ahorra espacio y mantiene la BD rápida
 
+#### Configuración actual en Watch-Dog
+
+La retention policy está aplicada sobre la tabla `metrics` con un intervalo de 7 días:
+
+```sql
+SELECT add_retention_policy('metrics', INTERVAL '7 days');
+```
+
+Para verificar las policies activas podés correr:
+
+```bash
+task db:retention-status
+```
+
+#### ¿Cómo cambiarla?
+
+Si en el futuro queremos un intervalo diferente (por ejemplo en M7 cuando queramos
+retention distinta por tabla), hay que:
+
+**1. Eliminar la policy actual:**
+```sql
+SELECT remove_retention_policy('metrics');
+```
+
+**2. Crear una nueva con el intervalo deseado:**
+```sql
+SELECT add_retention_policy('metrics', INTERVAL '30 days');
+```
+
+**3. Crear una migración nueva** en `packages/db/drizzle/` con esos cambios
+y registrarla en `_journal.json`.
 
 ### Compression: Comprimiendo Datos Antiguos
 
