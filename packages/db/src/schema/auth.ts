@@ -7,11 +7,11 @@ export const usersTable = p.pgTable("users", {
   name: p.varchar("name"),
   email: p.varchar("email").unique(),
   passwordHash: p.varchar("password_hash"),
-  emailVerifiedAt: p.timestamp("email_verified_at"),
+  emailVerifiedAt: p.timestamp("email_verified_at", { withTimezone: true }),
   language: languageEnum("language"),
-  createdAt: p.timestamp("created_at").defaultNow().notNull(),
-  updatedAt: p.timestamp("updated_at").defaultNow().notNull().$onUpdate(() => new Date()),
-  deletedAt: p.timestamp("deleted_at"),
+  createdAt: p.timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: p.timestamp("updated_at", { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
+  deletedAt: p.timestamp("deleted_at", { withTimezone: true }),
 });
 
 export const sessionsTable = p.pgTable("sessions", {
@@ -20,10 +20,10 @@ export const sessionsTable = p.pgTable("sessions", {
       .uuid("user_id")
       .notNull()
       .references(() => usersTable.id),
-    expiresAt: p.timestamp("expires_at").notNull(),
+    expiresAt: p.timestamp("expires_at", { withTimezone: true }).notNull(),
     tokenHash: p.varchar("token_hash"),
-    createdAt: p.timestamp("created_at").defaultNow().notNull(),
-    lastUsedAt: p.timestamp("last_used_at"),
+    createdAt: p.timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    lastUsedAt: p.timestamp("last_used_at", { withTimezone: true }),
   },
   (table) => ({
     userIdx: p.index("sessions_user_id_idx").on(table.userId),

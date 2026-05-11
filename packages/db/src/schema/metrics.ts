@@ -18,7 +18,7 @@ export const metricsTable = p.pgTable(
     metricsType: metricsEnum("metrics_type").notNull(),
     value: p.doublePrecision("value"),
     hostname: p.varchar("host_name").notNull(),
-    createdAt: p.timestamp("created_at").defaultNow().notNull() // TODO: Generar migracion
+    createdAt: p.timestamp("created_at", { withTimezone: true }).defaultNow().notNull() // TODO: Generar migracion
   },
   (table) => ({
     pk: p.primaryKey({ columns: [table.id, table.createdAt] }), // PK compuesto
@@ -44,11 +44,11 @@ export const alertsRuleTable = p.pgTable("alerts_rules", {
     .notNull()
     .references(() => usersTable.id),
   notifiedUserId: p.varchar("notified_user_id"),
-  trigger_type: triggerEnum("trigger_type"),
+  triggerType: triggerEnum("trigger_type"),
   metadata: p.json("metadata"),
-  createdAt: p.timestamp(),
-  updatedAt: p.timestamp("updated_at").defaultNow().notNull().$onUpdate(() => new Date()),
-  deletedAt: p.timestamp("deleted_at"),
+  createdAt: p.timestamp("created_at", { withTimezone: true }),
+  updatedAt: p.timestamp("updated_at", { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
+  deletedAt: p.timestamp("deleted_at", { withTimezone: true }),
 });
 
 export const statusEnum = p.pgEnum("status", ["active", "resolved", "ack"]);
@@ -71,12 +71,12 @@ export const alertEventTable = p.pgTable(
       .notNull()
       .references(() => usersTable.id),
     triggerValue: p.integer("trigger_value"),
-    startedAt: p.timestamp("started_at").notNull(),
+    startedAt: p.timestamp("started_at", { withTimezone: true }).notNull(),
     // TODO: add ackAt
-    resolvedAt: p.timestamp("resolved_at"),
+    resolvedAt: p.timestamp("resolved_at", { withTimezone: true }),
     status: statusEnum("status"),
-    createdAt: p.timestamp(),
-    updatedAt: p.timestamp("updated_at").defaultNow().notNull().$onUpdate(() => new Date()),
+    createdAt: p.timestamp("created_at", { withTimezone: true }),
+    updatedAt: p.timestamp("updated_at", { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
   },
   (table) => ({
     statusIdx: p.index("alert_event_status_idx").on(table.status),
@@ -122,7 +122,7 @@ export const auditLogTable = p.pgTable(
     action: actionEnum("action"),
 
     changes: p.json("changes"),
-    createdAt: p.timestamp("created_at").defaultNow().notNull(),
+    createdAt: p.timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => ({
     userIdx: p.index("audit_user_idx").on(table.userId),

@@ -5,9 +5,9 @@ export const workspacesTable = p.pgTable("workspaces", {
   id: p.uuid("id").primaryKey().defaultRandom(),
   name: p.varchar("name").notNull(),
   description: p.varchar("description").notNull(),
-  createdAt: p.timestamp("created_at").defaultNow().notNull(),
-  updatedAt: p.timestamp("updated_at").defaultNow().notNull().$onUpdate(() => new Date()),
-  deletedAt: p.timestamp("deleted_at"),
+  createdAt: p.timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: p.timestamp("updated_at", { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
+  deletedAt: p.timestamp("deleted_at", { withTimezone: true }),
 });
 
 // TODO: Delete role `member`. 
@@ -35,9 +35,9 @@ export const membershipsTable = p.pgTable(
       }),
 
     role: roleEnum("role").notNull(),
-    createdAt: p.timestamp("created_at").defaultNow().notNull(),
-    updatedAt: p.timestamp("updated_at").defaultNow().notNull().$onUpdate(() => new Date()),
-    deletedAt: p.timestamp("deleted_at"),
+    createdAt: p.timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: p.timestamp("updated_at", { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
+    deletedAt: p.timestamp("deleted_at", { withTimezone: true }),
   },
   (table) => ({
     // TODO: Delete this index as is unnecesary because the composed index is already indexing it
@@ -63,10 +63,10 @@ export const agentsTable = p.pgTable(
     description: p.varchar("description").notNull(),
     apiKey: p.varchar("api_key").unique().notNull(), // TODO: STORE HASHED 
     active: p.boolean("active").notNull().default(true),
-    lastHeartbeat: p.timestamp("last_heartbeat"),
-    createdAt: p.timestamp("created_at").defaultNow().notNull(),
-    updatedAt: p.timestamp("updated_at").defaultNow().notNull().$onUpdate(() => new Date()),
-    deletedAt: p.timestamp("deleted_at"),
+    lastHeartbeat: p.timestamp("last_heartbeat", { withTimezone: true }),
+    createdAt: p.timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: p.timestamp("updated_at", { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
+    deletedAt: p.timestamp("deleted_at", { withTimezone: true }),
   },
   (table) => ({
     projectIdx: p.index("agents_workspace_id_idx").on(table.workspaceId),
@@ -84,9 +84,9 @@ export const hostsTable = p.pgTable(
       .uuid("agent_id")
       .notNull()
       .references(() => agentsTable.id),
-    createdAt: p.timestamp("created_at").defaultNow().notNull(),
-    updatedAt: p.timestamp("updated_at").defaultNow().notNull(),
-    deletedAt: p.timestamp("deleted_at"),
+    createdAt: p.timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: p.timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    deletedAt: p.timestamp("deleted_at", { withTimezone: true }),
   },
   (table) => ({
     agentIdx: p.index("hosts_agent_id_idx").on(table.agentId),
