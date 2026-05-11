@@ -1,4 +1,4 @@
 {
   "extends": "@watchdog/tsconfig/node.json",
-  "include": ["src/**/*", "drizzle.config.ts"]
+  "include": ["src/**/*", "drizzle.config.ts", "scripts/**/*"]
 }

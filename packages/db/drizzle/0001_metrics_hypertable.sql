@@ -13,3 +13,4 @@ ALTER TABLE "metrics" ADD CONSTRAINT "metrics_pkey" PRIMARY KEY ("id", "created_
 CREATE UNIQUE INDEX "uniq_metrcis" ON "metrics" ("created_at", "agent_id", "metrics_type", "host_name");
 -->statement-breakpoint
 CREATE INDEX "agent_time_idx" ON "metrics" ("agent_id", "created_at");
+    

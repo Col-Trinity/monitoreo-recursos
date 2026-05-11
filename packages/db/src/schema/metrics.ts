@@ -2,35 +2,41 @@ import * as p from "drizzle-orm/pg-core";
 import { agentsTable, workspacesTable } from "./tenancy";
 import { usersTable } from "./auth";
 
+// TODO: Add all possible metrics
 export const metricsEnum = p.pgEnum("metrics_type", ["memory", "disk", "cpu", "network"]);
 export const metricsTable = p.pgTable(
   "metrics",
   {
+    // TODO: DELETE PK ID AS IS UNNECESSARY
     id: p.uuid().notNull().defaultRandom(),
     agentId: p
       .uuid()
-      .references(() => agentsTable.id)
+      .references(() => agentsTable.id, {
+        onDelete: "cascade"
+      })
       .notNull(),
     metricsType: metricsEnum("metrics_type").notNull(),
     value: p.doublePrecision("value"),
     hostname: p.varchar("host_name").notNull(),
-    createdAt: p.timestamp("created_at").defaultNow().notNull()
+    createdAt: p.timestamp("created_at").defaultNow().notNull() // TODO: Generar migracion
   },
   (table) => ({
     pk: p.primaryKey({ columns: [table.id, table.createdAt] }), // PK compuesto
     agentTimeIdx: p.index("agent_time_idx").on(table.agentId, table.createdAt),
 
     uniqMetrics: p
-      .uniqueIndex("uniq_metrcis")
+      .uniqueIndex("uniq_metrcis") // TODO: Change name to `uniq_metrics`
       .on(table.createdAt, table.agentId, table.metricsType, table.hostname),
   }),
 );
 
+// TODO: Delete `triggerEnum` and use `metricsEnum` instead
+// TODO: Maybe in the future we need to referenciate `agentId` too
 export const triggerEnum = p.pgEnum("trigger_type", ["memory", "disk", "cpu", "network", "custom"]);
 export const alertsRuleTable = p.pgTable("alerts_rules", {
   id: p.uuid("id").primaryKey().defaultRandom(),
   workspaceId: p
-    .uuid("project_id")
+    .uuid("project_id") // todo: PROJECT_ID is workspace_id change this column name in the db
     .notNull()
     .references(() => workspacesTable.id),
   createByUserId: p
@@ -41,7 +47,7 @@ export const alertsRuleTable = p.pgTable("alerts_rules", {
   trigger_type: triggerEnum("trigger_type"),
   metadata: p.json("metadata"),
   createdAt: p.timestamp(),
-  updatedAt: p.timestamp("updated_at").defaultNow().notNull(),
+  updatedAt: p.timestamp("updated_at").defaultNow().notNull().$onUpdate(() => new Date()),
   deletedAt: p.timestamp("deleted_at"),
 });
 
@@ -54,20 +60,23 @@ export const alertEventTable = p.pgTable(
       .uuid("alert_rule_id")
       .notNull()
       .references(() => alertsRuleTable.id),
+    // TODO: Delete `workspaceid` as exists in `alertsRuleTable`
     workspaceId: p
       .uuid("project_id")
       .notNull()
       .references(() => workspacesTable.id),
+    // TODO: Change name to `user_id_to_notify`
     userId: p
       .uuid("user_id")
       .notNull()
       .references(() => usersTable.id),
     triggerValue: p.integer("trigger_value"),
     startedAt: p.timestamp("started_at").notNull(),
+    // TODO: add ackAt
     resolvedAt: p.timestamp("resolved_at"),
     status: statusEnum("status"),
     createdAt: p.timestamp(),
-    updatedAt: p.timestamp("updated_at").defaultNow().notNull(),
+    updatedAt: p.timestamp("updated_at").defaultNow().notNull().$onUpdate(() => new Date()),
   },
   (table) => ({
     statusIdx: p.index("alert_event_status_idx").on(table.status),
@@ -80,7 +89,7 @@ export const resourceTypeEnum = p.pgEnum("resource_type", [
   "user",
   "workspace",
   "agent",
-  "host",
+  "host", // TODO : DELETE
   "alert",
   "membership",
 ]);

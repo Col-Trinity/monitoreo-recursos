@@ -1,5 +1,6 @@
 import * as p from "drizzle-orm/pg-core";
 
+// Todo: Guardar el idioma en codigo ISO 639-1 `en` `es` `pt`
 export const languageEnum = p.pgEnum("language", ["ingles", "español", "portugues"]);
 export const usersTable = p.pgTable("users", {
   id: p.uuid("id").primaryKey().defaultRandom(),
@@ -9,7 +10,7 @@ export const usersTable = p.pgTable("users", {
   emailVerifiedAt: p.timestamp("email_verified_at"),
   language: languageEnum("language"),
   createdAt: p.timestamp("created_at").defaultNow().notNull(),
-  updatedAt: p.timestamp("updated_at").defaultNow().notNull(),
+  updatedAt: p.timestamp("updated_at").defaultNow().notNull().$onUpdate(() => new Date()),
   deletedAt: p.timestamp("deleted_at"),
 });
 
