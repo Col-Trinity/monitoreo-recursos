@@ -342,3 +342,30 @@ Comprimir datos tiene una **compensación importante:**
 | Datos de hace 1 mes (rara vez consultados) | ✅ SÍ       | Espacio vs velocidad, vale la pena |
 | Datos históricos (más de 3 meses)          | ✅ SÍ       | Casi nunca los consultas           |
 
+
+
+## Benchmarks
+
+Resultados corridos en entorno local con Docker, con 1,036,800 filas 
+distribuidas en 30 días.
+
+### ¿Cómo se generaron los datos?
+
+Se simularon 6 servidores enviando 4 tipos de métricas cada minuto durante 30 días:
+
+30 días × 1,440 minutos × 6 servidores × 4 tipos = 1,036,800 filas
+
+### Insert bulk (lotes de 10,000 filas)
+| Métrica | Resultado |
+|---------|-----------|
+| Total filas | 1,036,800 |
+| Tiempo total | 86,325ms |
+
+### Queries (100 ejecuciones)
+| Métrica | Resultado | Criterio |
+|---------|-----------|---------|
+| P50 | 193ms | - |
+| P99 | 263ms | < 50ms |
+
+> ⚠️ Los resultados fueron obtenidos en entorno local con Docker.
+> Se espera mejor performance en un servidor real de producción.
