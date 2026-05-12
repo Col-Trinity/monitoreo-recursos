@@ -1,10 +1,14 @@
 import Fastify from "fastify";
 import cors from "@fastify/cors";
-import { dbWrite, dbRead, metricsTable } from "@watchdog/db";
+// TODO: re-add dbRead once replica is fixed
+import { dbRead, dbWrite, metricsTable } from "@watchdog/db";
 import { env } from "@watchdog/env";
 import { metricsPayloadSchema } from "@watchdog/shared-types";
 import { agentsTable } from "@watchdog/db/schema";
 import { eq } from "drizzle-orm";
+import { EventEmitter } from "node:events";
+
+const metricsEmitter = new EventEmitter();
 
 const fastify = Fastify({ logger: true });
 
@@ -49,10 +53,41 @@ fastify.post("/metrics", async (request, reply) => {
     })
     .returning();
 
+  if (!metric) {
+    return reply.status(500).send({ error: "Error al guardar métrica" });
+  }
+
+  metricsEmitter.emit("metric", {
+    type: "metric",
+    data: {
+      id: metric.id,
+      cpuPercentage: metric.value,
+      serverName: metric.hostname,
+      createdAt: metric.createdAt.toISOString(),
+    },
+  });
   return reply.status(200).send({ message: "ok", data: metric });
 });
 
 fastify.get("/health", async () => ({ status: "ok" }));
+
+fastify.get("/metrics/sse", (request, reply) => {
+  reply.raw.writeHead(200, {
+    "Content-Type": "text/event-stream",
+    "Cache-Control": "no-cache",
+    Connection: "keep-alive",
+  });
+
+  const onMetric = (event: unknown) => {
+    reply.raw.write(`data: ${JSON.stringify(event)}\n\n`);
+  };
+
+  metricsEmitter.on("metric", onMetric);
+
+  request.raw.on("close", () => {
+    metricsEmitter.off("metric", onMetric);
+  });
+});
 
 try {
   await fastify.listen({ port: env.API_PORT, host: env.API_HOST });
