@@ -19,8 +19,22 @@
     {
       "idx": 2,
       "version": "7",
+      "when": 1778356469000,
+      "tag": "0002_last_metal_master",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
       "when": 1778515030371,
-      "tag": "0002_metrics_retention_policy",
+      "tag": "0003_metrics_retention_policy",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1778532963542,
+      "tag": "0004_swift_jasper_sitwell",
       "breakpoints": true
     }
   ]
