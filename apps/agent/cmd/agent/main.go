@@ -15,7 +15,7 @@ import (
 
 type metricsPayload struct {
 	CPUPercent float64 `json:"cpu_percentage"`
-	ServerName string  `json:"server_name,omitempty"`
+	HostName   string  `json:"host_name,omitempty"`
 }
 
 func getenv(key, fallback string) string {
@@ -60,8 +60,7 @@ func main() {
 			if len(percents) == 0 {
 				continue
 			}
-			// TODO: Change `ServerName` by `HostName`
-			payload := metricsPayload{CPUPercent: percents[0], ServerName: hostname}
+			payload := metricsPayload{CPUPercent: percents[0], HostName: hostname}
 			body, err := json.Marshal(payload)
 			if err != nil {
 				log.Printf("marshal error: %v", err)
