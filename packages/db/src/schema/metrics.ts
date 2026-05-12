@@ -2,6 +2,7 @@ import * as p from "drizzle-orm/pg-core";
 import { agentsTable, workspacesTable } from "./tenancy";
 import { usersTable } from "./auth";
 
+// TODO: Abel - check if `id` can be replaced with `agentId` in composite PK (TimescaleDB requires created_at in PK)
 // TODO: Add all possible metrics
 export const metricsEnum = p.pgEnum("metrics_type", ["memory", "disk", "cpu", "network"]);
 export const metricsTable = p.pgTable(
@@ -31,12 +32,14 @@ export const metricsTable = p.pgTable(
 );
 
 // TODO: Delete `triggerEnum` and use `metricsEnum` instead
+// Evaluate if triggerEnum should merge with metricsEnum - keep separate for now
+// since triggers can have `custom` type which doesn't apply to metrics
 // TODO: Maybe in the future we need to referenciate `agentId` too
 export const triggerEnum = p.pgEnum("trigger_type", ["memory", "disk", "cpu", "network", "custom"]);
 export const alertsRuleTable = p.pgTable("alerts_rules", {
   id: p.uuid("id").primaryKey().defaultRandom(),
   workspaceId: p
-    .uuid("project_id") // todo: PROJECT_ID is workspace_id change this column name in the db
+    .uuid("workspace_id") 
     .notNull()
     .references(() => workspacesTable.id),
   createByUserId: p
@@ -60,19 +63,14 @@ export const alertEventTable = p.pgTable(
       .uuid("alert_rule_id")
       .notNull()
       .references(() => alertsRuleTable.id),
-    // TODO: Delete `workspaceid` as exists in `alertsRuleTable`
-    workspaceId: p
-      .uuid("project_id")
-      .notNull()
-      .references(() => workspacesTable.id),
-    // TODO: Change name to `user_id_to_notify`
-    userId: p
-      .uuid("user_id")
+
+    userIdToNotify: p
+      .uuid("user_id_to_notify")
       .notNull()
       .references(() => usersTable.id),
     triggerValue: p.integer("trigger_value"),
     startedAt: p.timestamp("started_at", { withTimezone: true }).notNull(),
-    // TODO: add ackAt
+    ackAt: p.timestamp("ack_at", { withTimezone: true }),
     resolvedAt: p.timestamp("resolved_at", { withTimezone: true }),
     status: statusEnum("status"),
     createdAt: p.timestamp("created_at", { withTimezone: true }),
@@ -89,7 +87,6 @@ export const resourceTypeEnum = p.pgEnum("resource_type", [
   "user",
   "workspace",
   "agent",
-  "host", // TODO : DELETE
   "alert",
   "membership",
 ]);
