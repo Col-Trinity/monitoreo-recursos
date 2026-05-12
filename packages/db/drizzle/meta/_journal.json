@@ -43,6 +43,13 @@
       "when": 1778603371008,
       "tag": "0005_chubby_mandrill",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1778609155712,
+      "tag": "0006_uneven_adam_warlock",
+      "breakpoints": true
     }
   ]
 }

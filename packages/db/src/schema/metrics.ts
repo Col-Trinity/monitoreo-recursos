@@ -18,14 +18,14 @@ export const metricsTable = p.pgTable(
     metricsType: metricsEnum("metrics_type").notNull(),
     value: p.doublePrecision("value"),
     hostname: p.varchar("host_name").notNull(),
-    createdAt: p.timestamp("created_at", { withTimezone: true }).defaultNow().notNull() // TODO: Generar migracion
+    createdAt: p.timestamp("created_at", { withTimezone: true }).defaultNow().notNull() 
   },
   (table) => ({
     pk: p.primaryKey({ columns: [table.id, table.createdAt] }), // PK compuesto
     agentTimeIdx: p.index("agent_time_idx").on(table.agentId, table.createdAt),
 
     uniqMetrics: p
-      .uniqueIndex("uniq_metrcis") // TODO: Change name to `uniq_metrics`
+      .uniqueIndex("uniq_metrics") 
       .on(table.createdAt, table.agentId, table.metricsType, table.hostname),
   }),
 );
