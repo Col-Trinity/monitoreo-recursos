@@ -53,7 +53,7 @@ fastify.post("/metrics", async (request, reply) => {
       agentId: agent.id,
       metricsType: "cpu",
       value: parsed.data.cpu_percentage,
-      hostname: parsed.data.server_name ?? "local-server",
+      hostname: parsed.data.host_name ?? "local-server",
     })
     .returning();
 
@@ -66,7 +66,7 @@ fastify.post("/metrics", async (request, reply) => {
     data: {
       id: metric.id,
       cpuPercentage: metric.value,
-      serverName: metric.hostname,
+      hostName: metric.hostname,
       createdAt: metric.createdAt.toISOString(),
     },
   });
@@ -76,7 +76,6 @@ fastify.post("/metrics", async (request, reply) => {
 fastify.get("/health", async () => ({ status: "ok" }));
 
 fastify.post("/metrics/stream", async (request, reply) => {
-
   const authHeader = request.headers.authorization;
   if (!authHeader) return reply.status(403).send({ error: "API key requerida" });
 
@@ -96,13 +95,16 @@ fastify.post("/metrics/stream", async (request, reply) => {
     if (!parsed.success) return; // si la línea no es válida la ignoramos
 
     // Guardamos la métrica en la DB
-    const [metric] = await dbWrite().insert(metricsTable).values({
-      agentId: agent.id,
-      metricsType: "cpu",
-      value: parsed.data.cpu_percentage,
+    const [metric] = await dbWrite()
+      .insert(metricsTable)
+      .values({
+        agentId: agent.id,
+        metricsType: "cpu",
+        value: parsed.data.cpu_percentage,
 
-      hostname: parsed.data.server_name ?? "local-server", //cambiar server_name por host_name en el payload del agente
-    }).returning();
+        hostname: parsed.data.host_name ?? "local-server",
+      })
+      .returning();
 
     if (!metric) return;
   });
@@ -110,7 +112,6 @@ fastify.post("/metrics/stream", async (request, reply) => {
   // Esperamos hasta que el agente cierre la conexión
   await new Promise((resolve) => rl.on("close", resolve));
   return reply.status(200).send({ message: "stream closed" });
-
 });
 
 fastify.get("/metrics/sse", (request, reply) => {
