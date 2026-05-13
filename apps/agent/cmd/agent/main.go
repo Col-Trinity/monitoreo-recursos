@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bytes"
+	"fmt"
 	"context"
 	"encoding/json"
 	"log"
@@ -30,6 +30,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to get config: %v", err)
 	}
+	    disconnected := make(chan struct{})
+
 	  startHealthServer(cfg.HealthPort)
 
 	hostname, _ := os.Hostname()
@@ -42,14 +44,24 @@ func main() {
 
 	client := &http.Client{Timeout: 5 * time.Second}
 	log.Printf("agent started: posting to %s every %s", cfg.APIURL, cfg.interval)
-
+ 
+pw, err := connect(ctx, cfg, client, disconnected)
+if err != nil {
+    log.Fatalf("failed to connect: %v", err)
+}
 	for {
 		select {
-		// TODO: Cuando se ponga SSE creo que hay que escuchar el evento si se cierra el socket
+			case <-disconnected:
+    log.Println("server disconnected, reconnecting...")
+    pw.Close()
+    pw, err = connect(ctx, cfg, client, disconnected)
+    if err != nil {
+        log.Printf("reconnect error: %v", err)
+    }
 		case <-ctx.Done():
 			log.Println("agent shutting down")
 			// TODO: Un intento de enviar la informacion que tenemos
-			// TODO: Cuando el SSE este implementado seguramente haya que cerrar la conexion
+			pw.Close() // Cerramos el pipe para indicar que no hay mas datos	
 			return
 		case <-ticker.C:
 			percents, err := cpu.Percent(500*time.Millisecond, false)
@@ -66,25 +78,15 @@ func main() {
 				log.Printf("marshal error: %v", err)
 				continue
 			}
-			// TODO: Reemplazar `client.Post` por un SSE communication
-			req, err := http.NewRequest("POST", cfg.APIURL, bytes.NewReader(body))
-			if err != nil {
-				log.Printf("new request error: %v", err)
-				continue
-			}
-			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("Authorization", "Bearer "+cfg.APIKey)
 
-			resp, err := client.Do(req)
+			_, err =fmt.Fprintf(pw, "%s\n", body)
+
 			if err != nil {
-				log.Printf("POST error: %v", err)
+				log.Printf("write to pipe error: %v", err)
 				continue
 			}
 
-			if err := resp.Body.Close(); err != nil {
-				log.Printf("body close error: %v", err)
-			}
-			log.Printf("cpu=%.2f%% status=%d", percents[0], resp.StatusCode)
+			log.Printf("cpu=%.2f%% sent", percents[0])
 		}
 	}
 }

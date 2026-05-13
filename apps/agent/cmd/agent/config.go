@@ -18,7 +18,7 @@ func getConfig() (*config, error) {
 	}
 
 	return &config{
-		APIURL:     getenv("AGENT_API_URL", "http://localhost:3001") + "/metrics",
+		APIURL:     getenv("AGENT_API_URL", "http://localhost:3001") + "/metrics/stream",
 		HealthPort: getenv("AGENT_HEALTH_PORT", "3003"),
 		APIKey:     getenv("AGENT_API_KEY", "dev-api-key-12345"),
 		interval:   interval,
