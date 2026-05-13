@@ -1,6 +1,6 @@
 import Fastify from "fastify";
 import cors from "@fastify/cors";
-import { dbRead, dbWrite, metricsTable } from "@watchdog/db";
+import { dbRead} from "@watchdog/db";
 import { env } from "@watchdog/env";
 import { metricsPayloadSchema } from "@watchdog/shared-types";
 import { agentsTable } from "@watchdog/db/schema";

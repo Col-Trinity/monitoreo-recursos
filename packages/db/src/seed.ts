@@ -24,7 +24,7 @@ async function seed() {
     process.exit(0);
   }
 
-  const [user] = await db
+  await db
     .insert(usersTable)
     .values({
       name: "dev user",

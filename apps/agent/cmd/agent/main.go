@@ -47,13 +47,14 @@ func main() {
 
 	pw, err := connect(ctx, cfg, client, disconnected)
 	if err != nil {
-		log.Fatalf("failed to connect: %v", err)
+		log.Printf("failed to connect: %v", err)
+		return
 	}
 	for {
 		select {
 		case <-disconnected:
 			log.Println("server disconnected, reconnecting...")
-			pw.Close()
+			_ = pw.Close()
 			pw, err = connect(ctx, cfg, client, disconnected)
 			if err != nil {
 				log.Printf("reconnect error: %v", err)
@@ -63,11 +64,11 @@ func main() {
 			if percents, err := cpu.Percent(500*time.Millisecond, false); err == nil && len(percents) > 0 {
 				payload := metricsPayload{CPUPercent: percents[0], HostName: hostname}
 				if body, err := json.Marshal(payload); err == nil {
-					fmt.Fprintf(pw, "%s\n", body)
+					_, _ = fmt.Fprintf(pw, "%s\n", body)
 					log.Printf("final sample: cpu=%.2f%% sent", percents[0])
 				}
 			}
-			pw.Close()
+			_ = pw.Close()
 			return
 		case <-ticker.C:
 			percents, err := cpu.Percent(500*time.Millisecond, false)
