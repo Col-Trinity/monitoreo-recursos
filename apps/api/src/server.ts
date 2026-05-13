@@ -1,6 +1,5 @@
 import Fastify from "fastify";
 import cors from "@fastify/cors";
-// TODO: re-add dbRead once replica is fixed
 import { dbRead, dbWrite, metricsTable } from "@watchdog/db";
 import { env } from "@watchdog/env";
 import { metricsPayloadSchema } from "@watchdog/shared-types";
@@ -8,6 +7,11 @@ import { agentsTable } from "@watchdog/db/schema";
 import { eq } from "drizzle-orm";
 import { EventEmitter } from "node:events";
 import { createInterface } from "node:readline";
+import { Queue } from "bullmq";
+import { Redis } from "ioredis";
+
+const connection = new Redis(env.REDIS_URL, { maxRetriesPerRequest: null });
+const metricsQueue = new Queue("metrics", { connection });
 
 const metricsEmitter = new EventEmitter();
 
@@ -18,8 +22,6 @@ await fastify.register(cors);
 fastify.addContentTypeParser("application/x-ndjson", (_request, payload, done) => {
   done(null, payload);
 });
-// TODO: Investigar como poner un SSE, recibir conexiones, validar api key, publicar data en bullMQ
-// TODO: Investigar como leer BullMQ y guardar data en la base de datos
 fastify.post("/metrics", async (request, reply) => {
   const parsed = metricsPayloadSchema.safeParse(request.body);
 
@@ -47,30 +49,12 @@ fastify.post("/metrics", async (request, reply) => {
     return reply.status(401).send({ error: "API key inválida" });
   }
 
-  const [metric] = await dbWrite()
-    .insert(metricsTable)
-    .values({
-      agentId: agent.id,
-      metricsType: "cpu",
-      value: parsed.data.cpu_percentage,
-      hostname: parsed.data.host_name ?? "local-server",
-    })
-    .returning();
-
-  if (!metric) {
-    return reply.status(500).send({ error: "Error al guardar métrica" });
-  }
-
-  metricsEmitter.emit("metric", {
-    type: "metric",
-    data: {
-      id: metric.id,
-      cpuPercentage: metric.value,
-      hostName: metric.hostname,
-      createdAt: metric.createdAt.toISOString(),
-    },
+  await metricsQueue.add("new_metric", {
+    agentId: agent.id,
+    metricsType: "cpu",
+    cpuPercentage: parsed.data.cpu_percentage,
+    hostName: parsed.data.host_name ?? "local-server",
   });
-  return reply.status(200).send({ message: "ok", data: metric });
 });
 
 fastify.get("/health", async () => ({ status: "ok" }));
@@ -88,33 +72,25 @@ fastify.post("/metrics/stream", async (request, reply) => {
   // Creamos una interfaz para leer el stream línea por línea
   const rl = createInterface({ input: request.body as NodeJS.ReadableStream });
 
-  // Por cada línea que llega del agente
   rl.on("line", async (line) => {
-    // Parseamos el JSON de la línea
     const parsed = metricsPayloadSchema.safeParse(JSON.parse(line));
-    if (!parsed.success) return; // si la línea no es válida la ignoramos
+    if (!parsed.success) return;
 
-    // Guardamos la métrica en la DB
-    const [metric] = await dbWrite()
-      .insert(metricsTable)
-      .values({
-        agentId: agent.id,
-        metricsType: "cpu",
-        value: parsed.data.cpu_percentage,
+    const hostName = parsed.data.host_name ?? "local-server";
 
-        hostname: parsed.data.host_name ?? "local-server",
-      })
-      .returning();
-
-    if (!metric) return;
+    await metricsQueue.add("new_metric", {
+      agentId: agent.id,
+      metricsType: "cpu",
+      cpuPercentage: parsed.data.cpu_percentage,
+      hostName,
+    });
 
     metricsEmitter.emit("metric", {
       type: "metric",
       data: {
-        id: metric.id,
-        cpuPercentage: metric.value,
-        hostName: metric.hostname,
-        createdAt: metric.createdAt.toISOString(),
+        cpuPercentage: parsed.data.cpu_percentage,
+        hostName,
+        createdAt: new Date().toISOString(),
       },
     });
   });
