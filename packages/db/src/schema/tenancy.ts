@@ -6,7 +6,11 @@ export const workspacesTable = p.pgTable("workspaces", {
   name: p.varchar("name").notNull(),
   description: p.varchar("description").notNull(),
   createdAt: p.timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: p.timestamp("updated_at", { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
+  updatedAt: p
+    .timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull()
+    .$onUpdate(() => new Date()),
   deletedAt: p.timestamp("deleted_at", { withTimezone: true }),
 });
 
@@ -21,19 +25,23 @@ export const membershipsTable = p.pgTable(
       .uuid("user_id")
       .notNull()
       .references(() => usersTable.id, {
-        onDelete: "cascade"
+        onDelete: "cascade",
       }),
 
     workspaceId: p
       .uuid("workspace_id")
       .notNull()
-      .references(() => workspacesTable.id, { 
-        onDelete: "cascade"
+      .references(() => workspacesTable.id, {
+        onDelete: "cascade",
       }),
 
     role: roleEnum("role").notNull(),
     createdAt: p.timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-    updatedAt: p.timestamp("updated_at", { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
+    updatedAt: p
+      .timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull()
+      .$onUpdate(() => new Date()),
     deletedAt: p.timestamp("deleted_at", { withTimezone: true }),
   },
   (table) => ({
@@ -56,11 +64,15 @@ export const agentsTable = p.pgTable(
 
     name: p.varchar("name").notNull(),
     description: p.varchar("description").notNull(),
-    apiKey: p.varchar("api_key").unique().notNull(), // TODO: STORE HASHED 
+    apiKey: p.varchar("api_key").unique().notNull(), // TODO: STORE HASHED
     active: p.boolean("active").notNull().default(true),
     lastHeartbeat: p.timestamp("last_heartbeat", { withTimezone: true }),
     createdAt: p.timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-    updatedAt: p.timestamp("updated_at", { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
+    updatedAt: p
+      .timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull()
+      .$onUpdate(() => new Date()),
     deletedAt: p.timestamp("deleted_at", { withTimezone: true }),
   },
   (table) => ({

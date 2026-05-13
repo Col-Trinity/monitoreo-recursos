@@ -9,6 +9,9 @@ import { EventEmitter } from "node:events";
 import { createInterface } from "node:readline";
 import { Queue } from "bullmq";
 import { Redis } from "ioredis";
+import { createHash } from "node:crypto";
+
+const hashApiKey = (key: string) => createHash("sha256").update(key).digest("hex");
 
 const connection = new Redis(env.REDIS_URL, { maxRetriesPerRequest: null });
 const metricsQueue = new Queue("metrics", { connection });
@@ -41,11 +44,9 @@ fastify.post("/metrics", async (request, reply) => {
     return reply.status(401).send({ error: "Formato inválido, debe ser Bearer <api_key>" });
   }
 
-  // TODO: Hash Api-Key and search in database
+  const [agent] = await dbRead().select().from(agentsTable).where(eq(agentsTable.apiKey, hashApiKey(apiKey)))
 
-  const [agent] = await dbRead().select().from(agentsTable).where(eq(agentsTable.apiKey, apiKey));
-
-  if (!agent) {
+  if (!agent) { 
     return reply.status(401).send({ error: "API key inválida" });
   }
 
@@ -66,7 +67,7 @@ fastify.post("/metrics/stream", async (request, reply) => {
   const apiKey = authHeader.split("Bearer ")[1];
   if (!apiKey) return reply.status(401).send({ error: "Formato inválido" });
 
-  const [agent] = await dbRead().select().from(agentsTable).where(eq(agentsTable.apiKey, apiKey));
+  const [agent] = await dbRead().select().from(agentsTable).where(eq(agentsTable.apiKey, hashApiKey(apiKey)));
   if (!agent) return reply.status(401).send({ error: "API key inválida" });
 
   // Creamos una interfaz para leer el stream línea por línea

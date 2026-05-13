@@ -1,16 +1,16 @@
 package main
 
 import (
-	"fmt"
 	"context"
 	"encoding/json"
+	"fmt"
+	"github.com/shirou/gopsutil/v3/cpu"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
-	"github.com/shirou/gopsutil/v3/cpu"
 )
 
 type metricsPayload struct {
@@ -26,13 +26,13 @@ func getenv(key, fallback string) string {
 }
 
 func main() {
-	cfg,err := getConfig()
+	cfg, err := getConfig()
 	if err != nil {
 		log.Fatalf("failed to get config: %v", err)
 	}
-	    disconnected := make(chan struct{})
+	disconnected := make(chan struct{})
 
-	  startHealthServer(cfg.HealthPort)
+	startHealthServer(cfg.HealthPort)
 
 	hostname, _ := os.Hostname()
 
@@ -42,22 +42,22 @@ func main() {
 	ticker := time.NewTicker(cfg.interval)
 	defer ticker.Stop()
 
-	client := &http.Client{} 
+	client := &http.Client{}
 	log.Printf("agent started: posting to %s every %s", cfg.APIURL, cfg.interval)
- 
-pw, err := connect(ctx, cfg, client, disconnected)
-if err != nil {
-    log.Fatalf("failed to connect: %v", err)
-}
+
+	pw, err := connect(ctx, cfg, client, disconnected)
+	if err != nil {
+		log.Fatalf("failed to connect: %v", err)
+	}
 	for {
 		select {
-			case <-disconnected:
-    log.Println("server disconnected, reconnecting...")
-    pw.Close()
-    pw, err = connect(ctx, cfg, client, disconnected)
-    if err != nil {
-        log.Printf("reconnect error: %v", err)
-    }
+		case <-disconnected:
+			log.Println("server disconnected, reconnecting...")
+			pw.Close()
+			pw, err = connect(ctx, cfg, client, disconnected)
+			if err != nil {
+				log.Printf("reconnect error: %v", err)
+			}
 		case <-ctx.Done():
 			log.Println("agent shutting down")
 			if percents, err := cpu.Percent(500*time.Millisecond, false); err == nil && len(percents) > 0 {
@@ -85,7 +85,7 @@ if err != nil {
 				continue
 			}
 
-			_, err =fmt.Fprintf(pw, "%s\n", body)
+			_, err = fmt.Fprintf(pw, "%s\n", body)
 
 			if err != nil {
 				log.Printf("write to pipe error: %v", err)

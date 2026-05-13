@@ -11,7 +11,7 @@ tasks:
     cmds:
       - task --list
     silent: true
-
+    
   setup:
     desc: First-time setup — install deps, build shared packages, start DB, run migrations
     cmds:
@@ -129,17 +129,23 @@ tasks:
     desc: Apply Drizzle migrations
     cmds:
       - pnpm --filter @watchdog/db db:migrate
-   
+
   db:seed:
     desc: Seed the database with test data
     cmds:
       - pnpm --filter @watchdog/db db:seed
 
+  db:reseed:
+    desc: Borrar datos de seed y volver a seedear (útil cuando cambia el formato de API keys)
+    cmds:
+      - docker exec watchdog-postgres psql -U monitor_user -d monitoreo_recursos -c "DELETE FROM agents; DELETE FROM memberships; DELETE FROM workspaces;"
+      - task: db:seed
+
   db:retention-status:
     desc: List active retention policies
     cmds:
       - pnpm --filter @watchdog/db db:retention-status
-      
+
   db:generate:
     desc: Generate new Drizzle migration from schema changes
     cmds:
