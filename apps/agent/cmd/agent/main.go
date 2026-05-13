@@ -42,7 +42,7 @@ func main() {
 	ticker := time.NewTicker(cfg.interval)
 	defer ticker.Stop()
 
-	client := &http.Client{Timeout: 5 * time.Second}
+	client := &http.Client{} 
 	log.Printf("agent started: posting to %s every %s", cfg.APIURL, cfg.interval)
  
 pw, err := connect(ctx, cfg, client, disconnected)
@@ -60,8 +60,14 @@ if err != nil {
     }
 		case <-ctx.Done():
 			log.Println("agent shutting down")
-			// TODO: Un intento de enviar la informacion que tenemos
-			pw.Close() // Cerramos el pipe para indicar que no hay mas datos	
+			if percents, err := cpu.Percent(500*time.Millisecond, false); err == nil && len(percents) > 0 {
+				payload := metricsPayload{CPUPercent: percents[0], HostName: hostname}
+				if body, err := json.Marshal(payload); err == nil {
+					fmt.Fprintf(pw, "%s\n", body)
+					log.Printf("final sample: cpu=%.2f%% sent", percents[0])
+				}
+			}
+			pw.Close()
 			return
 		case <-ticker.C:
 			percents, err := cpu.Percent(500*time.Millisecond, false)

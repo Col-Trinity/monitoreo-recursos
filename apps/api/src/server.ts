@@ -107,10 +107,23 @@ fastify.post("/metrics/stream", async (request, reply) => {
       .returning();
 
     if (!metric) return;
+
+    metricsEmitter.emit("metric", {
+      type: "metric",
+      data: {
+        id: metric.id,
+        cpuPercentage: metric.value,
+        hostName: metric.hostname,
+        createdAt: metric.createdAt.toISOString(),
+      },
+    });
   });
 
-  // Esperamos hasta que el agente cierre la conexión
-  await new Promise((resolve) => rl.on("close", resolve));
+  // Esperamos hasta que el agente cierre la conexión o se desconecte abruptamente
+  await new Promise<void>((resolve) => {
+    rl.on("close", resolve);
+    rl.on("error", resolve);
+  });
   return reply.status(200).send({ message: "stream closed" });
 });
 

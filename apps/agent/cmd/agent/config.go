@@ -1,13 +1,15 @@
 package main
+
 import (
 	"fmt"
 	"time"
 )
+
 type config struct {
-	APIURL       string    
-	HealthPort   string       
-	APIKey       string        
-	interval time.Duration 
+	APIURL     string
+	HealthPort string
+	APIKey     string
+	interval   time.Duration
 }
 
 func getConfig() (*config, error) {
@@ -22,5 +24,5 @@ func getConfig() (*config, error) {
 		HealthPort: getenv("AGENT_HEALTH_PORT", "3003"),
 		APIKey:     getenv("AGENT_API_KEY", "dev-api-key-12345"),
 		interval:   interval,
-	}, nil	
+	}, nil
 }
