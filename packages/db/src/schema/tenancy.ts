@@ -5,21 +5,18 @@ export const workspacesTable = p.pgTable("workspaces", {
   id: p.uuid("id").primaryKey().defaultRandom(),
   name: p.varchar("name").notNull(),
   description: p.varchar("description").notNull(),
-  createdAt: p.timestamp("created_at").defaultNow().notNull(),
-  updatedAt: p.timestamp("updated_at").defaultNow().notNull().$onUpdate(() => new Date()),
-  deletedAt: p.timestamp("deleted_at"),
+  createdAt: p.timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: p.timestamp("updated_at", { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
+  deletedAt: p.timestamp("deleted_at", { withTimezone: true }),
 });
 
-// TODO: Delete role `member`. 
 // Owner: Lectura, Escritura, Borrar.
 // Admin: Lectura, Escritura.
 // Viewer: Lectura.
-export const roleEnum = p.pgEnum("role", ["owner", "admin", "member", "viewer"]);
+export const roleEnum = p.pgEnum("role", ["owner", "admin", "viewer"]);
 export const membershipsTable = p.pgTable(
   "memberships",
   {
-    // TODO: Borrar `id` y generar migracion donde `userId` y `workspaceId` sean PK compuesto
-    id: p.uuid("id").primaryKey().defaultRandom(),
     userId: p
       .uuid("user_id")
       .notNull()
@@ -35,14 +32,12 @@ export const membershipsTable = p.pgTable(
       }),
 
     role: roleEnum("role").notNull(),
-    createdAt: p.timestamp("created_at").defaultNow().notNull(),
-    updatedAt: p.timestamp("updated_at").defaultNow().notNull().$onUpdate(() => new Date()),
-    deletedAt: p.timestamp("deleted_at"),
+    createdAt: p.timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: p.timestamp("updated_at", { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
+    deletedAt: p.timestamp("deleted_at", { withTimezone: true }),
   },
   (table) => ({
-    // TODO: Delete this index as is unnecesary because the composed index is already indexing it
-    userIdx: p.index("memberships_user_id_idx").on(table.userId),
-
+    userWorkspacePk: p.primaryKey({ columns: [table.userId, table.workspaceId] }),
     workspaceIdx: p.index("memberships_workspace_id_idx").on(table.workspaceId),
     uniqueUserWorkspace: p
       .uniqueIndex("memberships_user_workspace_unique")
@@ -63,36 +58,13 @@ export const agentsTable = p.pgTable(
     description: p.varchar("description").notNull(),
     apiKey: p.varchar("api_key").unique().notNull(), // TODO: STORE HASHED 
     active: p.boolean("active").notNull().default(true),
-    lastHeartbeat: p.timestamp("last_heartbeat"),
-    createdAt: p.timestamp("created_at").defaultNow().notNull(),
-    updatedAt: p.timestamp("updated_at").defaultNow().notNull().$onUpdate(() => new Date()),
-    deletedAt: p.timestamp("deleted_at"),
+    lastHeartbeat: p.timestamp("last_heartbeat", { withTimezone: true }),
+    createdAt: p.timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: p.timestamp("updated_at", { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
+    deletedAt: p.timestamp("deleted_at", { withTimezone: true }),
   },
   (table) => ({
     projectIdx: p.index("agents_workspace_id_idx").on(table.workspaceId),
-  }),
-);
-
-// TODO: Delete this table and keep `host_name` in metrics
-export const hostsTable = p.pgTable(
-  "hosts",
-  {
-    id: p.uuid("id").primaryKey().defaultRandom(),
-    hostName: p.varchar("host_name").notNull(),
-    port: p.integer("port"),
-    agentId: p
-      .uuid("agent_id")
-      .notNull()
-      .references(() => agentsTable.id),
-    createdAt: p.timestamp("created_at").defaultNow().notNull(),
-    updatedAt: p.timestamp("updated_at").defaultNow().notNull(),
-    deletedAt: p.timestamp("deleted_at"),
-  },
-  (table) => ({
-    agentIdx: p.index("hosts_agent_id_idx").on(table.agentId),
-    uniqueAgentHost: p
-      .uniqueIndex("hosts_agent_id_host_name_unique")
-      .on(table.agentId, table.hostName),
   }),
 );
 
