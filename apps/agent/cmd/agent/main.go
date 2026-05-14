@@ -1,22 +1,21 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
+	"github.com/shirou/gopsutil/v3/cpu"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
-
-	"github.com/shirou/gopsutil/v3/cpu"
 )
 
 type metricsPayload struct {
 	CPUPercent float64 `json:"cpu_percentage"`
-	ServerName string  `json:"server_name,omitempty"`
+	HostName   string  `json:"host_name,omitempty"`
 }
 
 func getenv(key, fallback string) string {
@@ -27,35 +26,49 @@ func getenv(key, fallback string) string {
 }
 
 func main() {
-	// TODO: Move to new file `getConfig` read config, validate, return error
-	apiURL := getenv("AGENT_API_URL", "http://localhost:3001") + "/metrics"
-	healthPort := getenv("AGENT_HEALTH_PORT", "3003")
-	apiKey := getenv("AGENT_API_KEY", "dev-api-key-12345")
-	startHealthServer(healthPort)
-	intervalStr := getenv("AGENT_SAMPLE_INTERVAL", "5s")
-	interval, err := time.ParseDuration(intervalStr)
+	cfg, err := getConfig()
 	if err != nil {
-		log.Fatalf("invalid AGENT_SAMPLE_INTERVAL=%q: %v", intervalStr, err)
+		log.Fatalf("failed to get config: %v", err)
 	}
+	disconnected := make(chan struct{})
+
+	startHealthServer(cfg.HealthPort)
 
 	hostname, _ := os.Hostname()
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	ticker := time.NewTicker(interval)
+	ticker := time.NewTicker(cfg.interval)
 	defer ticker.Stop()
 
-	client := &http.Client{Timeout: 5 * time.Second}
-	log.Printf("agent started: posting to %s every %s", apiURL, interval)
+	client := &http.Client{}
+	log.Printf("agent started: posting to %s every %s", cfg.APIURL, cfg.interval)
 
+	pw, err := connect(ctx, cfg, client, disconnected)
+	if err != nil {
+		log.Printf("failed to connect: %v", err)
+		return
+	}
 	for {
 		select {
-		// TODO: Cuando se ponga SSE creo que hay que escuchar el evento si se cierra el socket
+		case <-disconnected:
+			log.Println("server disconnected, reconnecting...")
+			_ = pw.Close()
+			pw, err = connect(ctx, cfg, client, disconnected)
+			if err != nil {
+				log.Printf("reconnect error: %v", err)
+			}
 		case <-ctx.Done():
 			log.Println("agent shutting down")
-			// TODO: Un intento de enviar la informacion que tenemos
-			// TODO: Cuando el SSE este implementado seguramente haya que cerrar la conexion
+			if percents, err := cpu.Percent(500*time.Millisecond, false); err == nil && len(percents) > 0 {
+				payload := metricsPayload{CPUPercent: percents[0], HostName: hostname}
+				if body, err := json.Marshal(payload); err == nil {
+					_, _ = fmt.Fprintf(pw, "%s\n", body)
+					log.Printf("final sample: cpu=%.2f%% sent", percents[0])
+				}
+			}
+			_ = pw.Close()
 			return
 		case <-ticker.C:
 			percents, err := cpu.Percent(500*time.Millisecond, false)
@@ -66,32 +79,21 @@ func main() {
 			if len(percents) == 0 {
 				continue
 			}
-			// TODO: Change `ServerName` by `HostName`
-			payload := metricsPayload{CPUPercent: percents[0], ServerName: hostname}
+			payload := metricsPayload{CPUPercent: percents[0], HostName: hostname}
 			body, err := json.Marshal(payload)
 			if err != nil {
 				log.Printf("marshal error: %v", err)
 				continue
 			}
-			// TODO: Reemplazar `client.Post` por un SSE communication
-			req, err := http.NewRequest("POST", apiURL, bytes.NewReader(body))
-			if err != nil {
-				log.Printf("new request error: %v", err)
-				continue
-			}
-			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("Authorization", "Bearer "+apiKey)
 
-			resp, err := client.Do(req)
+			_, err = fmt.Fprintf(pw, "%s\n", body)
+
 			if err != nil {
-				log.Printf("POST error: %v", err)
+				log.Printf("write to pipe error: %v", err)
 				continue
 			}
 
-			if err := resp.Body.Close(); err != nil {
-				log.Printf("body close error: %v", err)
-			}
-			log.Printf("cpu=%.2f%% status=%d", percents[0], resp.StatusCode)
+			log.Printf("cpu=%.2f%% sent", percents[0])
 		}
 	}
 }

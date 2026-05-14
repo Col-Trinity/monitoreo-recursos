@@ -2,12 +2,22 @@ import { Worker, type Job } from "bullmq";
 import { Redis } from "ioredis";
 import { env } from "@watchdog/env";
 import http from "http";
+import { dbWrite, metricsTable } from "@watchdog/db";
 const connection = new Redis(env.REDIS_URL, { maxRetriesPerRequest: null });
 
 const worker = new Worker(
-  "default",
+  "metrics",
   async (job: Job) => {
     console.log(`[worker] processing ${job.name}#${job.id}`, job.data);
+
+    if (job.name === "new_metric") {
+       await dbWrite().insert(metricsTable).values({
+        agentId: job.data.agentId,
+        metricsType: job.data.metricsType,
+        value: job.data.cpuPercentage,
+        hostname: job.data.hostName,
+      });
+    }
     return { ok: true };
   },
   { connection, concurrency: 4 },
@@ -17,19 +27,19 @@ worker.on("ready", () => console.log("[worker] ready"));
 worker.on("failed", (job, err) => console.error(`[worker] ${job?.name}#${job?.id} failed:`, err));
 
 const healthServer = http.createServer((req, res) => {
-if (req.url === "/health" && req.method === "GET") {
-  res.writeHead(200, { "Content-Type": "application/json" });
-  res.end(JSON.stringify({ status: "ok" }));
-} else {
-  res.writeHead(404);
-  res.end();
-}
+  if (req.url === "/health" && req.method === "GET") {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ status: "ok" }));
+  } else {
+    res.writeHead(404);
+    res.end();
+  }
 });
 
 const HEALTH_PORT = 3002;
 healthServer.listen(HEALTH_PORT, () => {
-  console.log(`[worker] health check listening on prt ${HEALTH_PORT}`)
-})
+  console.log(`[worker] health check listening on prt ${HEALTH_PORT}`);
+});
 
 async function shutdown() {
   console.log("[worker] shutting down...");

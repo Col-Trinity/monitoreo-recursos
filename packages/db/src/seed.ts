@@ -3,7 +3,9 @@ import { createDb } from "./client";
 import { metricsTable } from "./schema/metrics";
 import { workspacesTable, agentsTable } from "./schema/tenancy";
 import { usersTable } from "./schema";
-import { hostname } from "os";
+import {createHash} from "node:crypto";
+
+const hashApiKey = (key: string) => createHash("sha256").update(key).digest("hex");
 
 async function seed() {
   const db = createDb(env.DATABASE_URL, { max: 1 });
@@ -22,7 +24,7 @@ async function seed() {
     process.exit(0);
   }
 
-  const [user] = await db
+  await db
     .insert(usersTable)
     .values({
       name: "dev user",
@@ -33,16 +35,15 @@ async function seed() {
     .returning();
 
   const [agent] = await db
-  .insert(agentsTable)
-  .values({
-    name: "agent-local",
-    description: "local development agent",
-    workspaceId: workspace.id,
-    apiKey: "dev-api-key-12345",
-  })
-  .onConflictDoNothing()
-  .returning()
-
+    .insert(agentsTable)
+    .values({
+      name: "agent-local",
+      description: "local development agent",
+      workspaceId: workspace.id,
+      apiKey: hashApiKey("dev-api-key-12345"),
+    })
+    .onConflictDoNothing()
+    .returning();
 
   if (!agent) {
     console.log("agent already exists, skipping...");
@@ -55,11 +56,11 @@ async function seed() {
   for (let i = 0; i < 288; i++) {
     const fecha = new Date(ahora.getTime() - (288 - i) * 5 * 60 * 1000);
     metricas.push({
-        agentId:agent.id,
-        metricsType:"cpu" as const,
-        value: parseFloat((Math.random() * 100).toFixed(2)),
-        hostname:"localhost",
-        time:fecha
+      agentId: agent.id,
+      metricsType: "cpu" as const,
+      value: parseFloat((Math.random() * 100).toFixed(2)),
+      hostname: "localhost",
+      time: fecha,
     });
   }
 
