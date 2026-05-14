@@ -11,13 +11,15 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
-    "clean": "rm -rf .turbo"
+    "clean": "rm -rf .turbo",
+    "test": "vitest run"
   },
   "dependencies": {
     "zod": "^3.24.2"
   },
   "devDependencies": {
     "@watchdog/tsconfig": "workspace:*",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "vitest": "^3.2.0"
   }
 }
