@@ -6,6 +6,7 @@ import "encoding/json"
 // MetricType represents the possible types of metric
 type MetricType string
 
+// CPU, MEMORY, DISK, NETWORK are the possible MetricType values.
 const (
 	CPU     MetricType = "cpu"
 	MEMORY  MetricType = "memory"
@@ -14,7 +15,7 @@ const (
 )
 
 // CpuValue contains the CPU usage data
-type CpuValue struct {
+type CPUValue struct {
 	Usage float64 `json:"usage"`
 }
 
