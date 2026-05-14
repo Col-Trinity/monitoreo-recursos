@@ -14,7 +14,7 @@ const (
 	NETWORK MetricType = "network"
 )
 
-// CpuValue contains the CPU usage data
+// CPUValue contains the CPU usage data
 type CPUValue struct {
 	Usage float64 `json:"usage"`
 }
