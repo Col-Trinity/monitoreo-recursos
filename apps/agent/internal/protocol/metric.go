@@ -21,8 +21,11 @@ type CPUValue struct {
 
 // MemoryValue contains the memory used and total
 type MemoryValue struct {
-	Used  int `json:"used"`
-	Total int `json:"total"`
+	Used        int64   `json:"used"`
+	Available   int64   `json:"available"`
+	Cached      int64   `json:"cached"`
+	Total       int64   `json:"total"`
+	UsedPercent float64 `json:"usedPercent"`
 }
 
 // DiskValue contains the value used and total his disk

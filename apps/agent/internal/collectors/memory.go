@@ -28,7 +28,13 @@ func (c *MemoryCollector) Collect(_ context.Context) (protocol.MetricEnvelope, e
 		return protocol.MetricEnvelope{}, err
 	}
 
-	value, err := json.Marshal(protocol.MemoryValue{Used: int(vmStat.Used), Total: int(vmStat.Total)})
+	value, err := json.Marshal(protocol.MemoryValue{
+		Used:        int64(vmStat.Used),
+		Available:   int64(vmStat.Available),
+		Cached:      int64(vmStat.Cached),
+		Total:       int64(vmStat.Total),
+		UsedPercent: vmStat.UsedPercent,
+	})
 	if err != nil {
 		return protocol.MetricEnvelope{}, err
 	}
