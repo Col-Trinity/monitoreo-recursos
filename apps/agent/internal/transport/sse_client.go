@@ -9,9 +9,16 @@ import (
 	"log"
 	"net/http"
 	"time"
-
 	"github.com/Col-Trinity/monitoreo-recursos/apps/agent/internal/protocol"
 )
+
+func nextBackoff(current, limit time.Duration) time.Duration {
+    next := current * 2
+    if next > limit {
+        return limit
+    }
+    return next
+}
 
 // SSEClient maneja la conexión persistente al servidor
 type SSEClient struct {
@@ -19,6 +26,7 @@ type SSEClient struct {
 	apiKey  string
 	client  *http.Client
 	metrics chan protocol.MetricEnvelope
+	reconnects int64
 }
 
 // NewSSEClient crea un nuevo SSEClient
@@ -28,6 +36,7 @@ func NewSSEClient(url, apiKey string) *SSEClient {
 		apiKey:  apiKey,
 		client:  &http.Client{},
 		metrics: make(chan protocol.MetricEnvelope, 200),
+		reconnects: 0,
 	}
 }
 
@@ -49,15 +58,13 @@ func (s *SSEClient) Run(ctx context.Context, apiURL string) {
 		err := s.connect(ctx, apiURL)
 		if err != nil {
 			log.Printf("connection failed: %v, retrying in %s (buffered: %d)", err, backoff, len(s.metrics))
+			s.reconnects++
 			select {
 			case <-ctx.Done():
 				return
 			case <-time.After(backoff):
 			}
-			backoff *= 2
-			if backoff > maxBackoff {
-				backoff = maxBackoff
-			}
+			backoff = nextBackoff(backoff, maxBackoff)
 		} else {
 			backoff = 1 * time.Second
 		}
@@ -110,4 +117,14 @@ func (s *SSEClient) write(pw *io.PipeWriter, metric protocol.MetricEnvelope) err
 	}
 	_, err = fmt.Fprintf(pw, "%s\n", body)
 	return err
+}
+
+// Reconnects devuelve el total de reconexiones realizadas.
+func (s *SSEClient) Reconnects() int64 {
+    return s.reconnects
+}
+
+// BufferSize devuelve la cantidad de métricas en espera en el canal.
+func (s *SSEClient) BufferSize() int {
+    return len(s.metrics)
 }
