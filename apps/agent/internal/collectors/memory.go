@@ -10,18 +10,22 @@ import (
 	"github.com/shirou/gopsutil/v3/mem"
 )
 
+// MemoryCollector collects virtual memory metrics from the host.
 type MemoryCollector struct {
 	hostname string
 }
 
+// NewMemoryCollector creates a new MemoryCollector for the given hostname.
 func NewMemoryCollector(hostname string) *MemoryCollector {
 	return &MemoryCollector{hostname: hostname}
 }
 
+// Name returns the collector identifier "memory".
 func (c *MemoryCollector) Name() string {
 	return "memory"
 }
 
+// Collect samples virtual memory usage and returns a MetricEnvelope.
 func (c *MemoryCollector) Collect(_ context.Context) (protocol.MetricEnvelope, error) {
 	vmStat, err := mem.VirtualMemory()
 	if err != nil {

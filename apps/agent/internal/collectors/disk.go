@@ -10,18 +10,22 @@ import (
 	"github.com/shirou/gopsutil/v3/disk"
 )
 
+// DiskCollector collects disk usage metrics for the root filesystem.
 type DiskCollector struct {
 	hostname string
 }
 
+// NewDiskCollector creates a new DiskCollector for the given hostname.
 func NewDiskCollector(hostname string) *DiskCollector {
 	return &DiskCollector{hostname: hostname}
 }
 
+// Name returns the collector identifier "disk".
 func (c *DiskCollector) Name() string {
 	return "disk"
 }
 
+// Collect samples root filesystem usage and returns a MetricEnvelope.
 func (c *DiskCollector) Collect(_ context.Context) (protocol.MetricEnvelope, error) {
 	diskStat, err := disk.Usage("/")
 	if err != nil {
@@ -29,11 +33,11 @@ func (c *DiskCollector) Collect(_ context.Context) (protocol.MetricEnvelope, err
 	}
 
 	value, err := json.Marshal(protocol.DiskValue{
-		Path:        string(diskStat.Path),
+		Path:        diskStat.Path,
 		Used:        int64(diskStat.Used),
 		Total:       int64(diskStat.Total),
 		Free:        int64(diskStat.Free),
-		UsedPercent: float64(diskStat.UsedPercent),
+		UsedPercent: diskStat.UsedPercent,
 	})
 	if err != nil {
 		return protocol.MetricEnvelope{}, err
