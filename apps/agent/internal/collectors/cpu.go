@@ -26,7 +26,7 @@ func (c *CPUCollector) Name() string {
 }
 
 // Collect mide el CPU y devuelve un MetricEnvelope
-func (c *CPUCollector) Collect(ctx context.Context) (protocol.MetricEnvelope, error) {
+func (c *CPUCollector) Collect(_ context.Context) (protocol.MetricEnvelope, error) {
 	// Medimos el CPU
 	percents, err := cpu.Percent(500*time.Millisecond, false)
 	if err != nil {

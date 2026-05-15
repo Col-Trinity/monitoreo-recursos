@@ -1,3 +1,4 @@
+// Package collectors define los collectors de métricas del agente.
 package collectors
 
 import (
