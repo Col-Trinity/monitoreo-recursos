@@ -30,8 +30,11 @@ type MemoryValue struct {
 
 // DiskValue contains the value used and total his disk
 type DiskValue struct {
-	Used  int `json:"used"`
-	Total int `json:"total"`
+	Path        string  `json:"path"`
+	Total       int64   `json:"total"`
+	Used        int64   `json:"used"`
+	Free        int64   `json:"free"`
+	UsedPercent float64 `json:"usedPercent"`
 }
 
 // NetworkValue contains the bytes received and transmitted
