@@ -24,16 +24,18 @@ func main() {
 		log.Fatalf("failed to get config: %v", err)
 	}
 
-	startHealthServer(cfg.HealthPort)
+
+	// creamos el SSEClient
+	    sse := transport.NewSSEClient(cfg.APIURL, cfg.APIKey)
+
+
+	startHealthServer(cfg.HealthPort, sse)
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
 	hostname ,_ := os.Hostname()
 
-
-	// creamos el SSEClient
-	    sse := transport.NewSSEClient(cfg.APIURL, cfg.APIKey)
 
 	// lanzamos la conexión en el background
 	go sse.Run(ctx, cfg.APIURL)
