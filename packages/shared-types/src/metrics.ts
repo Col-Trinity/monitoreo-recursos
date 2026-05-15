@@ -47,8 +47,10 @@ export const DiskValueSchema = z.object({
 });
 
 export const NetworkValueSchema = z.object({
+  name: z.string(),
   rx: z.number().nonnegative(),
   tx: z.number().nonnegative(),
+  latency: z.number().nonnegative(),
 });
 
 export const MetricEnvelopeSchema = z.discriminatedUnion("type", [

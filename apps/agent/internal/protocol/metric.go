@@ -39,8 +39,10 @@ type DiskValue struct {
 
 // NetworkValue contains the bytes received and transmitted
 type NetworkValue struct {
-	Rx int `json:"rx"`
-	Tx int `json:"tx"`
+	Name    string  `json:"name"`
+	Rx      int     `json:"rx"`
+	Tx      int     `json:"tx"`
+	Latency float64 `json:"latency"`
 }
 
 // MetricEnvelope wraps all metric data sent by the agent to the server
