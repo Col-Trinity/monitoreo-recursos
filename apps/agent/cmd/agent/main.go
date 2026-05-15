@@ -24,18 +24,15 @@ func main() {
 		log.Fatalf("failed to get config: %v", err)
 	}
 
-
 	// creamos el SSEClient
-	    sse := transport.NewSSEClient(cfg.APIURL, cfg.APIKey)
-
+	sse := transport.NewSSEClient(cfg.APIURL, cfg.APIKey)
 
 	startHealthServer(cfg.HealthPort, sse)
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	hostname ,_ := os.Hostname()
-
+	hostname, _ := os.Hostname()
 
 	// lanzamos la conexión en el background
 	go sse.Run(ctx, cfg.APIURL)
@@ -47,14 +44,14 @@ func main() {
 		collectors.NewNetworkCollector(hostname),
 	}
 
-    ticker := time.NewTicker(cfg.interval)
-    defer ticker.Stop()
+	ticker := time.NewTicker(cfg.interval)
+	defer ticker.Stop()
 
-        log.Printf("agent started: posting to %s every %s", cfg.APIURL, cfg.interval)
+	log.Printf("agent started: posting to %s every %s", cfg.APIURL, cfg.interval)
 
 	for {
 		select {
-	
+
 		case <-ctx.Done():
 			log.Println("agent shutting down")
 			return

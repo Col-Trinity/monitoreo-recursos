@@ -5,37 +5,37 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/Col-Trinity/monitoreo-recursos/apps/agent/internal/protocol"
 	"io"
 	"log"
 	"net/http"
 	"time"
-	"github.com/Col-Trinity/monitoreo-recursos/apps/agent/internal/protocol"
 )
 
 func nextBackoff(current, limit time.Duration) time.Duration {
-    next := current * 2
-    if next > limit {
-        return limit
-    }
-    return next
+	next := current * 2
+	if next > limit {
+		return limit
+	}
+	return next
 }
 
 // SSEClient maneja la conexión persistente al servidor
 type SSEClient struct {
-	url     string
-	apiKey  string
-	client  *http.Client
-	metrics chan protocol.MetricEnvelope
+	url        string
+	apiKey     string
+	client     *http.Client
+	metrics    chan protocol.MetricEnvelope
 	reconnects int64
 }
 
 // NewSSEClient crea un nuevo SSEClient
 func NewSSEClient(url, apiKey string) *SSEClient {
 	return &SSEClient{
-		url:     url,
-		apiKey:  apiKey,
-		client:  &http.Client{},
-		metrics: make(chan protocol.MetricEnvelope, 200),
+		url:        url,
+		apiKey:     apiKey,
+		client:     &http.Client{},
+		metrics:    make(chan protocol.MetricEnvelope, 200),
 		reconnects: 0,
 	}
 }
@@ -121,10 +121,10 @@ func (s *SSEClient) write(pw *io.PipeWriter, metric protocol.MetricEnvelope) err
 
 // Reconnects devuelve el total de reconexiones realizadas.
 func (s *SSEClient) Reconnects() int64 {
-    return s.reconnects
+	return s.reconnects
 }
 
 // BufferSize devuelve la cantidad de métricas en espera en el canal.
 func (s *SSEClient) BufferSize() int {
-    return len(s.metrics)
+	return len(s.metrics)
 }

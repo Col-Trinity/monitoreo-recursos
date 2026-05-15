@@ -1,11 +1,12 @@
 package transport
+
 import (
 	"testing"
 	"time"
 )
 
 func TestNextBackoff(t *testing.T) {
-	
+
 	limit := 60 * time.Second
 
 	if got := nextBackoff(1*time.Second, limit); got != 2*time.Second {
