@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/shirou/gopsutil/v3/cpu"
+	"github.com/Col-Trinity/monitoreo-recursos/apps/agent/internal/collectors"
 	"log"
 	"net/http"
 	"os"
@@ -12,11 +12,6 @@ import (
 	"syscall"
 	"time"
 )
-
-type metricsPayload struct {
-	CPUPercent float64 `json:"cpu_percentage"`
-	HostName   string  `json:"host_name,omitempty"`
-}
 
 func getenv(key, fallback string) string {
 	if v := os.Getenv(key); v != "" {
@@ -34,8 +29,6 @@ func main() {
 
 	startHealthServer(cfg.HealthPort)
 
-	hostname, _ := os.Hostname()
-
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
@@ -46,9 +39,14 @@ func main() {
 	log.Printf("agent started: posting to %s every %s", cfg.APIURL, cfg.interval)
 
 	pw, err := connect(ctx, cfg, client, disconnected)
+
 	if err != nil {
 		log.Printf("failed to connect: %v", err)
 		return
+	}
+	hostname, _ := os.Hostname()
+	collectors := []collectors.Collector{
+		collectors.NewCPUCollector(hostname),
 	}
 	for {
 		select {
@@ -61,39 +59,27 @@ func main() {
 			}
 		case <-ctx.Done():
 			log.Println("agent shutting down")
-			if percents, err := cpu.Percent(500*time.Millisecond, false); err == nil && len(percents) > 0 {
-				payload := metricsPayload{CPUPercent: percents[0], HostName: hostname}
-				if body, err := json.Marshal(payload); err == nil {
-					_, _ = fmt.Fprintf(pw, "%s\n", body)
-					log.Printf("final sample: cpu=%.2f%% sent", percents[0])
-				}
-			}
 			_ = pw.Close()
 			return
 		case <-ticker.C:
-			percents, err := cpu.Percent(500*time.Millisecond, false)
-			if err != nil {
-				log.Printf("cpu sample error: %v", err)
-				continue
+			for _, collector := range collectors {
+				metric, err := collector.Collect(ctx)
+				if err != nil {
+					log.Printf("%s error: %v", collector.Name(), err)
+					continue
+				}
+				body, err := json.Marshal(metric)
+				if err != nil {
+					log.Printf("marshal error: %v", err)
+					continue
+				}
+				_, err = fmt.Fprintf(pw, "%s\n", body)
+				if err != nil {
+					log.Printf("write error: %v", err)
+					continue
+				}
+				log.Printf("%s sent", collector.Name())
 			}
-			if len(percents) == 0 {
-				continue
-			}
-			payload := metricsPayload{CPUPercent: percents[0], HostName: hostname}
-			body, err := json.Marshal(payload)
-			if err != nil {
-				log.Printf("marshal error: %v", err)
-				continue
-			}
-
-			_, err = fmt.Fprintf(pw, "%s\n", body)
-
-			if err != nil {
-				log.Printf("write to pipe error: %v", err)
-				continue
-			}
-
-			log.Printf("cpu=%.2f%% sent", percents[0])
 		}
 	}
 }
