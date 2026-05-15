@@ -40,8 +40,8 @@ type DiskValue struct {
 // NetworkValue contains the bytes received and transmitted
 type NetworkValue struct {
 	Name    string  `json:"name"`
-	Rx      int     `json:"rx"`
-	Tx      int     `json:"tx"`
+	Rx      int64   `json:"rx"`
+	Tx      int64   `json:"tx"`
 	Latency float64 `json:"latency"`
 }
 
