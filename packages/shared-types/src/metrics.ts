@@ -33,7 +33,10 @@ export const CpuValueSchema = z.object({
 
 export const MemoryValueSchema = z.object({
   used: z.number().nonnegative(),
+  available: z.number().nonnegative(),
+  cached: z.number().nonnegative(),
   total: z.number().nonnegative(),
+  usedPercent: z.number().min(0).max(100)
 })
 
 export const DiskValueSchema = z.object({
