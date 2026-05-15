@@ -19,7 +19,6 @@ export const sseMetricEventSchema = z.object({
 
 export type SseMetricEvent = z.infer<typeof sseMetricEventSchema>;
 
-
 export enum MetricType {
   CPU = "cpu",
   MEMORY = "memory",
@@ -29,51 +28,54 @@ export enum MetricType {
 
 export const CpuValueSchema = z.object({
   usage: z.number().min(0).max(100),
-})
+});
 
 export const MemoryValueSchema = z.object({
   used: z.number().nonnegative(),
   available: z.number().nonnegative(),
   cached: z.number().nonnegative(),
   total: z.number().nonnegative(),
-  usedPercent: z.number().min(0).max(100)
-})
+  usedPercent: z.number().min(0).max(100),
+});
 
 export const DiskValueSchema = z.object({
+  path: z.string(),
   used: z.number().nonnegative(),
   total: z.number().nonnegative(),
-})
+  free: z.number().nonnegative(),
+  usedPercent: z.number().min(0).max(100),
+});
 
 export const NetworkValueSchema = z.object({
   rx: z.number().nonnegative(),
   tx: z.number().nonnegative(),
-})
+});
 
 export const MetricEnvelopeSchema = z.discriminatedUnion("type", [
   z.object({
-    type:      z.literal(MetricType.CPU),
+    type: z.literal(MetricType.CPU),
     timestamp: z.number(),
-    host:      z.string(),
-    value:     CpuValueSchema,
+    host: z.string(),
+    value: CpuValueSchema,
   }),
   z.object({
-    type:      z.literal(MetricType.MEMORY),
+    type: z.literal(MetricType.MEMORY),
     timestamp: z.number(),
-    host:      z.string(),
-    value:     MemoryValueSchema,
+    host: z.string(),
+    value: MemoryValueSchema,
   }),
   z.object({
-    type:      z.literal(MetricType.DISK),
+    type: z.literal(MetricType.DISK),
     timestamp: z.number(),
-    host:      z.string(),
-    value:     DiskValueSchema,
+    host: z.string(),
+    value: DiskValueSchema,
   }),
   z.object({
-    type:      z.literal(MetricType.NETWORK),
+    type: z.literal(MetricType.NETWORK),
     timestamp: z.number(),
-    host:      z.string(),
-    value:     NetworkValueSchema,
+    host: z.string(),
+    value: NetworkValueSchema,
   }),
-])
+]);
 
 export type MetricEnvelope = z.infer<typeof MetricEnvelopeSchema>;
