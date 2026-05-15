@@ -1,8 +1,8 @@
 import Fastify from "fastify";
 import cors from "@fastify/cors";
-import { dbRead} from "@watchdog/db";
+import { dbRead } from "@watchdog/db";
 import { env } from "@watchdog/env";
-import { metricsPayloadSchema } from "@watchdog/shared-types";
+import { MetricEnvelopeSchema, MetricType } from "@watchdog/shared-types";
 import { agentsTable } from "@watchdog/db/schema";
 import { eq } from "drizzle-orm";
 import { EventEmitter } from "node:events";
@@ -26,7 +26,7 @@ fastify.addContentTypeParser("application/x-ndjson", (_request, payload, done) =
   done(null, payload);
 });
 fastify.post("/metrics", async (request, reply) => {
-  const parsed = metricsPayloadSchema.safeParse(request.body);
+  const parsed = MetricEnvelopeSchema.safeParse(request.body);
 
   if (!parsed.success) {
     return reply.status(400).send({ error: parsed.error.flatten() });
@@ -35,7 +35,6 @@ fastify.post("/metrics", async (request, reply) => {
   const authHeader = request.headers.authorization;
 
   if (!authHeader) {
-    console.log("API key requerida");
     return reply.status(403).send({ error: "API key requerida" });
   }
 
@@ -44,18 +43,26 @@ fastify.post("/metrics", async (request, reply) => {
     return reply.status(401).send({ error: "Formato inválido, debe ser Bearer <api_key>" });
   }
 
-  const [agent] = await dbRead().select().from(agentsTable).where(eq(agentsTable.apiKey, hashApiKey(apiKey)))
+  const [agent] = await dbRead()
+    .select()
+    .from(agentsTable)
+    .where(eq(agentsTable.apiKey, hashApiKey(apiKey)));
 
-  if (!agent) { 
+  if (!agent) {
     return reply.status(401).send({ error: "API key inválida" });
   }
 
+  const envelope = parsed.data;
+  const cpuPercentage = envelope.type === MetricType.CPU ? envelope.value.usage : 0;
+
   await metricsQueue.add("new_metric", {
     agentId: agent.id,
-    metricsType: "cpu",
-    cpuPercentage: parsed.data.cpu_percentage,
-    hostName: parsed.data.host_name ?? "local-server",
+    metricsType: envelope.type,
+    cpuPercentage,
+    hostName: envelope.host,
   });
+
+  return reply.status(200).send({ message: "ok" });
 });
 
 fastify.get("/health", async () => ({ status: "ok" }));
@@ -67,31 +74,36 @@ fastify.post("/metrics/stream", async (request, reply) => {
   const apiKey = authHeader.split("Bearer ")[1];
   if (!apiKey) return reply.status(401).send({ error: "Formato inválido" });
 
-  const [agent] = await dbRead().select().from(agentsTable).where(eq(agentsTable.apiKey, hashApiKey(apiKey)));
+  const [agent] = await dbRead()
+    .select()
+    .from(agentsTable)
+    .where(eq(agentsTable.apiKey, hashApiKey(apiKey)));
   if (!agent) return reply.status(401).send({ error: "API key inválida" });
 
   // Creamos una interfaz para leer el stream línea por línea
   const rl = createInterface({ input: request.body as NodeJS.ReadableStream });
 
   rl.on("line", async (line) => {
-    const parsed = metricsPayloadSchema.safeParse(JSON.parse(line));
+    const parsed = MetricEnvelopeSchema.safeParse(JSON.parse(line));
     if (!parsed.success) return;
 
-    const hostName = parsed.data.host_name ?? "local-server";
+    const envelope = parsed.data;
+    const hostName = envelope.host;
+    const cpuPercentage = envelope.type === MetricType.CPU ? envelope.value.usage : 0;
 
     await metricsQueue.add("new_metric", {
       agentId: agent.id,
-      metricsType: "cpu",
-      cpuPercentage: parsed.data.cpu_percentage,
+      metricsType: envelope.type,
+      cpuPercentage,
       hostName,
     });
 
     metricsEmitter.emit("metric", {
       type: "metric",
       data: {
-        cpuPercentage: parsed.data.cpu_percentage,
+        cpuPercentage,
         hostName,
-        createdAt: new Date().toISOString(),
+        createdAt: new Date(envelope.timestamp).toISOString(),
       },
     });
   });
