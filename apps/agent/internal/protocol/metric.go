@@ -21,20 +21,28 @@ type CPUValue struct {
 
 // MemoryValue contains the memory used and total
 type MemoryValue struct {
-	Used  int `json:"used"`
-	Total int `json:"total"`
+	Used        int64   `json:"used"`
+	Available   int64   `json:"available"`
+	Cached      int64   `json:"cached"`
+	Total       int64   `json:"total"`
+	UsedPercent float64 `json:"usedPercent"`
 }
 
 // DiskValue contains the value used and total his disk
 type DiskValue struct {
-	Used  int `json:"used"`
-	Total int `json:"total"`
+	Path        string  `json:"path"`
+	Total       int64   `json:"total"`
+	Used        int64   `json:"used"`
+	Free        int64   `json:"free"`
+	UsedPercent float64 `json:"usedPercent"`
 }
 
 // NetworkValue contains the bytes received and transmitted
 type NetworkValue struct {
-	Rx int `json:"rx"`
-	Tx int `json:"tx"`
+	Name    string  `json:"name"`
+	Rx      int64   `json:"rx"`
+	Tx      int64   `json:"tx"`
+	Latency float64 `json:"latency"`
 }
 
 // MetricEnvelope wraps all metric data sent by the agent to the server
