@@ -4,13 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/Col-Trinity/monitoreo-recursos/apps/agent/internal/collectors"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/Col-Trinity/monitoreo-recursos/apps/agent/internal/collectors"
 )
 
 func getenv(key, fallback string) string {
@@ -47,6 +48,9 @@ func main() {
 	hostname, _ := os.Hostname()
 	collectors := []collectors.Collector{
 		collectors.NewCPUCollector(hostname),
+		collectors.NewMemoryCollector(hostname),
+		collectors.NewDiskCollector(hostname),
+		collectors.NewNetworkCollector(hostname),
 	}
 	for {
 		select {
