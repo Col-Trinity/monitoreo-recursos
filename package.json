@@ -17,7 +17,6 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mjs,cjs,json,jsonc,md,mdx,yaml,yml,css}\" --cache",
     "format:go": "gofmt -w apps/agent/",
     "linear": "dotenv -e .env -- tsx scripts/linear-sync.ts",
-    
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "docker:reset": "docker compose down -v && docker compose up -d",

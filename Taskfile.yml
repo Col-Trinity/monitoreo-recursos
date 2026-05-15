@@ -11,7 +11,7 @@ tasks:
     cmds:
       - task --list
     silent: true
-    
+
   setup:
     desc: First-time setup — install deps, build shared packages, start DB, run migrations
     cmds:

@@ -83,13 +83,9 @@
         "sessions_user_id_users_id_fk": {
           "name": "sessions_user_id_users_id_fk",
           "tableFrom": "sessions",
-          "columnsFrom": [
-            "user_id"
-          ],
+          "columnsFrom": ["user_id"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -169,9 +165,7 @@
       "uniqueConstraints": {
         "users_email_unique": {
           "name": "users_email_unique",
-          "columns": [
-            "email"
-          ],
+          "columns": ["email"],
           "nullsNotDistinct": false
         }
       },
@@ -269,13 +263,9 @@
         "agents_workspace_id_workspaces_id_fk": {
           "name": "agents_workspace_id_workspaces_id_fk",
           "tableFrom": "agents",
-          "columnsFrom": [
-            "workspace_id"
-          ],
+          "columnsFrom": ["workspace_id"],
           "tableTo": "workspaces",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -284,9 +274,7 @@
       "uniqueConstraints": {
         "agents_api_key_unique": {
           "name": "agents_api_key_unique",
-          "columns": [
-            "api_key"
-          ],
+          "columns": ["api_key"],
           "nullsNotDistinct": false
         }
       },
@@ -386,13 +374,9 @@
         "hosts_agent_id_agents_id_fk": {
           "name": "hosts_agent_id_agents_id_fk",
           "tableFrom": "hosts",
-          "columnsFrom": [
-            "agent_id"
-          ],
+          "columnsFrom": ["agent_id"],
           "tableTo": "agents",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -511,26 +495,18 @@
         "memberships_user_id_users_id_fk": {
           "name": "memberships_user_id_users_id_fk",
           "tableFrom": "memberships",
-          "columnsFrom": [
-            "user_id"
-          ],
+          "columnsFrom": ["user_id"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         },
         "memberships_workspace_id_workspaces_id_fk": {
           "name": "memberships_workspace_id_workspaces_id_fk",
           "tableFrom": "memberships",
-          "columnsFrom": [
-            "workspace_id"
-          ],
+          "columnsFrom": ["workspace_id"],
           "tableTo": "workspaces",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -724,39 +700,27 @@
         "alert_events_alert_rule_id_alerts_rules_id_fk": {
           "name": "alert_events_alert_rule_id_alerts_rules_id_fk",
           "tableFrom": "alert_events",
-          "columnsFrom": [
-            "alert_rule_id"
-          ],
+          "columnsFrom": ["alert_rule_id"],
           "tableTo": "alerts_rules",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         },
         "alert_events_project_id_workspaces_id_fk": {
           "name": "alert_events_project_id_workspaces_id_fk",
           "tableFrom": "alert_events",
-          "columnsFrom": [
-            "project_id"
-          ],
+          "columnsFrom": ["project_id"],
           "tableTo": "workspaces",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         },
         "alert_events_user_id_users_id_fk": {
           "name": "alert_events_user_id_users_id_fk",
           "tableFrom": "alert_events",
-          "columnsFrom": [
-            "user_id"
-          ],
+          "columnsFrom": ["user_id"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -834,26 +798,18 @@
         "alerts_rules_project_id_workspaces_id_fk": {
           "name": "alerts_rules_project_id_workspaces_id_fk",
           "tableFrom": "alerts_rules",
-          "columnsFrom": [
-            "project_id"
-          ],
+          "columnsFrom": ["project_id"],
           "tableTo": "workspaces",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         },
         "alerts_rules_created_by_user_id_users_id_fk": {
           "name": "alerts_rules_created_by_user_id_users_id_fk",
           "tableFrom": "alerts_rules",
-          "columnsFrom": [
-            "created_by_user_id"
-          ],
+          "columnsFrom": ["created_by_user_id"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -1005,26 +961,18 @@
         "audit_log_user_id_users_id_fk": {
           "name": "audit_log_user_id_users_id_fk",
           "tableFrom": "audit_log",
-          "columnsFrom": [
-            "user_id"
-          ],
+          "columnsFrom": ["user_id"],
           "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         },
         "audit_log_workspace_id_workspaces_id_fk": {
           "name": "audit_log_workspace_id_workspaces_id_fk",
           "tableFrom": "audit_log",
-          "columnsFrom": [
-            "workspace_id"
-          ],
+          "columnsFrom": ["workspace_id"],
           "tableTo": "workspaces",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -1139,13 +1087,9 @@
         "metrics_agent_id_agents_id_fk": {
           "name": "metrics_agent_id_agents_id_fk",
           "tableFrom": "metrics",
-          "columnsFrom": [
-            "agent_id"
-          ],
+          "columnsFrom": ["agent_id"],
           "tableTo": "agents",
-          "columnsTo": [
-            "id"
-          ],
+          "columnsTo": ["id"],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -1161,75 +1105,37 @@
     "public.language": {
       "name": "language",
       "schema": "public",
-      "values": [
-        "ingles",
-        "espa\u00f1ol",
-        "portugues"
-      ]
+      "values": ["ingles", "espa\u00f1ol", "portugues"]
     },
     "public.role": {
       "name": "role",
       "schema": "public",
-      "values": [
-        "owner",
-        "admin",
-        "member",
-        "viewer"
-      ]
+      "values": ["owner", "admin", "member", "viewer"]
     },
     "public.action": {
       "name": "action",
       "schema": "public",
-      "values": [
-        "created",
-        "updated",
-        "deleted",
-        "invited",
-        "login",
-        "logout"
-      ]
+      "values": ["created", "updated", "deleted", "invited", "login", "logout"]
     },
     "public.metrics_type": {
       "name": "metrics_type",
       "schema": "public",
-      "values": [
-        "memory",
-        "disk",
-        "cpu",
-        "network"
-      ]
+      "values": ["memory", "disk", "cpu", "network"]
     },
     "public.resource_type": {
       "name": "resource_type",
       "schema": "public",
-      "values": [
-        "user",
-        "workspace",
-        "agent",
-        "host",
-        "alert",
-        "membership"
-      ]
+      "values": ["user", "workspace", "agent", "host", "alert", "membership"]
     },
     "public.status": {
       "name": "status",
       "schema": "public",
-      "values": [
-        "active",
-        "resolved",
-        "ack"
-      ]
+      "values": ["active", "resolved", "ack"]
     },
     "public.trigger_type": {
       "name": "trigger_type",
       "schema": "public",
-      "values": [
-        "memory",
-        "disk",
-        "cpu",
-        "network",
-        "custom"
-      ]
+      "values": ["memory", "disk", "cpu", "network", "custom"]
     }
   },
   "schemas": {},

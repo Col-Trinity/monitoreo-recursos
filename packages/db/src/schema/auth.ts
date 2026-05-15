@@ -9,11 +9,17 @@ export const usersTable = p.pgTable("users", {
   emailVerifiedAt: p.timestamp("email_verified_at", { withTimezone: true }),
   language: languageEnum("language"),
   createdAt: p.timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: p.timestamp("updated_at", { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
+  updatedAt: p
+    .timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull()
+    .$onUpdate(() => new Date()),
   deletedAt: p.timestamp("deleted_at", { withTimezone: true }),
 });
 
-export const sessionsTable = p.pgTable("sessions", {
+export const sessionsTable = p.pgTable(
+  "sessions",
+  {
     id: p.uuid("id").primaryKey().defaultRandom(),
     userId: p
       .uuid("user_id")
@@ -27,13 +33,11 @@ export const sessionsTable = p.pgTable("sessions", {
   (table) => ({
     userIdx: p.index("sessions_user_id_idx").on(table.userId),
     expiresIdx: p.index("sessions_expires_at_idx").on(table.expiresAt),
-  })
+  }),
 );
 
 export type User = typeof usersTable.$inferSelect;
 export type NewUser = typeof usersTable.$inferInsert;
 
-
 export type Session = typeof sessionsTable.$inferSelect;
 export type NewSession = typeof sessionsTable.$inferInsert;
-

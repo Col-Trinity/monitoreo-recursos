@@ -3,6 +3,7 @@
 Watchdog is a real-time CPU monitoring system. It collects metrics from servers, stores them in a database, and displays them in a web dashboard.
 
 ## Architecture overview
+
 agent (Go) → api (Fastify) → queue (Redis) → worker (BullMQ) → db (Postgres) → web (Next.js)
 
 ## Services

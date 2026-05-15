@@ -11,7 +11,7 @@ const worker = new Worker(
     console.log(`[worker] processing ${job.name}#${job.id}`, job.data);
 
     if (job.name === "new_metric") {
-       await dbWrite().insert(metricsTable).values({
+      await dbWrite().insert(metricsTable).values({
         agentId: job.data.agentId,
         metricsType: job.data.metricsType,
         value: job.data.cpuPercentage,
