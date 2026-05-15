@@ -3,7 +3,7 @@ import { createDb } from "./client";
 import { metricsTable } from "./schema/metrics";
 import { workspacesTable, agentsTable } from "./schema/tenancy";
 import { usersTable } from "./schema";
-import {createHash} from "node:crypto";
+import { createHash } from "node:crypto";
 
 const hashApiKey = (key: string) => createHash("sha256").update(key).digest("hex");
 

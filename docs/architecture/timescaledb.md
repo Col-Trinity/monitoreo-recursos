@@ -8,21 +8,20 @@ Imagina una aplicación que necesita recopilar terabytes de puntos de datos con 
 
 Internamente, TimescaleDB almacena los datos en **HYPERTABLES**: tablas abstractas compuestas por muchas tablas PostgreSQL más pequeñas llamadas **CHUNKS**. Esta arquitectura permite aumentar hasta un 40% las velocidades de inserción y hacer que las consultas sean hasta 350 veces más rápidas
 
-
 ## Hypertables vs Tablas Regulares
 
 ![Comparación: Tabla Regular vs Hypertable](image.png)
-*Una hypertable particiona automáticamente por tiempo en chunks de 1 día*
+_Una hypertable particiona automáticamente por tiempo en chunks de 1 día_
+
 ### ¿Qué es una Hypertable?
 
 Una **hypertable** es una tabla abstracta que se comporta como una tabla PostgreSQL normal desde la perspectiva del usuario, pero internamente está compuesta por muchas tablas más pequeñas llamadas **chunks**.
-TimescaleDB particiona automáticamente tus datos de series temporales por tiempo y, 
+TimescaleDB particiona automáticamente tus datos de series temporales por tiempo y,
 opcionalmente, por otras dimensiones (como sensor_id, región, etc.). Esto significa:
 
 - **Para el usuario:** parece una tabla normal
-- **Internamente:** está dividida en chunks que optimizan las consultas 
-- **Beneficio:** consultas más rápidas y mejor uso de memoria 
-
+- **Internamente:** está dividida en chunks que optimizan las consultas
+- **Beneficio:** consultas más rápidas y mejor uso de memoria
 
 ### ¿Por qué es mejor que una tabla regular?
 
@@ -42,7 +41,7 @@ CREATE TABLE order_events (
 );
 ```
 
-**Problema:** Todos los datos (de años enteros) están en una sola tabla. 
+**Problema:** Todos los datos (de años enteros) están en una sola tabla.
 Conforme crece, las consultas se vuelven lentas.
 
 #### Hypertable (TimescaleDB):
@@ -57,7 +56,8 @@ CREATE TABLE order_events (
     timescaledb.partition_column = 'created_at' ← AQUÍ decimos "particiona por created_at"
 )
 ```
-**Ventaja:** TimescaleDB divide automáticamente los datos en chunks por fecha 
+
+**Ventaja:** TimescaleDB divide automáticamente los datos en chunks por fecha
 (ej: 1 día por chunk). Cada chunk es una tabla pequeña, más rápida de consultar.
 
 ### Forma simplificada (si hay solo una columna de timestamp):
@@ -74,14 +74,13 @@ CREATE TABLE sensor_data (
 
 ### ¿Por qué es mejor una Hypertable?
 
-| Aspecto                   | Tabla Regular                | Hypertable                               |
-|---------------------------|------------------------------|------------------------------------------|
-| **Almacenamiento**        | Una tabla grande             | Dividida en chunks por tiempo            |
-| **Velocidad de lectura**  | Lenta( crece con datos)      | Rápida (consulta solo chunks relevantes) |
-| **Velocidad de escritura**| Normal                       | Hasta 40% más rápida                     |
-| **Mantenimiento**         | Manual (índices, particiones)| Automático                               |
-| **Ideal para**            | Datos generales              | Series temporales                        |
-
+| Aspecto                    | Tabla Regular                 | Hypertable                               |
+| -------------------------- | ----------------------------- | ---------------------------------------- |
+| **Almacenamiento**         | Una tabla grande              | Dividida en chunks por tiempo            |
+| **Velocidad de lectura**   | Lenta( crece con datos)       | Rápida (consulta solo chunks relevantes) |
+| **Velocidad de escritura** | Normal                        | Hasta 40% más rápida                     |
+| **Mantenimiento**          | Manual (índices, particiones) | Automático                               |
+| **Ideal para**             | Datos generales               | Series temporales                        |
 
 ### chunk_time_interval: Controlando el tamaño de los chunks
 
@@ -97,12 +96,12 @@ WITH (
     timescaledb.chunk_time_interval = '1 day'
 )
 ```
+
 Significa:
 
     Chunk 1: 2025-01-01 00:00:00 → 2025-01-01 23:59:59 (1 día completo)
     Chunk 2: 2025-01-02 00:00:00 → 2025-01-02 23:59:59 (1 día completo)
     Chunk 3: 2025-01-03 00:00:00 → 2025-01-03 23:59:59 (1 día completo)
-
 
 ### ¿Por qué importa elegir bien el chunk_time_interval?
 
@@ -115,10 +114,12 @@ chunk_time_interval = '1 hour'
 ```
 
 **Ventajas:**
+
 - Chunks muy pequeños y específicos
 - Mejor para consultas muy puntuales
 
 **Desventajas:**
+
 - ⚠️ Muchos chunks = más overhead de gestión
 - ⚠️ Más memoria usada
 - ⚠️ Más lento insertar datos (más chunks que actualizar)
@@ -130,10 +131,12 @@ chunk_time_interval = '1 month'
 ```
 
 **Ventajas:**
+
 - Pocos chunks = menos overhead
 - Más rápido insertar datos
 
 **Desventajas:**
+
 - ⚠️ Chunks muy grandes = menos beneficio de particionamiento
 - ⚠️ Las consultas no ganan tanto en velocidad
 - ⚠️ Pierdes los beneficios principales de TimescaleDB
@@ -141,15 +144,16 @@ chunk_time_interval = '1 month'
 #### El balance: ELEGIR BIEN
 
 La clave es elegir un intervalo que:
+
 1. Sea lo suficientemente pequeño para **optimizar consultas**
 2. Sea lo suficientemente grande para **no crear overhead**
 3. Considere tu **volumen de datos diario**
 
 **Regla práctica:**
+
 - Si insertas **millones de filas por día** → chunk pequeño (1 hour)
 - Si insertas **miles de filas por día** → chunk medio (1 day)
 - Si insertas **cientos de filas por día** → chunk grande (1 week)
-
 
 ### Para Watch-Dog: ¿Por qué elegimos '1 day'?
 
@@ -170,7 +174,7 @@ chunk_time_interval = '1 day'
    - Ni demasiado pequeño (no hay overhead)
    - Ni demasiado grande (no perdemos optimización)
 
-2. **Queries típicas:** Si consultamos "últimas 6 horas", 
+2. **Queries típicas:** Si consultamos "últimas 6 horas",
    solo necesita leer 1 chunk (mucho más rápido)
 
 3. **Retention de 7 días:** Solo guardamos 7 chunks en memoria
@@ -178,16 +182,14 @@ chunk_time_interval = '1 day'
 
 4. **Balance perfecto:** Entre velocidad de inserción y velocidad de consulta
 
-
-
 ### Continuous Aggregates: Agregaciones Continuas
 
 #### El Problema: Agregaciones Lentas
 
-En las aplicaciones modernas, los datos crecen muy rápido. Cuando necesitas 
+En las aplicaciones modernas, los datos crecen muy rápido. Cuando necesitas
 agregarlos para hacer resúmenes útiles, la base de datos puede volverse muy lenta.
 
-Por ejemplo, imagina un dispositivo IoT que toma lecturas de temperatura cada segundo. 
+Por ejemplo, imagina un dispositivo IoT que toma lecturas de temperatura cada segundo.
 Si quieres calcular la temperatura **promedio por hora**, tendrías que:
 
 1. Escanear TODA la tabla de datos
@@ -198,52 +200,52 @@ Esto se repite cada vez que ejecutas la consulta. **Muy ineficiente.**
 
 #### La Solución: Continuous Aggregates
 
-**Continuous Aggregates** son un tipo especial de hipertabla en TimescaleDB que 
-se **actualiza automáticamente en segundo plano** a medida que se agregan nuevos datos 
+**Continuous Aggregates** son un tipo especial de hipertabla en TimescaleDB que
+se **actualiza automáticamente en segundo plano** a medida que se agregan nuevos datos
 o se modifican los existentes.
 
 **Continuous Aggregates vs Materialized Views de PostgreSQL:**
 
-| Aspecto           | Materialized View             | Continuous Aggregate                  |
-|-------------------|-------------------------------|---------------------------------------|
-| **Actualización** | Manual (REFRESH)              | Automática en background              |
-| **Velocidad**     | Rápida (foto guardada)        | Rápida (foto guardada)                |
-| **Mantenimiento** | Manual y tedioso              | Automático                            |
-| **Datos nuevos**  | Desactualizados hasta REFRESH | Siempre actualizados                  |
-| **Ideal para**    | Datos que cambian poco        | Series temporales (cambios frecuentes)|
+| Aspecto           | Materialized View             | Continuous Aggregate                   |
+| ----------------- | ----------------------------- | -------------------------------------- |
+| **Actualización** | Manual (REFRESH)              | Automática en background               |
+| **Velocidad**     | Rápida (foto guardada)        | Rápida (foto guardada)                 |
+| **Mantenimiento** | Manual y tedioso              | Automático                             |
+| **Datos nuevos**  | Desactualizados hasta REFRESH | Siempre actualizados                   |
+| **Ideal para**    | Datos que cambian poco        | Series temporales (cambios frecuentes) |
 
-
-En lugar de recalcular el promedio completo cada consulta, TimescaleDB lo mantiene 
+En lugar de recalcular el promedio completo cada consulta, TimescaleDB lo mantiene
 actualizado en tiempo real. **Resultado:** agregaciones increíblemente rápidas y precisas.
-
 
 ### Retention Policies: Políticas de Retención
 
 #### ¿Por qué eliminar datos antiguos?
 
-En aplicaciones con series temporales, los datos crecen constantemente. 
+En aplicaciones con series temporales, los datos crecen constantemente.
 Guardar TODOS los datos para siempre es:
+
 - ❌ Caro (storage cuesta dinero)
 - ❌ Lento (más datos = consultas más lentas)
 - ❌ Innecesario (datos muy antiguos rara vez se usan)
 
-Por eso necesitas una **Retention Policy**: eliminar automáticamente datos 
+Por eso necesitas una **Retention Policy**: eliminar automáticamente datos
 después de cierta antigüedad.
 
 #### ¿Cómo funcionan?
 
-Las políticas de retención eliminan **bloques completos (chunks)** una vez que 
+Las políticas de retención eliminan **bloques completos (chunks)** una vez que
 su intervalo de tiempo queda fuera del período especificado.
 
 **Ventaja clave:** Es mucho más eficiente que eliminar millones de filas una por una.
 
 Ejemplo:
+
 - Tienes 1,000 chunks de datos
 - Configuraste retención de 7 días
 - Cada día, TimescaleDB automáticamente elimina el chunk más antiguo
 - Resultado: nunca tienes más de 7 chunks en la BD
 
-TimescaleDB programa una **tarea en segundo plano** para aplicar la política 
+TimescaleDB programa una **tarea en segundo plano** para aplicar la política
 automáticamente. **Tú no tienes que hacer nada.**
 
 #### Granularidad de Retención
@@ -251,11 +253,13 @@ automáticamente. **Tú no tienes que hacer nada.**
 "Granularidad" significa: **cuán específico es el período de retención**.
 
 Ejemplos:
+
 - `INTERVAL '7 days'` → elimina datos más antiguos de 7 días (granularidad = 1 día)
 - `INTERVAL '24 hours'` → elimina datos más antiguos de 24 horas
 - `INTERVAL '30 days'` → elimina datos más antiguos de 30 días
 
 Para Watch-Dog, elegimos `7 days` porque:
+
 - Guardamos métricas de los últimos 7 días
 - Datos más antiguos no son útiles para análisis actual
 - Ahorra espacio y mantiene la BD rápida
@@ -280,11 +284,13 @@ Si en el futuro queremos un intervalo diferente (por ejemplo en M7 cuando queram
 retention distinta por tabla), hay que:
 
 **1. Eliminar la policy actual:**
+
 ```sql
 SELECT remove_retention_policy('metrics');
 ```
 
 **2. Crear una nueva con el intervalo deseado:**
+
 ```sql
 SELECT add_retention_policy('metrics', INTERVAL '30 days');
 ```
@@ -296,13 +302,14 @@ y registrarla en `_journal.json`.
 
 #### ¿Por qué comprimir datos?
 
-TimescaleDB almacena millones de filas. Conforme los datos crecen, el almacenamiento 
+TimescaleDB almacena millones de filas. Conforme los datos crecen, el almacenamiento
 (storage) se vuelve caro y la base de datos más lenta.
 
-**Compression** es una técnica que reduce el tamaño físico de los datos antiguos, 
+**Compression** es una técnica que reduce el tamaño físico de los datos antiguos,
 guardándolos en un formato más comprimido.
 
 Ejemplo:
+
 - Datos sin comprimir: 1,000 filas = 100 MB
 - Datos comprimidos: 1,000 filas = 10 MB (10 veces más pequeño)
 
@@ -316,37 +323,32 @@ TimescaleDB comprime **chunks enteros** (no datos individuales):
 4. Pero siguen siendo consultables
 
 Ejemplo visual:
-Chunk 1 (hace 1 día):  SIN COMPRIMIR → 100 MB → Acceso rápido
-Chunk 2 (hace 4 días): COMPRIMIDO   → 10 MB  → Acceso más lento
-Chunk 3 (hace 7 días): COMPRIMIDO   → 10 MB  → Acceso más lento
-
+Chunk 1 (hace 1 día): SIN COMPRIMIR → 100 MB → Acceso rápido
+Chunk 2 (hace 4 días): COMPRIMIDO → 10 MB → Acceso más lento
+Chunk 3 (hace 7 días): COMPRIMIDO → 10 MB → Acceso más lento
 
 #### El Trade-off: Velocidad vs Espacio
 
 Comprimir datos tiene una **compensación importante:**
 
-| Aspecto                  | Datos sin comprimir | Datos comprimidos             |
-|--------------------------|---------------------|-------------------------------|
-| **Tamaño en disco**      | Grande (100 MB)     | Pequeño (10 MB)               |
-| **Velocidad de lectura** | Rápida              | Lenta (necesita descomprimir) |
-| **Tiempo de query**      | Rápido              | 5-10x más lento               |
-| **Uso de CPU**           | Normal              | Alto (descomprimir cuesta CPU)|
-
-
+| Aspecto                  | Datos sin comprimir | Datos comprimidos              |
+| ------------------------ | ------------------- | ------------------------------ |
+| **Tamaño en disco**      | Grande (100 MB)     | Pequeño (10 MB)                |
+| **Velocidad de lectura** | Rápida              | Lenta (necesita descomprimir)  |
+| **Tiempo de query**      | Rápido              | 5-10x más lento                |
+| **Uso de CPU**           | Normal              | Alto (descomprimir cuesta CPU) |
 
 #### Cuándo usar Compression
 
 | Tipo de datos                              | ¿Comprimir? | Por qué                            |
-|--------------------------------------------|-------------|------------------------------------|
+| ------------------------------------------ | ----------- | ---------------------------------- |
 | Datos de esta semana (muy consultados)     | ❌ NO       | Necesitas velocidad                |
 | Datos de hace 1 mes (rara vez consultados) | ✅ SÍ       | Espacio vs velocidad, vale la pena |
 | Datos históricos (más de 3 meses)          | ✅ SÍ       | Casi nunca los consultas           |
 
-
-
 ## Benchmarks
 
-Resultados corridos en entorno local con Docker, con 1,036,800 filas 
+Resultados corridos en entorno local con Docker, con 1,036,800 filas
 distribuidas en 30 días.
 
 ### ¿Cómo se generaron los datos?
@@ -356,16 +358,18 @@ Se simularon 6 servidores enviando 4 tipos de métricas cada minuto durante 30 d
 30 días × 1,440 minutos × 6 servidores × 4 tipos = 1,036,800 filas
 
 ### Insert bulk (lotes de 10,000 filas)
-| Métrica | Resultado |
-|---------|-----------|
-| Total filas | 1,036,800 |
-| Tiempo total | 86,325ms |
+
+| Métrica      | Resultado |
+| ------------ | --------- |
+| Total filas  | 1,036,800 |
+| Tiempo total | 86,325ms  |
 
 ### Queries (100 ejecuciones)
+
 | Métrica | Resultado | Criterio |
-|---------|-----------|---------|
-| P50 | 193ms | - |
-| P99 | 263ms | < 50ms |
+| ------- | --------- | -------- |
+| P50     | 193ms     | -        |
+| P99     | 263ms     | < 50ms   |
 
 > ⚠️ Los resultados fueron obtenidos en entorno local con Docker.
 > Se espera mejor performance en un servidor real de producción.

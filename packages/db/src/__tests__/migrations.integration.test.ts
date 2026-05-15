@@ -7,8 +7,7 @@ import { fileURLToPath } from "url";
 
 const TEST_DB = "monitoreo_recursos_test";
 const BASE_URL =
-  process.env.TEST_DB_BASE_URL ??
-  "postgres://monitor_user:monitor_password@localhost:5433";
+  process.env.TEST_DB_BASE_URL ?? "postgres://monitor_user:monitor_password@localhost:5433";
 const ADMIN_URL = `${BASE_URL}/postgres`;
 const TEST_DB_URL = `${BASE_URL}/${TEST_DB}`;
 
@@ -44,9 +43,6 @@ describe("migrations", () => {
       WHERE table_schema = 'public'
         AND data_type = 'timestamp without time zone'
     `;
-    expect(
-      rows,
-      `Columns missing timezone:\n${JSON.stringify(rows, null, 2)}`
-    ).toHaveLength(0);
+    expect(rows, `Columns missing timezone:\n${JSON.stringify(rows, null, 2)}`).toHaveLength(0);
   });
 });

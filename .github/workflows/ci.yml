@@ -1,9 +1,9 @@
 name: CI - Lint, TypeCheck, Build
 
-on: 
+on:
   pull_request:
     branches: [main]
-  push: 
+  push:
     branches: [main]
 
 jobs:
@@ -16,11 +16,11 @@ jobs:
       REDIS_URL: "redis://localhost:6379"
     steps:
       - uses: actions/checkout@v4
-            
+
       - uses: pnpm/action-setup@v2
-        with: 
+        with:
           version: 10
-      
+
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
@@ -51,18 +51,18 @@ jobs:
 
       - name: Download Go modules
         run: go work sync
-      
+
       - name: Check Go formatting
         run: task format:go:check
-      
+
       - name: Lint (Node.js)
         run: task lint
-      
+
       - name: TypeCheck
         run: task typecheck
-      
+
       - name: Build
         run: task build
-      
+
       - name: Test (Unit)
         run: task test

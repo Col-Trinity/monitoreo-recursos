@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest"
-import { MetricEnvelopeSchema } from "./metrics"
+import { describe, it, expect } from "vitest";
+import { MetricEnvelopeSchema } from "./metrics";
 
 describe("MetricEnvelopeSchema", () => {
   it("should validate a valid CPU metric", () => {
@@ -10,10 +10,10 @@ describe("MetricEnvelopeSchema", () => {
       value: {
         usage: 23,
       },
-    }
-    const result = MetricEnvelopeSchema.safeParse(metric)
-    expect(result.success).toBe(true)
-  })
+    };
+    const result = MetricEnvelopeSchema.safeParse(metric);
+    expect(result.success).toBe(true);
+  });
 
   it("should reject an invalid metric type", () => {
     const metric = {
@@ -23,10 +23,10 @@ describe("MetricEnvelopeSchema", () => {
       value: {
         usage: 23,
       },
-    }
-    const result = MetricEnvelopeSchema.safeParse(metric)
-    expect(result.success).toBe(false)
-  })
+    };
+    const result = MetricEnvelopeSchema.safeParse(metric);
+    expect(result.success).toBe(false);
+  });
 
   it("should reject an invalid value metric", () => {
     const metric = {
@@ -36,8 +36,8 @@ describe("MetricEnvelopeSchema", () => {
       value: {
         disponible: 23,
       },
-    }
-    const result = MetricEnvelopeSchema.safeParse(metric)
-    expect(result.success).toBe(false)
-  })
-})
+    };
+    const result = MetricEnvelopeSchema.safeParse(metric);
+    expect(result.success).toBe(false);
+  });
+});

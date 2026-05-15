@@ -13,20 +13,20 @@ export const metricsTable = p.pgTable(
     agentId: p
       .uuid()
       .references(() => agentsTable.id, {
-        onDelete: "cascade"
+        onDelete: "cascade",
       })
       .notNull(),
     metricsType: metricsEnum("metrics_type").notNull(),
     value: p.doublePrecision("value"),
     hostname: p.varchar("host_name").notNull(),
-    createdAt: p.timestamp("created_at", { withTimezone: true }).defaultNow().notNull() 
+    createdAt: p.timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => ({
     pk: p.primaryKey({ columns: [table.id, table.createdAt] }), // PK compuesto
     agentTimeIdx: p.index("agent_time_idx").on(table.agentId, table.createdAt),
 
     uniqMetrics: p
-      .uniqueIndex("uniq_metrics") 
+      .uniqueIndex("uniq_metrics")
       .on(table.createdAt, table.agentId, table.metricsType, table.hostname),
   }),
 );
@@ -39,7 +39,7 @@ export const triggerEnum = p.pgEnum("trigger_type", ["memory", "disk", "cpu", "n
 export const alertsRuleTable = p.pgTable("alerts_rules", {
   id: p.uuid("id").primaryKey().defaultRandom(),
   workspaceId: p
-    .uuid("workspace_id") 
+    .uuid("workspace_id")
     .notNull()
     .references(() => workspacesTable.id),
   createByUserId: p
@@ -50,7 +50,11 @@ export const alertsRuleTable = p.pgTable("alerts_rules", {
   triggerType: triggerEnum("trigger_type"),
   metadata: p.json("metadata"),
   createdAt: p.timestamp("created_at", { withTimezone: true }),
-  updatedAt: p.timestamp("updated_at", { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
+  updatedAt: p
+    .timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull()
+    .$onUpdate(() => new Date()),
   deletedAt: p.timestamp("deleted_at", { withTimezone: true }),
 });
 
@@ -74,7 +78,11 @@ export const alertEventTable = p.pgTable(
     resolvedAt: p.timestamp("resolved_at", { withTimezone: true }),
     status: statusEnum("status"),
     createdAt: p.timestamp("created_at", { withTimezone: true }),
-    updatedAt: p.timestamp("updated_at", { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
+    updatedAt: p
+      .timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull()
+      .$onUpdate(() => new Date()),
   },
   (table) => ({
     statusIdx: p.index("alert_event_status_idx").on(table.status),
@@ -115,7 +123,7 @@ export const auditLogTable = p.pgTable(
       .notNull()
       .references(() => workspacesTable.id),
     resourceId: p.uuid("resource_id").notNull(),
-    resourceType:resourceTypeEnum("resource_type"),
+    resourceType: resourceTypeEnum("resource_type"),
     action: actionEnum("action"),
 
     changes: p.json("changes"),

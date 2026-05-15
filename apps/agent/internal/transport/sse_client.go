@@ -5,11 +5,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/Col-Trinity/monitoreo-recursos/apps/agent/internal/protocol"
 	"io"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/Col-Trinity/monitoreo-recursos/apps/agent/internal/protocol"
 )
 
 func nextBackoff(current, limit time.Duration) time.Duration {
@@ -35,7 +36,7 @@ func NewSSEClient(url, apiKey string) *SSEClient {
 		url:        url,
 		apiKey:     apiKey,
 		client:     &http.Client{},
-		metrics:    make(chan protocol.MetricEnvelope, 200),
+		metrics:    make(chan protocol.MetricEnvelope, 800),
 		reconnects: 0,
 	}
 }
@@ -95,6 +96,7 @@ func (s *SSEClient) connect(ctx context.Context, apiURL string) error {
 		errCh <- nil
 	}()
 
+	log.Println("connected to server_________________________________")
 	for {
 		select {
 		case metric := <-s.metrics:
