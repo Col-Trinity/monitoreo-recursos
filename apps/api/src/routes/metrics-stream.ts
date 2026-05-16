@@ -15,7 +15,7 @@ const metricsStreamPlugin: FastifyPluginAsync<{
 
     const hashApiKey = (key: string) => createHash("sha256").update(key).digest("hex")
 
-    fastify.post("/metrics/stream", async (request, reply) => {
+    fastify.post("/metrics/stream", async (request, reply   ) => {
         const authHeader = request.headers.authorization
         if (!authHeader) return reply.status(403).send({ error: "API key requerida" })
 
@@ -33,7 +33,12 @@ const metricsStreamPlugin: FastifyPluginAsync<{
 
         rl.on("line", async (line) => {
             const parsed = MetricEnvelopeSchema.safeParse(JSON.parse(line))
-            if (!parsed.success) return
+
+            if (!parsed.success) {
+                reply.status(400).send({ error: "Invalid metric schema" })
+                rl.close()
+                return
+            }
 
             const envelope = parsed.data
             const hostName = envelope.host

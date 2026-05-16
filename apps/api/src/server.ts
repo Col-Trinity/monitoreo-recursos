@@ -10,7 +10,7 @@ import { createInterface } from "node:readline";
 import { Queue } from "bullmq";
 import { Redis } from "ioredis";
 import { createHash } from "node:crypto";
-import metricsStreamPlugin from "./routes/metrics-stream"
+import metricsStreamPlugin from "./routes/metrics-stream";
 
 const hashApiKey = (key: string) => createHash("sha256").update(key).digest("hex");
 
@@ -23,17 +23,16 @@ const fastify = Fastify({ logger: true });
 
 await fastify.register(cors);
 
-await fastify.register(metricsStreamPlugin, {
-  metricsQueue,
-  metricsEmitter,
-})
-
 fastify.addContentTypeParser("application/x-ndjson", (_request, payload, done) => {
   done(null, payload);
 });
-fastify.post("/metrics", async (request, reply) => {
 
-    fastify.log.warn("DEPRECATED: POST /metrics is deprecated, use POST /metrics/stream instead")
+await fastify.register(metricsStreamPlugin, {
+  metricsQueue,
+  metricsEmitter,
+});
+fastify.post("/metrics", async (request, reply) => {
+  fastify.log.warn("DEPRECATED: POST /metrics is deprecated, use POST /metrics/stream instead");
   const parsed = MetricEnvelopeSchema.safeParse(request.body);
 
   if (!parsed.success) {
@@ -74,11 +73,6 @@ fastify.post("/metrics", async (request, reply) => {
 });
 
 fastify.get("/health", async () => ({ status: "ok" }));
-
-await fastify.register(metricsStreamPlugin, {
-  metricsQueue,
-  metricsEmitter,
-})
 
 fastify.get("/metrics/sse", (request, reply) => {
   reply.raw.writeHead(200, {
