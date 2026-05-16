@@ -6,7 +6,6 @@ import { MetricEnvelopeSchema, MetricType } from "@watchdog/shared-types";
 import { agentsTable } from "@watchdog/db/schema";
 import { eq } from "drizzle-orm";
 import { EventEmitter } from "node:events";
-import { createInterface } from "node:readline";
 import { Queue } from "bullmq";
 import { Redis } from "ioredis";
 import { createHash } from "node:crypto";
@@ -75,6 +74,7 @@ fastify.post("/metrics", async (request, reply) => {
 fastify.get("/health", async () => ({ status: "ok" }));
 
 fastify.get("/metrics/sse", (request, reply) => {
+  reply.hijack();
   reply.raw.writeHead(200, {
     "Content-Type": "text/event-stream",
     "Cache-Control": "no-cache",
