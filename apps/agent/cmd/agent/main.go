@@ -2,13 +2,14 @@ package main
 
 import (
 	"context"
-	"github.com/Col-Trinity/monitoreo-recursos/apps/agent/internal/collectors"
-	"github.com/Col-Trinity/monitoreo-recursos/apps/agent/internal/transport"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/Col-Trinity/monitoreo-recursos/apps/agent/internal/collectors"
+	"github.com/Col-Trinity/monitoreo-recursos/apps/agent/internal/transport"
 )
 
 func getenv(key, fallback string) string {
@@ -54,7 +55,20 @@ func main() {
 
 		case <-ctx.Done():
 			log.Println("agent shutting down")
-			return
+			deadline := time.After(cfg.shutdownTimeout)
+			for {
+				select {
+				case <-deadline:
+					log.Println("shutdown timeout, discarding buffer")
+					return
+				default:
+					log.Printf("draining %d items", sse.BufferSize())
+					if sse.BufferSize() == 0 {
+						return
+					}
+				}
+			}
+
 		case <-ticker.C:
 			for _, collector := range colls {
 				metric, err := collector.Collect(ctx)
