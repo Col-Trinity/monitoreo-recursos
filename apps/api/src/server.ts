@@ -59,12 +59,24 @@ fastify.post("/metrics", async (request, reply) => {
   }
 
   const envelope = parsed.data;
-  const cpuPercentage = envelope.type === MetricType.CPU ? envelope.value.usage : 0;
+  let metricValue: number;
+  switch (envelope.type) {
+    case MetricType.CPU:
+      metricValue = envelope.value.usage;
+      break;
+    case MetricType.MEMORY:
+    case MetricType.DISK:
+      metricValue = envelope.value.usedPercent;
+      break;
+    case MetricType.NETWORK:
+      metricValue = envelope.value.rx;
+      break;
+  }
 
   await metricsQueue.add("new_metric", {
     agentId: agent.id,
     metricsType: envelope.type,
-    cpuPercentage,
+    metricValue,
     hostName: envelope.host,
   });
 

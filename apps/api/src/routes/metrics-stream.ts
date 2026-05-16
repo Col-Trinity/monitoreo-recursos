@@ -42,19 +42,31 @@ const metricsStreamPlugin: FastifyPluginAsync<{
 
             const envelope = parsed.data
             const hostName = envelope.host
-            const cpuPercentage = envelope.type === MetricType.CPU ? envelope.value.usage : 0
+            let metricValue: number;
+            switch (envelope.type) {
+              case MetricType.CPU:
+                metricValue = envelope.value.usage;
+                break;
+              case MetricType.MEMORY:
+              case MetricType.DISK:
+                metricValue = envelope.value.usedPercent;
+                break;
+              case MetricType.NETWORK:
+                metricValue = envelope.value.rx;
+                break;
+            }
 
             await opts.metricsQueue.add("new_metric", {
                 agentId: agent.id,
                 metricsType: envelope.type,
-                cpuPercentage,
+                metricValue,
                 hostName,
             })
 
             opts.metricsEmitter.emit("metric", {
                 type: "metric",
                 data: {
-                    cpuPercentage,
+                    metricValue,
                     hostName,
                     createdAt: new Date(envelope.timestamp).toISOString(),
                 },

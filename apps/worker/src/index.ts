@@ -14,7 +14,7 @@ const worker = new Worker(
       await dbWrite().insert(metricsTable).values({
         agentId: job.data.agentId,
         metricsType: job.data.metricsType,
-        value: job.data.cpuPercentage,
+        value: job.data.metricValue,
         hostname: job.data.hostName,
       });
     }
