@@ -10,11 +10,12 @@ import { Queue } from "bullmq";
 import { Redis } from "ioredis";
 import { createHash } from "node:crypto";
 import metricsStreamPlugin from "./routes/metrics-stream";
+import { metricsIngestQueue } from "@watchdog/shared-types"
 
 const hashApiKey = (key: string) => createHash("sha256").update(key).digest("hex");
 
 const connection = new Redis(env.REDIS_URL, { maxRetriesPerRequest: null });
-const metricsQueue = new Queue("metrics", { connection });
+const metricsQueue = new Queue(metricsIngestQueue.name, { connection });
 
 const metricsEmitter = new EventEmitter();
 
@@ -73,7 +74,7 @@ fastify.post("/metrics", async (request, reply) => {
       break;
   }
 
-  await metricsQueue.add("new_metric", {
+  await metricsQueue.add(metricsIngestQueue.jobName, {
     agentId: agent.id,
     metricsType: envelope.type,
     metricValue,
