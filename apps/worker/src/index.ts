@@ -1,33 +1,10 @@
-import { Worker, type Job } from "bullmq";
 import { Redis } from "ioredis";
 import { env } from "@watchdog/env";
 import http from "http";
-import { dbWrite, metricsTable } from "@watchdog/db";
-import { metricsIngestQueue } from "@watchdog/shared-types"
-
+import { worker } from "./processors/metrics-ingest"
 const connection = new Redis(env.REDIS_URL, { maxRetriesPerRequest: null });
 
-const worker = new Worker(
-  metricsIngestQueue.name,
-  async (job: Job) => {
-    console.log(`[worker] processing ${job.name}#${job.id}`, job.data);
-
-    if (job.name === metricsIngestQueue.jobName) {
-        const data = metricsIngestQueue.parse(job.data)
-      await dbWrite().insert(metricsTable).values({
-        agentId: data.agentId,
-        metricsType: data.metricsType,
-        value: data.metricValue,
-        hostname: data.hostName,
-      });
-    }
-    return { ok: true };
-  },
-  { connection, concurrency: 4 },
-);
-
 worker.on("ready", () => console.log("[worker] ready"));
-worker.on("failed", (job, err) => console.error(`[worker] ${job?.name}#${job?.id} failed:`, err));
 
 const healthServer = http.createServer((req, res) => {
   if (req.url === "/health" && req.method === "GET") {
