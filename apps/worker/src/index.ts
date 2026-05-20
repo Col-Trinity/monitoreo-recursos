@@ -3,19 +3,22 @@ import { Redis } from "ioredis";
 import { env } from "@watchdog/env";
 import http from "http";
 import { dbWrite, metricsTable } from "@watchdog/db";
+import { metricsIngestQueue } from "@watchdog/shared-types"
+
 const connection = new Redis(env.REDIS_URL, { maxRetriesPerRequest: null });
 
 const worker = new Worker(
-  "metrics",
+  metricsIngestQueue.name,
   async (job: Job) => {
     console.log(`[worker] processing ${job.name}#${job.id}`, job.data);
 
-    if (job.name === "new_metric") {
+    if (job.name === metricsIngestQueue.jobName) {
+        const data = metricsIngestQueue.parse(job.data)
       await dbWrite().insert(metricsTable).values({
-        agentId: job.data.agentId,
-        metricsType: job.data.metricsType,
-        value: job.data.metricValue,
-        hostname: job.data.hostName,
+        agentId: data.agentId,
+        metricsType: data.metricsType,
+        value: data.metricValue,
+        hostname: data.hostName,
       });
     }
     return { ok: true };

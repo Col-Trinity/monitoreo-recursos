@@ -5,7 +5,7 @@ import { agentsTable } from "@watchdog/db/schema"
 import { eq } from "drizzle-orm"
 import { dbRead } from "@watchdog/db"
 import { createInterface } from "node:readline"
-import { MetricEnvelopeSchema, MetricType } from "@watchdog/shared-types"
+import { MetricEnvelopeSchema, MetricType , metricsIngestQueue} from "@watchdog/shared-types"
 import { createHash } from "node:crypto"
 
 const metricsStreamPlugin: FastifyPluginAsync<{
@@ -56,7 +56,7 @@ const metricsStreamPlugin: FastifyPluginAsync<{
                 break;
             }
 
-            await opts.metricsQueue.add("new_metric", {
+            await opts.metricsQueue.add(metricsIngestQueue.jobName, {
                 agentId: agent.id,
                 metricsType: envelope.type,
                 metricValue,
