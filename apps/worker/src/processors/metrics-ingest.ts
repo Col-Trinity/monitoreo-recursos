@@ -6,7 +6,7 @@ import { Redis } from "ioredis";
 const connection = new Redis(env.REDIS_URL, { maxRetriesPerRequest: null });
 const buffer: MetricsIngestPayload[] = [];
 
-async function flush() {
+export async function flush() {
   if (buffer.length === 0) return;
   const batch = buffer.splice(0);
   await dbWrite()

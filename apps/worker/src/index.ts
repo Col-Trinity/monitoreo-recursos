@@ -1,7 +1,7 @@
 import { Redis } from "ioredis";
 import { env } from "@watchdog/env";
 import http from "http";
-import { worker } from "./processors/metrics-ingest"
+import { flush, worker } from "./processors/metrics-ingest"
 const connection = new Redis(env.REDIS_URL, { maxRetriesPerRequest: null });
 
 worker.on("ready", () => console.log("[worker] ready"));
@@ -21,10 +21,20 @@ healthServer.listen(HEALTH_PORT, () => {
   console.log(`[worker] health check listening on prt ${HEALTH_PORT}`);
 });
 
+const SHUTDOWN_TIMEOUT = parseInt(process.env.SHUTDOWN_TIMEOUT??"30000" );
+
 async function shutdown() {
   console.log("[worker] shutting down...");
+
+   const timer = setTimeout(() => {
+        console.log("[worker] shutdown timeout, forcing exit")
+        process.exit(1)
+    }, SHUTDOWN_TIMEOUT)
   await worker.close();
+  await flush();
   await connection.quit();
+
+  clearTimeout(timer  )
   process.exit(0);
 }
 process.on("SIGINT", shutdown);
