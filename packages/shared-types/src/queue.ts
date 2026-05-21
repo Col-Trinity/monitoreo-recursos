@@ -5,7 +5,7 @@ export const QUEUES = {
   METRICS_INGEST: {
     name: "metrics-ingest",
     jobName: "new_metric",
-    dlq: "metrics:ingest:dlq",
+    dlq: "metrics-ingest-dlq",
   },
 } as const;
 
