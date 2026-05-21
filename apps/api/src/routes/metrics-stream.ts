@@ -66,6 +66,7 @@ const metricsStreamPlugin: FastifyPluginAsync<{
                     hostName,
                 })
             } catch (err) {
+                fastify.log.error(err, "Redis unavailable")
                 reply.status(503).send({ error: "Service unavailable, retry later" })
                 rl.close()
                 return
