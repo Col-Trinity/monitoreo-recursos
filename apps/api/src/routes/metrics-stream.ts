@@ -1,21 +1,23 @@
 import type { FastifyPluginAsync } from "fastify"
-import type { Queue } from "bullmq"
+import { Queue } from "bullmq"
 import type { EventEmitter } from "node:events"
 import { agentsTable } from "@watchdog/db/schema"
 import { eq } from "drizzle-orm"
 import { dbRead } from "@watchdog/db"
 import { createInterface } from "node:readline"
-import { MetricEnvelopeSchema, MetricType , metricsIngestQueue} from "@watchdog/shared-types"
+import { MetricEnvelopeSchema, MetricType, metricsIngestQueue } from "@watchdog/shared-types"
 import { createHash } from "node:crypto"
+import Redis from "ioredis"
+import { env } from "@watchdog/env"
 
 const metricsStreamPlugin: FastifyPluginAsync<{
-    metricsQueue: Queue
     metricsEmitter: EventEmitter
 }> = async (fastify, opts) => {
-
+    const connection = new Redis(env.REDIS_URL!, { maxRetriesPerRequest: null })
+    const metricsQueue = new Queue(metricsIngestQueue.name, { connection })
     const hashApiKey = (key: string) => createHash("sha256").update(key).digest("hex")
 
-    fastify.post("/metrics/stream", async (request, reply   ) => {
+    fastify.post("/metrics/stream", async (request, reply) => {
         const authHeader = request.headers.authorization
         if (!authHeader) return reply.status(403).send({ error: "API key requerida" })
 
@@ -44,24 +46,30 @@ const metricsStreamPlugin: FastifyPluginAsync<{
             const hostName = envelope.host
             let metricValue: number;
             switch (envelope.type) {
-              case MetricType.CPU:
-                metricValue = envelope.value.usage;
-                break;
-              case MetricType.MEMORY:
-              case MetricType.DISK:
-                metricValue = envelope.value.usedPercent;
-                break;
-              case MetricType.NETWORK:
-                metricValue = envelope.value.rx;
-                break;
+                case MetricType.CPU:
+                    metricValue = envelope.value.usage;
+                    break;
+                case MetricType.MEMORY:
+                case MetricType.DISK:
+                    metricValue = envelope.value.usedPercent;
+                    break;
+                case MetricType.NETWORK:
+                    metricValue = envelope.value.rx;
+                    break;
             }
 
-            await opts.metricsQueue.add(metricsIngestQueue.jobName, {
-                agentId: agent.id,
-                metricsType: envelope.type,
-                metricValue,
-                hostName,
-            })
+            try {
+                await metricsQueue.add(metricsIngestQueue.jobName, {
+                    agentId: agent.id,
+                    metricsType: envelope.type,
+                    metricValue,
+                    hostName,
+                })
+            } catch (err) {
+                reply.status(503).send({ error: "Service unavailable, retry later" })
+                rl.close()
+                return
+            }
 
             opts.metricsEmitter.emit("metric", {
                 type: "metric",

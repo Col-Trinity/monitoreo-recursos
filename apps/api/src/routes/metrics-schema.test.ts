@@ -1,8 +1,34 @@
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import Fastify from "fastify";
 import { EventEmitter } from "node:events";
-import type { Queue } from "bullmq";
 import metricsStreamPlugin from "./metrics-stream";
+
+
+vi.mock("@watchdog/db", () => ({
+  dbRead: vi.fn().mockReturnValue({
+    select: vi.fn().mockReturnValue({
+      from: vi.fn().mockReturnValue({
+        where: vi.fn().mockResolvedValue([]), // devuelve array vacío = agente no encontrado
+      }),
+    }),
+  }),
+}))
+  vi.mock("ioredis", () => {
+  return {
+    default: vi.fn().mockImplementation(() => ({
+      on: vi.fn(),
+      quit: vi.fn(),
+    })),
+  }
+})
+vi.mock("bullmq", () => {
+  return {
+    Queue: vi.fn().mockImplementation(() => ({
+      add: vi.fn(),
+      close: vi.fn(),
+    })),
+  }
+})
 
 describe("POST /metrics/stream", () => {
   const app = Fastify();
@@ -14,7 +40,6 @@ describe("POST /metrics/stream", () => {
     });
     // registramos el plugin antes de los tests
     await app.register(metricsStreamPlugin, {
-      metricsQueue: {} as unknown as Queue,
       metricsEmitter: new EventEmitter(),
     });
     await app.ready();
@@ -38,9 +63,11 @@ describe("POST /metrics/stream", () => {
       headers: {
         "Content-Type": "application/x-ndjson",
         Authorization: "Bearer invalid-key",
-      },
+      },  
       payload: JSON.stringify({ type: "banana", value: {} }) + "\n",
     });
     expect(response.statusCode).toBe(401);
   });
+
+
 });

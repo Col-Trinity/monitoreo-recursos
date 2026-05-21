@@ -1,21 +1,8 @@
 import Fastify from "fastify";
 import cors from "@fastify/cors";
-import { dbRead } from "@watchdog/db";
 import { env } from "@watchdog/env";
-import { MetricEnvelopeSchema, MetricType } from "@watchdog/shared-types";
-import { agentsTable } from "@watchdog/db/schema";
-import { eq } from "drizzle-orm";
 import { EventEmitter } from "node:events";
-import { Queue } from "bullmq";
-import { Redis } from "ioredis";
-import { createHash } from "node:crypto";
 import metricsStreamPlugin from "./routes/metrics-stream";
-import { metricsIngestQueue } from "@watchdog/shared-types"
-
-const hashApiKey = (key: string) => createHash("sha256").update(key).digest("hex");
-
-const connection = new Redis(env.REDIS_URL, { maxRetriesPerRequest: null });
-const metricsQueue = new Queue(metricsIngestQueue.name, { connection });
 
 const metricsEmitter = new EventEmitter();
 
@@ -28,60 +15,7 @@ fastify.addContentTypeParser("application/x-ndjson", (_request, payload, done) =
 });
 
 await fastify.register(metricsStreamPlugin, {
-  metricsQueue,
   metricsEmitter,
-});
-fastify.post("/metrics", async (request, reply) => {
-  fastify.log.warn("DEPRECATED: POST /metrics is deprecated, use POST /metrics/stream instead");
-  const parsed = MetricEnvelopeSchema.safeParse(request.body);
-
-  if (!parsed.success) {
-    return reply.status(400).send({ error: parsed.error.flatten() });
-  }
-
-  const authHeader = request.headers.authorization;
-
-  if (!authHeader) {
-    return reply.status(403).send({ error: "API key requerida" });
-  }
-
-  const apiKey = authHeader.split("Bearer ")[1];
-  if (!apiKey) {
-    return reply.status(401).send({ error: "Formato inválido, debe ser Bearer <api_key>" });
-  }
-
-  const [agent] = await dbRead()
-    .select()
-    .from(agentsTable)
-    .where(eq(agentsTable.apiKey, hashApiKey(apiKey)));
-
-  if (!agent) {
-    return reply.status(401).send({ error: "API key inválida" });
-  }
-
-  const envelope = parsed.data;
-  let metricValue: number;
-  switch (envelope.type) {
-    case MetricType.CPU:
-      metricValue = envelope.value.usage;
-      break;
-    case MetricType.MEMORY:
-    case MetricType.DISK:
-      metricValue = envelope.value.usedPercent;
-      break;
-    case MetricType.NETWORK:
-      metricValue = envelope.value.rx;
-      break;
-  }
-
-  await metricsQueue.add(metricsIngestQueue.jobName, {
-    agentId: agent.id,
-    metricsType: envelope.type,
-    metricValue,
-    hostName: envelope.host,
-  });
-
-  return reply.status(200).send({ message: "ok" });
 });
 
 fastify.get("/health", async () => ({ status: "ok" }));
