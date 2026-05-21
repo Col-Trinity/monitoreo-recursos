@@ -3,7 +3,7 @@ import { MetricType } from "./metrics";
 
 export const QUEUES = {
   METRICS_INGEST: {
-    name: "metrics:ingest",
+    name: "metrics-ingest",
     jobName: "new_metric",
     dlq: "metrics:ingest:dlq",
   },
