@@ -3,6 +3,7 @@ import cors from "@fastify/cors";
 import { env } from "@watchdog/env";
 import { EventEmitter } from "node:events";
 import metricsStreamPlugin from "./routes/metrics-stream";
+import adminQueuesPlugin from "./routes/admin-queue";
 
 const metricsEmitter = new EventEmitter();
 
@@ -17,6 +18,8 @@ fastify.addContentTypeParser("application/x-ndjson", (_request, payload, done) =
 await fastify.register(metricsStreamPlugin, {
   metricsEmitter,
 });
+
+await fastify.register(adminQueuesPlugin)
 
 fastify.get("/health", async () => ({ status: "ok" }));
 
