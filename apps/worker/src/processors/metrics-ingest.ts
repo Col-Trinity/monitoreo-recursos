@@ -18,7 +18,8 @@ export async function flush() {
         value: item.metricValue,
         hostname: item.hostName,
       })),
-    );
+    )
+    .onConflictDoNothing()
 }
 setInterval(async () => {
   await flush();
