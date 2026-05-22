@@ -1,6 +1,6 @@
 # `apps/worker/`
 
-Worker de background jobs basado en [BullMQ](https://docs.bullmq.io/) sobre Redis. **Hoy está scaffoldeado pero no conectado** — no hay productores enviándole jobs todavía.
+Worker de background jobs basado en [BullMQ](https://docs.bullmq.io/) sobre Redis. Escucha la cola `metrics-ingest`, acumula jobs en un buffer en memoria y hace INSERT bulk a Postgres cada 5s o cada 500 jobs.
 
 ## Por qué existe como app separada
 
@@ -15,54 +15,58 @@ Separar el worker te permite:
 
 ## Qué hay ahora
 
-`src/index.ts` monta un `Worker` de BullMQ que escucha la cola `"default"` con concurrencia 4 y simplemente logea los jobs que recibe. Es un stub — ningún código del monorepo publica jobs todavía.
+`src/index.ts` orquesta el worker e importa la lógica de procesamiento desde `src/processors/metrics-ingest.ts`.
+
+`src/processors/metrics-ingest.ts` monta el `Worker` de BullMQ que escucha la cola `metrics-ingest` con concurrencia 1 (buffer compartido seguro). Los jobs se acumulan en un buffer en memoria y se insertan en bulk a Postgres cada 5s o cuando el buffer llega a 500 items:
 
 ```ts
-const worker = new Worker(
-  "default",
+export const worker = new Worker(
+  metricsIngestQueue.name,
   async (job) => {
-    console.log(`[worker] processing ${job.name}#${job.id}`, job.data);
-    return { ok: true };
+    const data = metricsIngestQueue.parse(job.data);
+    buffer.push(data);
+    if (buffer.length >= 500) await flush();
   },
-  { connection, concurrency: 4 },
+  { connection, concurrency: 1 },
 );
 ```
 
 El worker ya está integrado al flujo de `task dev` — levanta junto con el resto y se conecta a Redis usando `REDIS_URL` del `.env` raíz. Si Redis está arriba, el worker queda esperando jobs.
 
-## Cómo se va a usar (cuando toque conectarlo)
+## Inspección de colas (Bull Board)
 
-**Publicar un job desde la API (o cualquier otro lugar):**
+En modo desarrollo, la API expone una UI para inspeccionar las colas y sus jobs en:
 
-```ts
-// Lógica en la api de escritura (lee http, publica en la queue)
-import { Queue } from "bullmq";
-import { Redis } from "ioredis";
-import { env } from "@watchdog/env";
-
-const queue = new Queue("metrics-aggregation", {
-  connection: new Redis(env.REDIS_URL, { maxRetriesPerRequest: null }),
-});
-
-await queue.add("aggregate-hour", { serverName, bucketStart });
+```
+http://localhost:3001/admin/queues
 ```
 
-**Consumir desde el worker:** agregar un nuevo `Worker` en `src/index.ts` (o split en `src/processors/<name>.ts` cuando haya varios) apuntando al mismo nombre de cola:
+Permite ver los jobs activos, en espera, completados y fallados de cada cola.
+
+**Solo disponible en desarrollo** — en producción el endpoint devuelve 404 porque puede exponer información sensible sobre los jobs.
+
+### ⚠️ Limitación conocida del buffer
+
+El worker acumula jobs en memoria antes de insertarlos en Postgres. Si el worker crashea antes del flush, los jobs del buffer se pierden — aunque Redis ya los marcó como procesados. Es una decisión de diseño aceptada para este milestone.
+
+## Cómo agregar una nueva cola
+
+1. Agregar el contrato en `packages/shared-types/src/queues.ts`:
 
 ```ts
-// Donde quieras poner el codigo para leer de la cola y publicar en BD
-new Worker(
-  "metrics-aggregation",
-  async (job) => {
-    if (job.name === "aggregate-hour") {
-      // ...
-    }
+export const QUEUES = {
+  METRICS_INGEST: { ... },
+  NUEVA_COLA: {
+    name: "nueva-cola",
+    jobName: "nuevo-job",
+    dlq: "nueva-cola-dlq",
   },
-  { connection, concurrency: 2 },
-);
+} as const;
 ```
 
-**Nombres de cola compartidos:** mover los nombres a `packages/shared-types` para evitar typos entre productor y consumidor. Investigar si se puede hacer algo para evitar usar todo el boilerplate de new Queue, poniendo un texto y crear helpers que tengan todo el código.
+2. Crear `src/processors/nueva-cola.ts` con su propio buffer y worker.
+
+3. Importar el worker en `src/index.ts`.
 
 ## Comandos
 
@@ -82,6 +86,6 @@ pnpm --filter @watchdog/worker build
 
 **Worker no se conecta a Redis** → verificá `REDIS_URL` en `.env` y que el container esté arriba (`docker compose ps`).
 
-**Jobs no se procesan** → revisá que el productor esté publicando al **mismo nombre de cola** que el Worker escucha. Los strings no son tipados.
+**Jobs no se procesan** → revisá que el productor esté publicando al mismo nombre de cola que el Worker escucha. Los nombres de cola están tipados en `packages/shared-types/src/queues.ts`.
 
 **Jobs quedan "stuck"** → BullMQ tiene lock timeout. Si un worker crashea mid-job, el job se libera tras el timeout (default 30s) y otro worker lo agarra.
