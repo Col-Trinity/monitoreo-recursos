@@ -11,7 +11,7 @@ export const metricsTable = p.pgTable(
     // TODO: DELETE PK ID AS IS UNNECESSARY
     id: p.uuid().notNull().defaultRandom(),
     agentId: p
-      .uuid()
+      .uuid("agent_id")
       .references(() => agentsTable.id, {
         onDelete: "cascade",
       })
