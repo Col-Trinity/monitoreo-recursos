@@ -11,6 +11,7 @@
     "lint": "eslint .",
     "test:unit": "echo \"TODO: vitest\"",
     "test:integration": "dotenv -e ../../.env -- vitest run src/routes",
+    "test:e2e": "vitest run tests/integration",
     "clean": "rm -rf dist .turbo"
   },
   "dependencies": {
@@ -27,9 +28,12 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@testcontainers/postgresql": "^12.0.0",
+    "@testcontainers/redis": "^12.0.0",
     "@types/node": "^20.14.10",
     "@watchdog/tsconfig": "workspace:*",
     "dotenv-cli": "^8.0.0",
+    "testcontainers": "^12.0.0",
     "tsx": "^4.21.0",
     "typescript": "^5.8.2",
     "vitest": "^3.2.4"
