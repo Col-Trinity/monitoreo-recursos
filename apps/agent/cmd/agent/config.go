@@ -2,15 +2,18 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 )
 
 type config struct {
-	APIURL          string
-	HealthPort      string
-	APIKey          string
-	interval        time.Duration
-	shutdownTimeout time.Duration
+	APIURL              string
+	HealthPort          string
+	APIKey              string
+	interval            time.Duration
+	shutdownTimeout     time.Duration
+	collectTimeout      time.Duration
+	bufferMaxContainers int
 }
 
 func getConfig() (*config, error) {
@@ -26,11 +29,25 @@ func getConfig() (*config, error) {
 		return nil, fmt.Errorf("invalid AGENT_SHUTDOWN_TIMEOUT=%q: %w", shutdownStr, err)
 	}
 
+	collectStr := getenv("AGENT_COLLECT_TIMEOUT", "3s")
+	collectTimeout, err := time.ParseDuration(collectStr)
+	if err != nil {
+		return nil, fmt.Errorf("invalid AGENT_COLLECT_TIMEOUT=%q: %w", collectStr, err)
+	}
+
+	containerStr := getenv("AGENT_BUFFER_MAX_CONTAINERS", "300")
+	bufferMaxContainers, err := strconv.Atoi(containerStr)
+	if err != nil {
+		return nil, fmt.Errorf("Invalid AGENT_BUFFER_MAX_CONTAINERS=%q: %w", containerStr, err)
+	}
+
 	return &config{
-		APIURL:          getenv("AGENT_API_URL", "http://localhost:3001") + "/metrics/stream",
-		HealthPort:      getenv("AGENT_HEALTH_PORT", "3003"),
-		APIKey:          getenv("AGENT_API_KEY", "dev-api-key-12345"),
-		interval:        interval,
-		shutdownTimeout: shutdownTimeout,
+		APIURL:              getenv("AGENT_API_URL", "http://localhost:3001") + "/metrics/stream",
+		HealthPort:          getenv("AGENT_HEALTH_PORT", "3003"),
+		APIKey:              getenv("AGENT_API_KEY", "dev-api-key-12345"),
+		interval:            interval,
+		shutdownTimeout:     shutdownTimeout,
+		collectTimeout:      collectTimeout,
+		bufferMaxContainers: bufferMaxContainers,
 	}, nil
 }
