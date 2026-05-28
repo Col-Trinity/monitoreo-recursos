@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/Col-Trinity/monitoreo-recursos/apps/agent/internal/protocol"
@@ -21,33 +22,50 @@ func nextBackoff(current, limit time.Duration) time.Duration {
 	return next
 }
 
+// Buffer almacena MetricsContainers con un tamaño máximo
+type Buffer struct {
+	mu      sync.Mutex
+	items   []protocol.MetricsContainer
+	maxSize int
+}
+
+func (b *Buffer) Push(container protocol.MetricsContainer) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	if len(b.items) >= b.maxSize {
+		b.items = b.items[1:]
+	}
+	b.items = append(b.items, container)
+}
+
 // SSEClient maneja la conexión persistente al servidor
 type SSEClient struct {
 	url        string
 	apiKey     string
 	client     *http.Client
-	metrics    chan protocol.MetricEnvelope
+	buffer     Buffer
+	metrics    chan protocol.MetricsContainer
 	reconnects int64
 }
 
 // NewSSEClient crea un nuevo SSEClient
-func NewSSEClient(url, apiKey string) *SSEClient {
+func NewSSEClient(url, apiKey string, maxSize int) *SSEClient {
 	return &SSEClient{
-		url:        url,
-		apiKey:     apiKey,
-		client:     &http.Client{},
-		metrics:    make(chan protocol.MetricEnvelope, 800),
+		url:    url,
+		apiKey: apiKey,
+		client: &http.Client{},
+		buffer: Buffer{
+			items:   []protocol.MetricsContainer{},
+			maxSize: maxSize,
+		},
+		metrics:    make(chan protocol.MetricsContainer, 200),
 		reconnects: 0,
 	}
 }
 
-// Send agrega la métrica al buffer y la manda al servidor
-func (s *SSEClient) Send(metric protocol.MetricEnvelope) {
-	select {
-	case s.metrics <- metric:
-	default:
-		log.Println("buffer full, dropping metric")
-	}
+// Send agrega el container al buffer
+func (s *SSEClient) Send(metric protocol.MetricsContainer) {
+	s.buffer.Push(metric)
 }
 
 // Run mantiene la conexión persistente con backoff exponencial
@@ -111,8 +129,8 @@ func (s *SSEClient) connect(ctx context.Context, apiURL string) error {
 	}
 }
 
-// write convierte la métrica a JSON y la escribe en el pipe
-func (s *SSEClient) write(pw *io.PipeWriter, metric protocol.MetricEnvelope) error {
+// write convierte el container a JSON y lo escribe en el pipe
+func (s *SSEClient) write(pw *io.PipeWriter, metric protocol.MetricsContainer) error {
 	body, err := json.Marshal(metric)
 	if err != nil {
 		return err
