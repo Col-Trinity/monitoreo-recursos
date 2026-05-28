@@ -5,10 +5,12 @@ import { env } from "@watchdog/env";
 import { Redis } from "ioredis";
 const connection = new Redis(env.REDIS_URL, { maxRetriesPerRequest: null });
 const buffer: MetricsIngestPayload[] = [];
+let bufferBytes = 0;
 
 export async function flush() {
   if (buffer.length === 0) return;
-  const batch = buffer.splice(0);
+  const batch = buffer.splice(0); //empties the array and returns the removed items into batch 
+  bufferBytes = 0;
   await dbWrite()
     .insert(metricsTable)
     .values(
@@ -30,7 +32,9 @@ export const worker = new Worker(
   async (job: Job) => {
     const data = metricsIngestQueue.parse(job.data);
     buffer.push(data);
-    if (buffer.length >= 500) {
+    bufferBytes += Buffer.byteLength(JSON.stringify(data))
+    
+    if (bufferBytes >= env.WORKER_BUFFER_MAX_BYTES) {
       await flush();
     }
   },
