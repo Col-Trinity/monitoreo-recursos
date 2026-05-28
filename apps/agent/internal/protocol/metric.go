@@ -52,3 +52,8 @@ type MetricEnvelope struct {
 	Host      string          `json:"host"`
 	Value     json.RawMessage `json:"value"`
 }
+
+type MetricsContainer struct {
+	Hostname string           `json:"hostname"`
+	Metrics  []MetricEnvelope `json:"metrics"`
+}
