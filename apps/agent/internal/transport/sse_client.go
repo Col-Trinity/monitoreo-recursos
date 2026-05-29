@@ -29,6 +29,7 @@ type Buffer struct {
 	maxSize int
 }
 
+// Push adds a container to the buffer, discarding the oldest if full
 func (b *Buffer) Push(container protocol.MetricsContainer) {
 	b.mu.Lock()
 	defer b.mu.Unlock()

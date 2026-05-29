@@ -38,7 +38,7 @@ func getConfig() (*config, error) {
 	containerStr := getenv("AGENT_BUFFER_MAX_CONTAINERS", "300")
 	bufferMaxContainers, err := strconv.Atoi(containerStr)
 	if err != nil {
-		return nil, fmt.Errorf("Invalid AGENT_BUFFER_MAX_CONTAINERS=%q: %w", containerStr, err)
+		return nil, fmt.Errorf("invalid AGENT_BUFFER_MAX_CONTAINERS=%q: %w", containerStr, err)
 	}
 
 	return &config{
