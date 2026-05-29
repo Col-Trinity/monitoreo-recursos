@@ -44,3 +44,7 @@ export const env = new Proxy({} as Env, {
     return loadEnv()[prop as keyof Env];
   },
 });
+
+export function clearEnvCache() {
+  cached = undefined;
+}

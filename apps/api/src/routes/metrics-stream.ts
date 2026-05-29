@@ -85,8 +85,8 @@ const metricsStreamPlugin: FastifyPluginAsync<{
     });
 
     await new Promise<void>((resolve) => {
-      rl.on("close", resolve); // agente cerró limpiamente
-      rl.on("error", resolve); // agente se cayó
+      rl.on("close", resolve);
+      rl.on("error", resolve);
     });
     return reply.status(200).send({ message: "stream closed" });
   });
