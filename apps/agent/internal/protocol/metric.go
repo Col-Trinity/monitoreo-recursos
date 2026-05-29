@@ -52,3 +52,9 @@ type MetricEnvelope struct {
 	Host      string          `json:"host"`
 	Value     json.RawMessage `json:"value"`
 }
+
+// MetricsContainer groups all metrics from one collection cycle
+type MetricsContainer struct {
+	Hostname string           `json:"hostname"`
+	Metrics  []MetricEnvelope `json:"metrics"`
+}
