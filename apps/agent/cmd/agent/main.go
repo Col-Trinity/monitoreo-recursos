@@ -56,6 +56,9 @@ func main() {
 	ticker := time.NewTicker(cfg.interval)
 	defer ticker.Stop()
 
+	tickerPublish := time.NewTicker(cfg.agentPublishInterval)
+	defer tickerPublish.Stop()
+
 	log.Printf("agent started: posting to %s every %s", cfg.APIURL, cfg.interval)
 
 	for {
@@ -114,6 +117,19 @@ func main() {
 				Metrics:   metrics,
 			}
 			sse.Send(container)
+
+		case <-tickerPublish.C:
+			containers := sse.Peek()
+			if len(containers) == 0 {
+				continue
+			}
+			sse.Publish(containers)
+
+			var timestamps []int64
+			for _, container := range containers {
+				timestamps = append(timestamps, container.Timestamp)
+			}
+			sse.Clean(timestamps)
 		}
 	}
 }
