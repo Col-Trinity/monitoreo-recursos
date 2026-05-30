@@ -109,8 +109,9 @@ func main() {
 			}
 
 			container := protocol.MetricsContainer{
-				Hostname: hostname,
-				Metrics:  metrics,
+				Hostname:  hostname,
+				Timestamp: time.Now().UnixNano(),
+				Metrics:   metrics,
 			}
 			sse.Send(container)
 		}
