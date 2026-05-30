@@ -177,5 +177,26 @@ func (s *SSEClient) Reconnects() int64 {
 
 // BufferSize devuelve la cantidad de métricas en espera en el canal.
 func (s *SSEClient) BufferSize() int {
-	return len(s.metrics)
+	return len(s.buffer.items)
+}
+
+// Peek returns all containers in the buffer without removing them
+func (s *SSEClient) Peek() []protocol.MetricsContainer {
+	return s.buffer.Peek()
+}
+
+// Publish sends containers to the channel to be delivered to the server
+func (s *SSEClient) Publish(containers []protocol.MetricsContainer) {
+	for _, container := range containers {
+		select {
+		case s.metrics <- container:
+		default:
+			log.Printf("metrics channel full, dropping container")
+		}
+	}
+}
+
+// Clean removes delivered containers from the buffer
+func (s *SSEClient) Clean(timestamps []int64) {
+	s.buffer.Clean(timestamps)
 }
