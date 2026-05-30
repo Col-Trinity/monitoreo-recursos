@@ -39,6 +39,36 @@ func (b *Buffer) Push(container protocol.MetricsContainer) {
 	b.items = append(b.items, container)
 }
 
+// Peek returns all items in the buffer without removing them
+func (b *Buffer) Peek() []protocol.MetricsContainer {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	return b.items
+}
+
+// Clean removes containers from the buffer whose timestamps match provided list
+func (b *Buffer) Clean(timestamps []int64) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	var remaining []protocol.MetricsContainer
+	for _, item := range b.items {
+		if !contains(timestamps, item.Timestamp) {
+			remaining = append(remaining, item)
+		}
+	}
+	b.items = remaining
+}
+
+// constains reports whether t is present in timestamp slice
+func contains(timestamp []int64, t int64) bool {
+	for _, ts := range timestamp {
+		if ts == t {
+			return true
+		}
+	}
+	return false
+}
+
 // SSEClient maneja la conexión persistente al servidor
 type SSEClient struct {
 	url        string
