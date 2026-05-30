@@ -55,6 +55,7 @@ type MetricEnvelope struct {
 
 // MetricsContainer groups all metrics from one collection cycle
 type MetricsContainer struct {
-	Hostname string           `json:"hostname"`
-	Metrics  []MetricEnvelope `json:"metrics"`
+	Hostname  string           `json:"hostname"`
+	Timestamp int64            `json:"timestamp"`
+	Metrics   []MetricEnvelope `json:"metrics"`
 }
