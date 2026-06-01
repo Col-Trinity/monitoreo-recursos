@@ -39,6 +39,36 @@ func (b *Buffer) Push(container protocol.MetricsContainer) {
 	b.items = append(b.items, container)
 }
 
+// Peek returns all items in the buffer without removing them
+func (b *Buffer) Peek() []protocol.MetricsContainer {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	return b.items
+}
+
+// Clean removes containers from the buffer whose timestamps match provided list
+func (b *Buffer) Clean(timestamps []int64) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	var remaining []protocol.MetricsContainer
+	for _, item := range b.items {
+		if !contains(timestamps, item.Timestamp) {
+			remaining = append(remaining, item)
+		}
+	}
+	b.items = remaining
+}
+
+// constains reports whether t is present in timestamp slice
+func contains(timestamp []int64, t int64) bool {
+	for _, ts := range timestamp {
+		if ts == t {
+			return true
+		}
+	}
+	return false
+}
+
 // SSEClient maneja la conexión persistente al servidor
 type SSEClient struct {
 	url        string
@@ -147,5 +177,26 @@ func (s *SSEClient) Reconnects() int64 {
 
 // BufferSize devuelve la cantidad de métricas en espera en el canal.
 func (s *SSEClient) BufferSize() int {
-	return len(s.metrics)
+	return len(s.buffer.items)
+}
+
+// Peek returns all containers in the buffer without removing them
+func (s *SSEClient) Peek() []protocol.MetricsContainer {
+	return s.buffer.Peek()
+}
+
+// Publish sends containers to the channel to be delivered to the server
+func (s *SSEClient) Publish(containers []protocol.MetricsContainer) {
+	for _, container := range containers {
+		select {
+		case s.metrics <- container:
+		default:
+			log.Printf("metrics channel full, dropping container")
+		}
+	}
+}
+
+// Clean removes delivered containers from the buffer
+func (s *SSEClient) Clean(timestamps []int64) {
+	s.buffer.Clean(timestamps)
 }
