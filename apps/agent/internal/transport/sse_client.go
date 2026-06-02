@@ -106,7 +106,7 @@ func (s *SSEClient) Run(ctx context.Context, apiURL string) {
 	for {
 		err := s.connect(ctx, apiURL)
 		if err != nil {
-			log.Printf("connection failed: %v, retrying in %s (buffered: %d)", err, backoff, len(s.metrics))
+			log.Printf("connection failed: %v, retrying in %s (buffered: %d)", err, backoff, s.BufferSize())
 			s.reconnects++
 			select {
 			case <-ctx.Done():
