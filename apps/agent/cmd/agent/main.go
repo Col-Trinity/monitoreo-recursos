@@ -119,7 +119,7 @@ func main() {
 			sse.Send(container)
 
 		case <-tickerPublish.C:
-			containers := sse.Peek()
+			containers := sse.Peek(cfg.agentServerMaxCycles)
 			if len(containers) == 0 {
 				continue
 			}
