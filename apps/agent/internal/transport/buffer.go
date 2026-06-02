@@ -8,7 +8,7 @@ import (
 
 type BufferMetrics struct {
 	mu          sync.Mutex
-	metricsDict map[int64][]protocol.MetricEnvelope
+	metricsDict map[int64]protocol.MetricsContainer
 	metricsArr  []int64
 	maxSize     int
 }
