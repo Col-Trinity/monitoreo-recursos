@@ -1,0 +1,14 @@
+package transport
+
+import (
+	"sync"
+
+	"github.com/Col-Trinity/monitoreo-recursos/apps/agent/internal/protocol"
+)
+
+type BufferMetrics struct {
+	mu          sync.Mutex
+	metricsDict map[int64][]protocol.MetricEnvelope
+	metricsArr  []int64
+	maxSize     int
+}

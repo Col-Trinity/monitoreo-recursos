@@ -8,7 +8,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/Col-Trinity/monitoreo-recursos/apps/agent/internal/protocol"
@@ -22,41 +21,53 @@ func nextBackoff(current, limit time.Duration) time.Duration {
 	return next
 }
 
-// Buffer almacena MetricsContainers con un tamaño máximo
-type Buffer struct {
-	mu      sync.Mutex
-	items   []protocol.MetricsContainer
-	maxSize int
-}
-
-// Push adds a container to the buffer, discarding the oldest if full
-func (b *Buffer) Push(container protocol.MetricsContainer) {
+// Push adds a metricsArr and metricsDict to the buffer, discarding the oldest if full
+func (b *BufferMetrics) Push(metrics []protocol.MetricEnvelope, timestamp int64) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
-	if len(b.items) >= b.maxSize {
-		b.items = b.items[1:]
+	if len(b.metricsArr) >= b.maxSize {
+		oldest := b.metricsArr[0]
+		b.metricsArr = b.metricsArr[1:]
+		delete(b.metricsDict, oldest)
 	}
-	b.items = append(b.items, container)
+	b.metricsDict[timestamp] = metrics
+	b.metricsArr = append(b.metricsArr, timestamp)
 }
 
-// Peek returns all items in the buffer without removing them
-func (b *Buffer) Peek() []protocol.MetricsContainer {
+// Peek returns the first n items from the buffer without removing them
+func (b *BufferMetrics) Peek(n int) []protocol.MetricsContainer {
 	b.mu.Lock()
 	defer b.mu.Unlock()
-	return b.items
+	n = min(n, len(b.metricsArr))
+	timestamps := b.metricsArr[0:n]
+	var result []protocol.MetricsContainer
+	for _, ts := range timestamps {
+		metrics := b.metricsDict[ts]
+		result = append(result, protocol.MetricsContainer{
+			Timestamp: ts,
+			Metrics:   metrics,
+		})
+
+	}
+	return result
 }
 
 // Clean removes containers from the buffer whose timestamps match provided list
-func (b *Buffer) Clean(timestamps []int64) {
+func (b *BufferMetrics) Clean(timestamps []int64) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
-	var remaining []protocol.MetricsContainer
-	for _, item := range b.items {
-		if !contains(timestamps, item.Timestamp) {
-			remaining = append(remaining, item)
+	for _, ts := range timestamps {
+		delete(b.metricsDict, ts)
+	}
+	var remaining []int64
+	for _, ts := range b.metricsArr {
+		if !contains(timestamps, ts) {
+			remaining = append(remaining, ts)
 		}
 	}
-	b.items = remaining
+
+	b.metricsArr = remaining
+
 }
 
 // constains reports whether t is present in timestamp slice
@@ -74,7 +85,7 @@ type SSEClient struct {
 	url        string
 	apiKey     string
 	client     *http.Client
-	buffer     Buffer
+	buffer     BufferMetrics
 	metrics    chan protocol.MetricsContainer
 	reconnects int64
 }
@@ -85,9 +96,10 @@ func NewSSEClient(url, apiKey string, maxSize int) *SSEClient {
 		url:    url,
 		apiKey: apiKey,
 		client: &http.Client{},
-		buffer: Buffer{
-			items:   []protocol.MetricsContainer{},
-			maxSize: maxSize,
+		buffer: BufferMetrics{
+			metricsArr:  []int64{},
+			metricsDict: make(map[int64][]protocol.MetricEnvelope),
+			maxSize:     maxSize,
 		},
 		metrics:    make(chan protocol.MetricsContainer, 200),
 		reconnects: 0,
@@ -96,7 +108,7 @@ func NewSSEClient(url, apiKey string, maxSize int) *SSEClient {
 
 // Send agrega el container al buffer
 func (s *SSEClient) Send(metric protocol.MetricsContainer) {
-	s.buffer.Push(metric)
+	s.buffer.Push(metric.Metrics, metric.Timestamp)
 }
 
 // Run mantiene la conexión persistente con backoff exponencial
@@ -177,12 +189,12 @@ func (s *SSEClient) Reconnects() int64 {
 
 // BufferSize devuelve la cantidad de métricas en espera en el canal.
 func (s *SSEClient) BufferSize() int {
-	return len(s.buffer.items)
+	return len(s.buffer.metricsArr)
 }
 
 // Peek returns all containers in the buffer without removing them
-func (s *SSEClient) Peek() []protocol.MetricsContainer {
-	return s.buffer.Peek()
+func (s *SSEClient) Peek(n int) []protocol.MetricsContainer {
+	return s.buffer.Peek(n)
 }
 
 // Publish sends containers to the channel to be delivered to the server
