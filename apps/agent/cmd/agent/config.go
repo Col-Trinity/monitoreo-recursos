@@ -15,6 +15,7 @@ type config struct {
 	collectTimeout       time.Duration
 	bufferMaxContainers  int
 	agentPublishInterval time.Duration
+	agentServerMaxCycles int
 }
 
 func getConfig() (*config, error) {
@@ -41,6 +42,13 @@ func getConfig() (*config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("invalid AGENT_BUFFER_MAX_CONTAINERS=%q: %w", containerStr, err)
 	}
+
+	agentServerStr := getenv("AGENT_SERVER_MAX_CYCLES", "50")
+	agentServerMaxCycles, err := strconv.Atoi(agentServerStr)
+	if err != nil {
+		return nil, fmt.Errorf("invalid AGENT_SERVER_MAX_CYCLES=%q: %w", agentServerStr, err)
+	}
+
 	agentPublishStr := getenv("AGENT_PUBLISH_INTERVAL", "5s")
 	agentPublishInterval, err := time.ParseDuration(agentPublishStr)
 	if err != nil {
@@ -56,5 +64,6 @@ func getConfig() (*config, error) {
 		collectTimeout:       collectTimeout,
 		bufferMaxContainers:  bufferMaxContainers,
 		agentPublishInterval: agentPublishInterval,
+		agentServerMaxCycles: agentServerMaxCycles,
 	}, nil
 }
