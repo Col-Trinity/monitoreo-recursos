@@ -1,19 +1,25 @@
-import { test, expect } from '@playwright/test';
+import { defineConfig, devices } from '@playwright/test';
 
-test('el gráfico se actualiza con métricas en tiempo real', async ({ page }) => {
-  // Abrimos el dashboard
-  await page.goto('/');
-
-  // Esperamos que el gráfico cargue
-  await expect(page.locator('.recharts-line')).toBeVisible({ timeout: 15000 });
-
-  // Capturamos los datos iniciales del gráfico
-  const puntosIniciales = await page.locator('.recharts-dot').count();
-
-  // Esperamos el refetch (10 segundos)
-  await page.waitForTimeout(11000);
-
-  // Verificamos que hay datos en el gráfico
-  const puntosDespues = await page.locator('.recharts-dot').count();
-  expect(puntosDespues).toBeGreaterThan(0);
+export default defineConfig({
+  testDir: './tests',
+  fullyParallel: true,
+  forbidOnly: !!process.env.CI,
+  retries: process.env.CI ? 2 : 0,
+  workers: process.env.CI ? 1 : undefined,
+  reporter: 'html',
+  use: {
+    baseURL: 'http://localhost:3000',
+    trace: 'on-first-retry',
+  },
+  projects: [
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
+  ],
+  webServer: {
+    command: 'pnpm dev',
+    url: 'http://localhost:3000',
+    reuseExistingServer: !process.env.CI,
+  },
 });
