@@ -80,4 +80,13 @@ export const MetricEnvelopeSchema = z.discriminatedUnion("type", [
   }),
 ]);
 
+
 export type MetricEnvelope = z.infer<typeof MetricEnvelopeSchema>;
+
+export const MetricsContainerSchema = z.object({
+  hostname: z.string(),
+  timestamp: z.number(),
+  metrics: z.array(MetricEnvelopeSchema),
+});
+
+export type MetricsContainer = z.infer<typeof MetricsContainerSchema>;

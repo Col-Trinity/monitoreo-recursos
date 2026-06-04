@@ -53,8 +53,13 @@ tasks:
     desc: Run everything in dev mode (docker + api + worker + web + agent)
     deps: [docker:up]
     cmds:
+      - pkill -f "turbo run dev" 2>/dev/null || true
+      - pkill -f "apps/api" 2>/dev/null || true
+      - pkill -f "apps/worker" 2>/dev/null || true
+      - pkill -f "apps/agent/tmp/agent" 2>/dev/null || true
+      - pkill -f "next-server" 2>/dev/null || true
+      - sleep 1
       - task: db:wait
-      - defer: { task: docker:stop }
       - pnpm turbo run dev --ui=tui
 
   dev:ts:
