@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { PostgreSqlContainer, StartedPostgreSqlContainer } from "@testcontainers/postgresql";
+import type { PostgreSqlContainer, StartedPostgreSqlContainer } from "@testcontainers/postgresql";
 import type { RedisContainer, StartedRedisContainer } from "@testcontainers/redis";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import type { FastifyInstance } from "fastify";
