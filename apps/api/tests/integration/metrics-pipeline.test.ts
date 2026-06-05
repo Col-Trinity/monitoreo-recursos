@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { PostgreSqlContainer, StartedPostgreSqlContainer } from "@testcontainers/postgresql";
-import { RedisContainer, StartedRedisContainer } from "@testcontainers/redis";
+import type { RedisContainer, StartedRedisContainer } from "@testcontainers/redis";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import type { FastifyInstance } from "fastify";
 import Fastify from "fastify";
@@ -8,7 +8,7 @@ import cors from "@fastify/cors";
 import { EventEmitter } from "node:events";
 import type { Worker } from "bullmq";
 import { GenericContainer } from "testcontainers";
-import { StartedTestContainer } from "testcontainers";
+import type { StartedTestContainer } from "testcontainers";
 import Redis from "ioredis";
 
 let pgContainer: StartedPostgreSqlContainer;
