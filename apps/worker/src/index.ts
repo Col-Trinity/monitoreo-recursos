@@ -1,8 +1,10 @@
 import { Redis } from "ioredis";
 import { env } from "@watchdog/env";
 import http from "http";
-import { flush, worker } from "./processors/metrics-ingest"
+import { flush, createWorker } from "./processors/metrics-ingest"
 const connection = new Redis(env.REDIS_URL, { maxRetriesPerRequest: null });
+
+const worker = createWorker(connection);
 
 worker.on("ready", () => console.log("[worker] ready"));
 
