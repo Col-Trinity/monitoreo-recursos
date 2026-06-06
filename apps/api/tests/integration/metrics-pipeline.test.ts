@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { PostgreSqlContainer, StartedPostgreSqlContainer } from "@testcontainers/postgresql";
-import type { RedisContainer, StartedRedisContainer } from "@testcontainers/redis";
+import { PostgreSqlContainer } from "@testcontainers/postgresql";
+import type { StartedPostgreSqlContainer } from "@testcontainers/postgresql";
+import { RedisContainer } from "@testcontainers/redis";
+import type { StartedRedisContainer } from "@testcontainers/redis";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import type { FastifyInstance } from "fastify";
 import Fastify from "fastify";
@@ -31,7 +33,7 @@ describe("Metrics Pipeline", () => {
       .withExposedPorts({ container: 6379, host: 6380 }) // puerto fijo 6380
       .start();
 
-      console.log("Redis container levantado en:", redisContainer.getConnectionUrl());
+    console.log("Redis container levantado en:", redisContainer.getConnectionUrl());
     // Esperamos que Redis esté listo
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
@@ -43,9 +45,8 @@ describe("Metrics Pipeline", () => {
     clearEnvCache(); // limpiamos el cache para que tome las nuevas variables
     console.log("env cache limpiado, REDIS_URL:", process.env.REDIS_URL);
 
-
     const { default: metricsStreamPlugin } = await import("../../src/routes/metrics-stream");
-console.log("plugin importado");
+    console.log("plugin importado");
     const { createDb } = await import("@watchdog/db");
     const db = createDb(pgContainer.getConnectionUri());
     // corre  migraciones
@@ -70,17 +71,17 @@ console.log("plugin importado");
     });
     console.log("REDIS_URL antes del worker:", process.env.REDIS_URL);
 
-    const { createWorker, flush: workerFlush } = await import("../../../worker/src/processors/metrics-ingest");
+    const { createWorker, flush: workerFlush } =
+      await import("../../../worker/src/processors/metrics-ingest");
     flush = workerFlush; // asignás a la variable global
     const connection = new Redis("redis://localhost:6380", { maxRetriesPerRequest: null });
 
-
-// Verificamos que la conexión funciona antes de seguir
-await new Promise((resolve, reject) => {
-  connection.on("ready", resolve);
-  connection.on("error", reject);
-});
-console.log("Redis connection ready!");
+    // Verificamos que la conexión funciona antes de seguir
+    await new Promise((resolve, reject) => {
+      connection.on("ready", resolve);
+      connection.on("error", reject);
+    });
+    console.log("Redis connection ready!");
 
     worker = createWorker(connection);
     app = Fastify();
@@ -91,11 +92,10 @@ console.log("Redis connection ready!");
     await app.register(metricsStreamPlugin, {
       metricsEmitter: new EventEmitter(),
     });
-    await app.listen({ port: 3099, host: "0.0.0.0"});
+    await app.listen({ port: 3099, host: "0.0.0.0" });
 
     // levantamos contenedor de docker para el agent, que es el que va a enviar las métricas a la API. Lo hacemos con testcontainers para asegurarnos que está en la misma red y puede acceder a la API por su IP interna.
-    const builtImage = await GenericContainer
-      .fromDockerfile("../../apps/agent") // path relativo al Dockerfile
+    const builtImage = await GenericContainer.fromDockerfile("../../apps/agent") // path relativo al Dockerfile
       .build();
     agentContainer = await builtImage
       .withEnvironment({
