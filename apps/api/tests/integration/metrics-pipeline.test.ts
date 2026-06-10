@@ -94,9 +94,8 @@ describe("Metrics Pipeline", () => {
     });
     await app.listen({ port: 3099, host: "0.0.0.0" });
 
-    // levantamos contenedor de docker para el agent, que es el que va a enviar las métricas a la API. Lo hacemos con testcontainers para asegurarnos que está en la misma red y puede acceder a la API por su IP interna.
-    const builtImage = await GenericContainer.fromDockerfile("../../apps/agent") // path relativo al Dockerfile
-      .build();
+    // usa la imagen construida y la laventa 
+    const builtImage = new GenericContainer("watchdog-agent:test");
     agentContainer = await builtImage
       .withEnvironment({
         AGENT_API_URL: "http://172.17.0.1:3099", // IP del host desde el container
@@ -107,7 +106,7 @@ describe("Metrics Pipeline", () => {
 
     console.log("Postgres:", pgContainer.getConnectionUri());
     console.log("Redis:", redisContainer.getConnectionUrl());
-  }, 120000); // timeout de 120s porque Docker tarda en arrancar
+  }, 120000); // timeout de 120s — imagen pre-buildeada en CI, solo levanta contenedores
   afterAll(async () => {
     await agentContainer?.stop();
     await worker.close();
