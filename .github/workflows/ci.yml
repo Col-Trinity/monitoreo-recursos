@@ -67,6 +67,9 @@ jobs:
       - name: Test (Unit)
         run: task test
 
+      - name: Build agent Docker image
+        run: docker build -t watchdog-agent:test ./apps/agent
+        
       - name: Test (Integration - metrics pipeline)
         run: pnpm --filter @watchdog/api test:e2e
         timeout-minutes: 5
