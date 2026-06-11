@@ -6,7 +6,8 @@ export const usersTable = p.pgTable("users", {
   name: p.varchar("name"),
   email: p.varchar("email").unique(),
   passwordHash: p.varchar("password_hash"),
-  emailVerifiedAt: p.timestamp("email_verified_at", { withTimezone: true }),
+  emailVerified: p.timestamp("email_verified", { withTimezone: true }),
+  image: p.varchar("image"),
   language: languageEnum("language"),
   createdAt: p.timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: p
@@ -20,19 +21,19 @@ export const usersTable = p.pgTable("users", {
 export const sessionsTable = p.pgTable(
   "sessions",
   {
-    id: p.uuid("id").primaryKey().defaultRandom(),
+    sessionToken: p.varchar("session_token").primaryKey(),
     userId: p
       .uuid("user_id")
       .notNull()
       .references(() => usersTable.id),
-    expiresAt: p.timestamp("expires_at", { withTimezone: true }).notNull(),
+    expires: p.timestamp("expires", { withTimezone: true }).notNull(),
     tokenHash: p.varchar("token_hash"),
     createdAt: p.timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     lastUsedAt: p.timestamp("last_used_at", { withTimezone: true }),
   },
   (table) => ({
     userIdx: p.index("sessions_user_id_idx").on(table.userId),
-    expiresIdx: p.index("sessions_expires_at_idx").on(table.expiresAt),
+    expiresIdx: p.index("sessions_expires_at_idx").on(table.expires),
   }),
 );
 
