@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import { hashPassword } from "@/server/auth/password";
+import { dbW } from "@/server/db";
 import { usersTable } from "@watchdog/db";
 
 export const authRouter = createTRPCRouter({
@@ -26,7 +27,7 @@ export const authRouter = createTRPCRouter({
 
       const passwordHash = await hashPassword(input.password);
 
-      const [user] = await ctx.db
+      const [user] = await dbW
         .insert(usersTable)
         .values({ email: input.email, passwordHash })
         .returning({ id: usersTable.id, email: usersTable.email });
