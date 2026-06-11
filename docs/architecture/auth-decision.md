@@ -99,4 +99,3 @@ El `DrizzleAdapter` espera que la sesión se identifique por `sessionToken` (str
 | `verificationTokens` | Si se usa magic link / email verification |
 | `authenticators` | Solo si se implementa WebAuthn/passkeys |
 
-Para el MVP (email/password + JWT strategy), ninguna de las tres es necesaria de inmediato.
