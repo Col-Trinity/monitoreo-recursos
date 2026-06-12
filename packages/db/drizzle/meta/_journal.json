@@ -64,6 +64,13 @@
       "when": 1778618940562,
       "tag": "0008_glossy_argent",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1781122670988,
+      "tag": "0009_quick_dagger",
+      "breakpoints": true
     }
   ]
 }
