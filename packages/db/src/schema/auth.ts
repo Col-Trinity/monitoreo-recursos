@@ -50,6 +50,33 @@ export const verificationTokensTable = p.pgTable("verification_tokens", {
 export type VerificationToken = typeof verificationTokensTable.$inferSelect;
 export type NewVerificationToken = typeof verificationTokensTable.$inferInsert;
 
+export const accountsTable = p.pgTable(
+  "accounts",
+  {
+    userId: p
+      .uuid("user_id")
+      .notNull()
+      .references(() => usersTable.id, { onDelete: "cascade" }),
+    type: p.varchar("type").notNull(),
+    provider: p.varchar("provider").notNull(),
+    providerAccountId: p.varchar("provider_account_id").notNull(),
+    refresh_token: p.text("refresh_token"),
+    access_token: p.text("access_token"),
+    expires_at: p.integer("expires_at"),
+    token_type: p.varchar("token_type"),
+    scope: p.varchar("scope"),
+    id_token: p.text("id_token"),
+    session_state: p.varchar("session_state"),
+  },
+  (table) => ({
+    pk: p.primaryKey({ columns: [table.provider, table.providerAccountId] }),
+    userIdx: p.index("accounts_user_id_idx").on(table.userId),
+  }),
+);
+
+export type Account = typeof accountsTable.$inferSelect;
+export type NewAccount = typeof accountsTable.$inferInsert;
+
 export type User = typeof usersTable.$inferSelect;
 export type NewUser = typeof usersTable.$inferInsert;
 

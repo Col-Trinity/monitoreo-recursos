@@ -7,12 +7,15 @@ export {
   usersTable,
   sessionsTable,
   verificationTokensTable,
+  accountsTable,
   type User,
   type NewUser,
   type Session,
   type NewSession,
   type VerificationToken,
   type NewVerificationToken,
+  type Account,
+  type NewAccount,
 } from "./schema/auth";
 
 let _dbWrite: Db | undefined;
