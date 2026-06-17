@@ -3,7 +3,17 @@ import { createDb, type Db } from "./client";
 
 export { createDb, type Db } from "./client";
 export { metricsTable, type Metric, type NewMetric } from "./schema/metrics";
-export { usersTable, sessionsTable, type User, type NewUser, type Session, type NewSession } from "./schema/auth";
+export {
+  usersTable,
+  sessionsTable,
+  verificationTokensTable,
+  type User,
+  type NewUser,
+  type Session,
+  type NewSession,
+  type VerificationToken,
+  type NewVerificationToken,
+} from "./schema/auth";
 
 let _dbWrite: Db | undefined;
 let _dbRead: Db | undefined;

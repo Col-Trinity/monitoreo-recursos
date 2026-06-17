@@ -1,5 +1,5 @@
-import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
+import { type JWT } from "next-auth/jwt";
 
 import { db } from "@/server/db";
 import { z } from "zod";
@@ -8,32 +8,20 @@ import { usersTable } from "@watchdog/db/schema";
 import { eq } from "drizzle-orm";
 import { verifyPassword } from "./password";
 
-/**
- * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
- * object and keep type safety.
- *
- * @see https://next-auth.js.org/getting-started/typescript#module-augmentation
- */
 declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
       id: string;
-      // ...other properties
-      // role: UserRole;
     } & DefaultSession["user"];
   }
-
-  // interface User {
-  //   // ...other properties
-  //   // role: UserRole;
-  // }
 }
 
-/**
- * Options for NextAuth.js used to configure adapters, providers, callbacks, etc.
- *
- * @see https://next-auth.js.org/configuration/options
- */
+declare module "next-auth/jwt" {
+  interface JWT {
+    id: string;
+  }
+}
+
 export const authConfig = {
   providers: [
     Credentials({
@@ -48,28 +36,33 @@ export const authConfig = {
 
         const { email, password } = parsed.data;
 
-        const userIfExist = await db
+        const [usuario] = await db
           .select()
           .from(usersTable)
           .where(eq(usersTable.email, email));
 
-        const [usuario] = userIfExist;
         if (!usuario?.passwordHash) return null;
 
-        const compare = await verifyPassword(password, usuario.passwordHash);
-        return compare ? usuario : null;
+        const ok = await verifyPassword(password, usuario.passwordHash);
+        if (!ok) return null;
+
+        return { id: usuario.id, email: usuario.email, name: usuario.name };
       },
     }),
   ],
-  adapter: DrizzleAdapter(db),
-  session: { strategy: "database" },
+  session: { strategy: "jwt" },
+  pages: {
+    signIn: "/auth/signin",
+    error: "/auth/signin",
+  },
   callbacks: {
-    session: ({ session, user }) => ({
-      ...session,
-      user: {
-        ...session.user,
-        id: user.id,
-      },
-    }),
+    jwt({ token, user }) {
+      if (user) token.id = user.id!;
+      return token;
+    },
+    session({ session, token }) {
+      session.user.id = token.id;
+      return session;
+    },
   },
 } satisfies NextAuthConfig;
