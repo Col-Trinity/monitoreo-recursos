@@ -12,6 +12,7 @@ declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
       id: string;
+      emailVerified: Date | null;
     } & DefaultSession["user"];
   }
 }
@@ -19,6 +20,7 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
   interface JWT {
     id: string;
+    emailVerified: Date | null; 
   }
 }
 
@@ -46,7 +48,7 @@ export const authConfig = {
         const ok = await verifyPassword(password, usuario.passwordHash);
         if (!ok) return null;
 
-        return { id: usuario.id, email: usuario.email, name: usuario.name };
+        return { id: usuario.id, email: usuario.email, name: usuario.name, emailVerified: usuario.emailVerified };
       },
     }),
   ],
@@ -57,11 +59,15 @@ export const authConfig = {
   },
   callbacks: {
     jwt({ token, user }) {
-      if (user) token.id = user.id!;
+     if (user) {
+      token.id = user.id!;
+      token.emailVerified = (user as any).emailVerified ?? null; 
+    }
       return token;
     },
     session({ session, token }) {
       session.user.id = token.id;
+      session.user.emailVerified = token.emailVerified; 
       return session;
     },
   },
