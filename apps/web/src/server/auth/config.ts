@@ -9,6 +9,10 @@ import { eq } from "drizzle-orm";
 import { verifyPassword } from "./password";
 
 declare module "next-auth" {
+  interface User {
+    emailVerified: Date | null;
+  }
+
   interface Session extends DefaultSession {
     user: {
       id: string;
@@ -20,7 +24,7 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
   interface JWT {
     id: string;
-    emailVerified: Date | null; 
+    emailVerified: Date | null;
   }
 }
 
@@ -48,7 +52,12 @@ export const authConfig = {
         const ok = await verifyPassword(password, usuario.passwordHash);
         if (!ok) return null;
 
-        return { id: usuario.id, email: usuario.email, name: usuario.name, emailVerified: usuario.emailVerified };
+        return {
+          id: usuario.id,
+          email: usuario.email,
+          name: usuario.name,
+          emailVerified: usuario.emailVerified,
+        };
       },
     }),
   ],
@@ -58,16 +67,22 @@ export const authConfig = {
     error: "/auth/signin",
   },
   callbacks: {
-    jwt({ token, user }) {
-     if (user) {
-      token.id = user.id!;
-      token.emailVerified = (user as any).emailVerified ?? null; 
-    }
+    jwt({
+      token,
+      user,
+    }: {
+      token: JWT;
+      user?: { id?: string; emailVerified?: Date | null };
+    }) {
+      if (user) {
+        token.id = user.id!;
+        token.emailVerified = user.emailVerified ?? null;
+      }
       return token;
     },
     session({ session, token }) {
       session.user.id = token.id;
-      session.user.emailVerified = token.emailVerified; 
+      session.user.emailVerified = token.emailVerified;
       return session;
     },
   },

@@ -5,7 +5,7 @@ import { eq, and, gt } from "drizzle-orm";
 
 export async function GET(
   _request: Request,
-  { params }: { params: Promise<{ token: string }> }
+  { params }: { params: Promise<{ token: string }> },
 ) {
   const { token } = await params;
 
@@ -18,13 +18,15 @@ export async function GET(
     .where(
       and(
         eq(verificationTokensTable.token, token),
-        gt(verificationTokensTable.expiresAt, new Date()) // no expiró
-      )
+        gt(verificationTokensTable.expiresAt, new Date()), // no expiró
+      ),
     );
 
   // Si no existe o expiró
   if (!verificationToken) {
-    return NextResponse.redirect(new URL("/auth/verify-error", process.env.NEXT_PUBLIC_APP_URL!));
+    return NextResponse.redirect(
+      new URL("/auth/verify-error", process.env.NEXT_PUBLIC_APP_URL),
+    );
   }
 
   // Marcamos el email como verificado
@@ -39,5 +41,7 @@ export async function GET(
     .where(eq(verificationTokensTable.id, verificationToken.id));
 
   // Redirigimos al ogin
-  return NextResponse.redirect(new URL("/auth/signin?verified=true", process.env.NEXT_PUBLIC_APP_URL!));
+  return NextResponse.redirect(
+    new URL("/auth/signin?verified=true", process.env.NEXT_PUBLIC_APP_URL),
+  );
 }
