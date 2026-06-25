@@ -1,12 +1,13 @@
+import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
-import { type JWT } from "next-auth/jwt";
+import { accountsTable, sessionsTable, usersTable } from "@watchdog/db/schema";
 
-import { db } from "@/server/db";
+import { dbW, db } from "@/server/db";
 import { z } from "zod";
 import Credentials from "next-auth/providers/credentials";
-import { usersTable } from "@watchdog/db/schema";
 import { eq } from "drizzle-orm";
 import { verifyPassword } from "./password";
+import Google from "next-auth/providers/google";
 
 declare module "next-auth" {
   interface User {
@@ -18,13 +19,6 @@ declare module "next-auth" {
       id: string;
       emailVerified: Date | null;
     } & DefaultSession["user"];
-  }
-}
-
-declare module "next-auth/jwt" {
-  interface JWT {
-    id: string;
-    emailVerified: Date | null;
   }
 }
 
@@ -60,30 +54,38 @@ export const authConfig = {
         };
       },
     }),
+    Google({
+      clientId: process.env.AUTH_GOOGLE_ID,
+      clientSecret: process.env.AUTH_GOOGLE_SECRET,
+    }),
   ],
-  session: { strategy: "jwt" },
+  adapter: DrizzleAdapter(dbW, {
+    usersTable: usersTable,
+    accountsTable: accountsTable,
+    sessionsTable: sessionsTable,
+  }),
+  session: { strategy: "database" },
   pages: {
     signIn: "/auth/signin",
     error: "/auth/signin",
   },
   callbacks: {
-    jwt({
-      token,
-      user,
-    }: {
-      token: JWT;
-      user?: { id?: string; emailVerified?: Date | null };
-    }) {
-      if (user) {
-        token.id = user.id!;
-        token.emailVerified = user.emailVerified ?? null;
+    signIn: async ({ user, account }) => {
+      if (account?.provider === "google") {
+        await dbW
+          .update(usersTable)
+          .set({ emailVerified: new Date() })
+          .where(eq(usersTable.id, user.id!));
       }
-      return token;
+      return true;
     },
-    session({ session, token }) {
-      session.user.id = token.id;
-      session.user.emailVerified = token.emailVerified;
-      return session;
-    },
+    session: ({ session, user }) => ({
+      ...session,
+      user: {
+        ...session.user,
+        id: user.id,
+        emailVerified: (user as { emailVerified?: Date | null }).emailVerified ?? null,
+      },
+    }),
   },
 } satisfies NextAuthConfig;
