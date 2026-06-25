@@ -14,6 +14,10 @@ import { ZodError } from "zod";
 import { auth } from "@/server/auth";
 import { db } from "@/server/db";
 
+import { cookies } from "next/headers";
+import { membershipsTable, workspacesTable } from "@watchdog/db/schema";
+import { eq, and } from "drizzle-orm";
+
 /**
  * 1. CONTEXT
  *
@@ -131,3 +135,66 @@ export const protectedProcedure = t.procedure
       },
     });
   });
+
+export const currentWorkspaceProcedure = protectedProcedure.use(
+  async ({ ctx, next }) => {
+    const cookieStore = await cookies();
+    const workspaceCookie = cookieStore.get("current_workspace_slug");
+
+    if (!workspaceCookie) {
+      const [memberships] = await ctx.db
+        .select()
+        .from(membershipsTable)
+        .where(eq(membershipsTable.userId, ctx.session.user.id));
+
+      if (!memberships) {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
+
+      const [workspace] = await ctx.db
+        .select()
+        .from(workspacesTable)
+        .where(eq(workspacesTable.id, memberships.workspaceId));
+
+      if (!workspace) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      cookieStore.set("current_workspace_slug", workspace.id);
+
+      return next({
+        ctx: {
+          currentWorkspace: workspace,
+        },
+      });
+    }
+
+    const [workspace] = await ctx.db
+      .select()
+      .from(workspacesTable)
+      .where(eq(workspacesTable.id, workspaceCookie.value));
+
+    if (!workspace) {
+      throw new TRPCError({ code: "NOT_FOUND" });
+    }
+
+    const [membership] = await ctx.db
+      .select()
+      .from(membershipsTable)
+      .where(
+        and(
+          eq(membershipsTable.userId, ctx.session.user.id),
+          eq(membershipsTable.workspaceId, workspace.id),
+        ),
+      );
+
+    if (!membership) {
+      throw new TRPCError({ code: "FORBIDDEN" });
+    }
+    return next({
+      ctx: {
+        currentWorkspace: workspace,
+      },
+    });
+  },
+);
