@@ -7,7 +7,7 @@ const schema = z.object({
   DATABASE_READ_URL: z.string().url().optional(),
 
   REDIS_URL: z.string().url(),
-  
+
   API_PORT: z.coerce.number().int().positive().default(3001),
   API_HOST: z.string().default("0.0.0.0"),
 
@@ -19,6 +19,9 @@ const schema = z.object({
   AGENT_SAMPLE_INTERVAL: z.string().default("5s"),
 
   WORKER_BUFFER_MAX_BYTES: z.coerce.number().int().positive().default(10 * 1024 * 1024),
+
+  RESEND_API_KEY: z.string().optional(),
+  NEXT_PUBLIC_APP_URL: z.string().url().default("http://localhost:3000"),
 });
 
 export type Env = z.infer<typeof schema>;
