@@ -1,12 +1,15 @@
-import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, currentWorkspaceProcedure } from "@/server/api/trpc";
 import { metricsTable } from "@watchdog/db";
-import { desc } from "drizzle-orm";
+import { agentsTable } from "@watchdog/db/schema";
+import { desc, eq } from "drizzle-orm";
 
 export const metricsRouter = createTRPCRouter({
-  getAll: publicProcedure.query(async ({ ctx }) => {
+  getAll: currentWorkspaceProcedure.query(async ({ ctx }) => {
     return await ctx.db
-      .select()
+      .select({ metrics: metricsTable })
       .from(metricsTable)
+      .innerJoin(agentsTable, eq(metricsTable.agentId, agentsTable.id))
+      .where(eq(agentsTable.workspaceId, ctx.currentWorkspace.id))
       .orderBy(desc(metricsTable.createdAt))
       .limit(20);
   }),

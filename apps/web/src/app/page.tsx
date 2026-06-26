@@ -45,10 +45,10 @@ export default function Home() {
       {isError && <p>Error al cargar los datos</p>}
       {data && METRIC_TYPES.map((type) => {
         const filtered = data
-          .filter((d) => d.metricsType === type)
+          .filter((d) => d.metrics.metricsType === type)
           .map((d) => ({
-            value: parseFloat((d.value ?? 0).toFixed(2)),
-            hora: new Date(d.createdAt ?? new Date()).toLocaleTimeString(),
+            value: parseFloat((d.metrics.value ?? 0).toFixed(2)),
+            hora: new Date(d.metrics.createdAt ?? new Date()).toLocaleTimeString(),
           }));
         return (
           <div key={type} style={{ marginBottom: "1rem" }}>
