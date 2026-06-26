@@ -17,6 +17,7 @@ function SigninForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const verified = searchParams.get("verified") === "true";
+  const reset = searchParams.get("reset") === "true";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -50,6 +51,12 @@ function SigninForm() {
         <h1 className="mb-6 text-2xl font-semibold text-gray-900">
           Iniciar sesión
         </h1>
+
+        {reset && (
+          <div className="mb-4 rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700">
+            Contraseña reseteada. Ya podés iniciar sesión.
+          </div>
+        )}
 
         {verified && (
           <div className="mb-4 rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700">
@@ -108,6 +115,11 @@ function SigninForm() {
             {pending ? "Ingresando…" : "Ingresar"}
           </button>
         </form>
+        <p className="mt-2 text-center text-sm text-gray-500">
+          <Link href="/auth/forgot" className="font-medium text-indigo-600 hover:underline">
+            ¿Olvidaste tu contraseña?
+          </Link>
+        </p>
 
         <p className="mt-6 text-center text-sm text-gray-500">
           ¿No tenés cuenta?{" "}

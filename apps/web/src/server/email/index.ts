@@ -33,3 +33,28 @@ export async function sendVerificationEmail(email: string, token: string) {
     throw new Error(`Resend error: ${result.error.message}`);
   }
 }
+
+export async function sendPasswordResetEmail(email: string, token: string) {
+const resetUrl = `${env.NEXT_PUBLIC_APP_URL}/auth/reset/${token}`;
+  let result: Awaited<ReturnType<Resend["emails"]["send"]>>;
+  try {
+    result = await resend().emails.send({
+      from: "Watch-Dog <onboarding@resend.dev>",
+      to: email,
+      subject: "Restablecé tu contraseña — Watch-Dog",
+      html: `
+        <h1>Restablecé tu contraseña</h1>
+        <p>Hacé click en el link para elegir una nueva contraseña:</p>
+        <a href="${resetUrl}">Restablecer contraseña</a>
+        <p>Este link expira en 1 hora.</p>
+        <p>Si no solicitaste este cambio, ignorá este email.</p>
+      `,
+    });
+  } catch (cause) {
+    throw new Error(`Resend network error: ${String(cause)}`);
+  }
+
+  if (result.error) {
+    throw new Error(`Resend error: ${result.error.message}`);
+  }
+}
