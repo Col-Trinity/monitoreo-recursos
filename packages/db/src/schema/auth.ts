@@ -36,6 +36,12 @@ export const sessionsTable = p.pgTable(
     expiresIdx: p.index("sessions_expires_at_idx").on(table.expires),
   }),
 );
+
+export const verificationTokenTypeEnum = p.pgEnum("verification_token_type", [
+  "email_verification",
+  "password_reset",
+]);
+
 export const verificationTokensTable = p.pgTable("verification_tokens", {
   id: p.uuid("id").primaryKey().defaultRandom(),
   userId: p
@@ -43,12 +49,13 @@ export const verificationTokensTable = p.pgTable("verification_tokens", {
     .notNull()
     .references(() => usersTable.id, { onDelete: "cascade" }),
   token: p.varchar("token").notNull().unique(),
+  type: verificationTokenTypeEnum("type").notNull().default("email_verification"),
   expiresAt: p.timestamp("expires_at", { withTimezone: true }).notNull(),
   createdAt: p.timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
 export type VerificationToken = typeof verificationTokensTable.$inferSelect;
-export type NewVerificationToken = typeof verificationTokensTable.$inferInsert;
+export type NewVerificationToken = typeof verificationTokensTable.$inferInsert; 
 
 export const accountsTable = p.pgTable(
   "accounts",

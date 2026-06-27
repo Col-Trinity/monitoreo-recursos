@@ -1,0 +1,2 @@
+CREATE TYPE "public"."verification_token_type" AS ENUM('email_verification', 'password_reset');--> statement-breakpoint
+ALTER TABLE "verification_tokens" ADD COLUMN "type" "verification_token_type" DEFAULT 'email_verification' NOT NULL;
