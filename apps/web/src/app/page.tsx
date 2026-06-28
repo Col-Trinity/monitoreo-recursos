@@ -50,11 +50,11 @@ export default function Home() {
           <div className="grid gap-4 sm:grid-cols-2">
             {METRIC_TYPES.map((type) => {
               const filtered = data
-                .filter((d) => d.metricsType === type)
+                .filter((d) => d.metrics.metricsType === type)
                 .map((d) => ({
-                  value: parseFloat((d.value ?? 0).toFixed(2)),
+                  value: parseFloat((d.metrics.value ?? 0).toFixed(2)),
                   hora: new Date(
-                    d.createdAt ?? new Date(),
+                    d.metrics.createdAt ?? new Date(),
                   ).toLocaleTimeString(),
                 }));
               return (

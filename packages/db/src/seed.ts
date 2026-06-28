@@ -1,7 +1,7 @@
 import { env } from "@watchdog/env";
 import { createDb } from "./client";
 import { metricsTable } from "./schema/metrics";
-import { workspacesTable, agentsTable } from "./schema/tenancy";
+import { workspacesTable, agentsTable, membershipsTable } from "./schema/tenancy";
 import { usersTable } from "./schema";
 import { createHash } from "node:crypto";
 
@@ -24,7 +24,7 @@ async function seed() {
     process.exit(0);
   }
 
-  await db
+  const [user] = await db
     .insert(usersTable)
     .values({
       name: "dev user",
@@ -33,6 +33,17 @@ async function seed() {
     })
     .onConflictDoNothing()
     .returning();
+
+  if (user) {
+    await db
+      .insert(membershipsTable)
+      .values({
+        userId: user.id,
+        workspaceId: workspace.id,
+        role: "owner",
+      })
+      .onConflictDoNothing();
+  }
 
   const [agent] = await db
     .insert(agentsTable)
