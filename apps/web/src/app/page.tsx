@@ -46,36 +46,15 @@ export default function Home() {
           </p>
         )}
 
-      {isLoading && <p>Cargando...</p>}
-      {isError && <p>Error al cargar los datos</p>}
-      {data && METRIC_TYPES.map((type) => {
-        const filtered = data
-          .filter((d) => d.metrics.metricsType === type)
-          .map((d) => ({
-            value: parseFloat((d.metrics.value ?? 0).toFixed(2)),
-            hora: new Date(d.metrics.createdAt ?? new Date()).toLocaleTimeString(),
-          }));
-        return (
-          <div key={type} style={{ marginBottom: "1rem" }}>
-            <h2>{METRIC_LABELS[type]}</h2>
-            <ResponsiveContainer width="100%" height={150}>
-              <LineChart data={filtered}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="hora" />
-                <YAxis domain={type === "network" ? ["auto", "auto"] : [0, 100]} />
-                <Tooltip />
-                <Line type="monotone" dataKey="value" stroke="#8884d8" dot={true} />
-              </LineChart>
-            </ResponsiveContainer>
         {data && (
           <div className="grid gap-4 sm:grid-cols-2">
             {METRIC_TYPES.map((type) => {
               const filtered = data
-                .filter((d) => d.metricsType === type)
+                .filter((d) => d.metrics.metricsType === type)
                 .map((d) => ({
-                  value: parseFloat((d.value ?? 0).toFixed(2)),
+                  value: parseFloat((d.metrics.value ?? 0).toFixed(2)),
                   hora: new Date(
-                    d.createdAt ?? new Date(),
+                    d.metrics.createdAt ?? new Date(),
                   ).toLocaleTimeString(),
                 }));
               return (
