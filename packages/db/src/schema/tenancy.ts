@@ -14,10 +14,14 @@ export const workspacesTable = p.pgTable("workspaces", {
   deletedAt: p.timestamp("deleted_at", { withTimezone: true }),
 });
 
-// Owner: Lectura, Escritura, Borrar.
-// Admin: Lectura, Escritura.
-// Viewer: Lectura.
-export const roleEnum = p.pgEnum("role", ["owner", "admin", "viewer"]);
+// Owner: workspace:manage, members:invite, members:change-role, agents:create,
+//        agents:delete, apikeys:create, apikeys:revoke, metrics:read
+// Admin: workspace:manage, members:invite, agents:create, agents:delete,
+//        apikeys:create, apikeys:revoke, metrics:read
+// Member: agents:create, apikeys:create, metrics:read
+// Viewer: metrics:read
+
+export const roleEnum = p.pgEnum("role", ["owner", "admin", "member", "viewer"]);
 export const membershipsTable = p.pgTable(
   "memberships",
   {
