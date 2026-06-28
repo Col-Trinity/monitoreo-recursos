@@ -45,6 +45,10 @@ function SigninForm() {
     router.push("/");
   }
 
+  async function handleGoogleSignin() {
+    await signIn("google", { callbackUrl: "/" });
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50">
       <div className="w-full max-w-sm rounded-xl bg-white p-8 shadow-sm">
@@ -115,8 +119,26 @@ function SigninForm() {
             {pending ? "Ingresando…" : "Ingresar"}
           </button>
         </form>
+
+        <div className="my-4 flex items-center gap-2">
+          <div className="h-px flex-1 bg-gray-200" />
+          <span className="text-xs text-gray-400">o</span>
+          <div className="h-px flex-1 bg-gray-200" />
+        </div>
+
+        <button
+          type="button"
+          onClick={handleGoogleSignin}
+          className="w-full rounded-lg border border-gray-300 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+        >
+          Continuar con Google
+        </button>
+
         <p className="mt-2 text-center text-sm text-gray-500">
-          <Link href="/auth/forgot" className="font-medium text-indigo-600 hover:underline">
+          <Link
+            href="/auth/forgot"
+            className="font-medium text-indigo-600 hover:underline"
+          >
             ¿Olvidaste tu contraseña?
           </Link>
         </p>

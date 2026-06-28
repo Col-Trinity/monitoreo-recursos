@@ -77,7 +77,7 @@ export const authConfig = {
   session: { strategy: "database" },
   pages: {
     signIn: "/auth/signin",
-    error: "/auth/signin",
+    error: "/auth/error",
   },
   jwt: {
     encode: async (params) => {
