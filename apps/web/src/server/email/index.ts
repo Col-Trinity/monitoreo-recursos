@@ -9,6 +9,10 @@ export function resend(): Resend {
 }
 
 export async function sendVerificationEmail(email: string, token: string) {
+  if (process.env.RESEND_SKIP_SEND === "true") {
+    console.log(`[test] skipping verification email to ${email}`);
+    return;
+  }
   const verifyUrl = `${env.NEXT_PUBLIC_APP_URL}/api/auth/verify/${token}`;
 
   let result: Awaited<ReturnType<Resend["emails"]["send"]>>;
@@ -35,7 +39,11 @@ export async function sendVerificationEmail(email: string, token: string) {
 }
 
 export async function sendPasswordResetEmail(email: string, token: string) {
-const resetUrl = `${env.NEXT_PUBLIC_APP_URL}/auth/reset/${token}`;
+  if (process.env.RESEND_SKIP_SEND === "true") {
+    console.log(`[test] skipping reset email to ${email}`);
+    return;
+  }
+  const resetUrl = `${env.NEXT_PUBLIC_APP_URL}/auth/reset/${token}`;
   let result: Awaited<ReturnType<Resend["emails"]["send"]>>;
   try {
     result = await resend().emails.send({
