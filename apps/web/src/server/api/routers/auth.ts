@@ -58,6 +58,7 @@ export const authRouter = createTRPCRouter({
       });
 
       // Mandamos el email
+      console.log("RESEND_SKIP_SEND:", process.env.RESEND_SKIP_SEND);
       await sendVerificationEmail(user.email!, token);
 
       return user;
@@ -85,7 +86,7 @@ export const authRouter = createTRPCRouter({
       });
 
       // Mandamos el email
-      await sendPasswordResetEmail(user.email!, token);
+      await sendVerificationEmail(user.email!, token);
 
       return { success: true };
     }),

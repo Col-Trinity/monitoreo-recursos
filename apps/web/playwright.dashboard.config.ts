@@ -1,14 +1,10 @@
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { defineConfig, devices } from "@playwright/test";
-import { config as loadDotenv } from "dotenv";
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-loadDotenv({ path: path.resolve(__dirname, "../../.env") });
 
 export default defineConfig({
   testDir: "./tests",
-  testMatch: "tests/e2e/auth.spec.ts",
+  testMatch: "**/metrics-chart.spec.ts",
+  globalSetup: "./tests/global-setup.ts",
+  globalTeardown: "./tests/global-teardown.ts",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -25,10 +21,8 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command:
-      "pnpm build && RESEND_SKIP_SEND=true AUTH_TRUST_HOST=true pnpm start",
+    command: "pnpm dev",
     url: "http://localhost:3000",
-    reuseExistingServer: false,
-    timeout: 180_000,
+    reuseExistingServer: !process.env.CI,
   },
 });
