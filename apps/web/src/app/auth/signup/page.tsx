@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { signIn } from "next-auth/react";
 import { api } from "@/trpc/react";
 
 export default function SignupPage() {
@@ -14,7 +15,20 @@ export default function SignupPage() {
   const [error, setError] = useState("");
 
   const signup = api.auth.signup.useMutation({
-    onSuccess: () => router.push("/"),
+    onSuccess: async (_data, variables) => {
+      const result = await signIn("credentials", {
+        email: variables.email,
+        password: variables.password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        router.push("/auth/signin");
+        return;
+      }
+
+      router.push("/");
+    },
   });
 
   function handleSubmit(e: React.FormEvent) {

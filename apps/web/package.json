@@ -13,6 +13,7 @@
     "typecheck": "tsc --noEmit",
     "test:unit": "echo \"TODO: vitest\"",
     "test:e2e": "playwright test",
+    "test:e2e:auth": "playwright test tests/e2e/auth.spec.ts",
     "clean": "rm -rf .next .turbo"
   },
   "dependencies": {
