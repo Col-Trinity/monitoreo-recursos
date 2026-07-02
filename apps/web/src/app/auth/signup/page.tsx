@@ -14,11 +14,15 @@ export default function SignupPage() {
   const [error, setError] = useState("");
 
   const signup = api.auth.signup.useMutation({
-    onSuccess: () => router.push("/auth/verify-send"),
+    onSuccess: () => router.push("/"),
   });
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError("Ingresá un email válido");
+      return;
+    }
     if (password !== confirm) {
       setError("Las contraseñas no coinciden");
       return;
@@ -74,7 +78,10 @@ export default function SignupPage() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label htmlFor="confirm" className="text-sm font-medium text-gray-700">
+            <label
+              htmlFor="confirm"
+              className="text-sm font-medium text-gray-700"
+            >
               Confirmar contraseña
             </label>
             <input
