@@ -86,7 +86,7 @@ export const authRouter = createTRPCRouter({
       });
 
       // Mandamos el email
-      await sendVerificationEmail(user.email!, token);
+      await sendPasswordResetEmail(user.email!, token);
 
       return { success: true };
     }),
