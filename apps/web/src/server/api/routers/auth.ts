@@ -13,6 +13,7 @@ import {
   usersTable,
   verificationTokensTable,
 } from "@watchdog/db";
+import { membershipsTable, workspacesTable } from "@watchdog/db/schema";
 import { sendPasswordResetEmail, sendVerificationEmail } from "@/server/email";
 import { randomBytes } from "node:crypto";
 
@@ -48,6 +49,19 @@ export const authRouter = createTRPCRouter({
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to create user",
+        });
+      }
+
+      const [workspace] = await dbW
+        .insert(workspacesTable)
+        .values({ name: "My Workspace", description: "" })
+        .returning();
+
+      if (workspace) {
+        await dbW.insert(membershipsTable).values({
+          userId: user.id,
+          workspaceId: workspace.id,
+          role: "owner",
         });
       }
 
