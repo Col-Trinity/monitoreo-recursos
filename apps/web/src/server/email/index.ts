@@ -44,6 +44,8 @@ export async function sendPasswordResetEmail(email: string, token: string) {
     return;
   }
   const resetUrl = `${env.NEXT_PUBLIC_APP_URL}/auth/reset/${token}`;
+  const cancelUrl = `${env.NEXT_PUBLIC_APP_URL}/api/auth/cancel-reset/${token}`; // reste token 
+
   let result: Awaited<ReturnType<Resend["emails"]["send"]>>;
   try {
     result = await resend().emails.send({
@@ -51,12 +53,17 @@ export async function sendPasswordResetEmail(email: string, token: string) {
       to: email,
       subject: "Restablecé tu contraseña — Watch-Dog",
       html: `
-        <h1>Restablecé tu contraseña</h1>
-        <p>Hacé click en el link para elegir una nueva contraseña:</p>
-        <a href="${resetUrl}">Restablecer contraseña</a>
-        <p>Este link expira en 1 hora.</p>
-        <p>Si no solicitaste este cambio, ignorá este email.</p>
-      `,
+  <h1>Restablecé tu contraseña</h1>
+  <p>Recibiste este email porque alguien solicitó restablecer la contraseña de tu cuenta.</p>
+  <a href="${resetUrl}">Restablecer contraseña</a>
+  <p>Este link expira en 1 hora.</p>
+  <hr />
+  <p>Si no fuiste vos, cancelá el pedido inmediatamente:</p>
+  <a href="${cancelUrl}">No fui yo — Cancelar reset</a>
+  <p style="color: #666; font-size: 12px;">
+    Al cancelar, el link de arriba quedará inválido.
+  </p>
+`,
     });
   } catch (cause) {
     throw new Error(`Resend network error: ${String(cause)}`);

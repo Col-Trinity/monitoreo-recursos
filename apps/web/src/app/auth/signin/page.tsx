@@ -24,6 +24,8 @@ function SigninForm() {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
+  const cancelled = searchParams.get("cancelled") === "true";
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -55,6 +57,11 @@ function SigninForm() {
         <h1 className="mb-6 text-2xl font-semibold text-gray-900">
           Iniciar sesión
         </h1>
+        {cancelled && (
+  <div className="mb-4 rounded-lg bg-blue-50 px-3 py-2 text-sm text-blue-700">
+    Reset cancelado. Tu contraseña no fue modificada.
+  </div>
+)}
 
         {reset && (
           <div className="mb-4 rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700">
