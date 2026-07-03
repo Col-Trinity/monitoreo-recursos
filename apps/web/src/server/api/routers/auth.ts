@@ -1,8 +1,12 @@
 import { TRPCError } from "@trpc/server";
 import { and, eq, gt } from "drizzle-orm";
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
-import { hashPassword } from "@/server/auth/password";
+import {
+  createTRPCRouter,
+  protectedProcedure,
+  publicProcedure,
+} from "@/server/api/trpc";
+import { hashPassword, verifyPassword } from "@/server/auth/password";
 import { dbW } from "@/server/db";
 import {
   sessionsTable,
@@ -132,6 +136,39 @@ export const authRouter = createTRPCRouter({
       await dbW
         .delete(verificationTokensTable)
         .where(eq(verificationTokensTable.id, verificationToken.id));
+
+      return { success: true };
+    }),
+  changePassword: protectedProcedure
+    .input(
+      z.object({
+        currentPassword: z.string().min(8),
+        newPassword: z.string().min(8),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [user] = await dbW
+        .select()
+        .from(usersTable)
+        .where(eq(usersTable.id, ctx.session.user.id));
+
+      if (!user?.passwordHash) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      const ok = await verifyPassword(input.currentPassword, user.passwordHash);
+      if (!ok) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "Contraseña actual incorrecta",
+        });
+      }
+
+      const passwordHash = await hashPassword(input.newPassword);
+      await dbW
+        .update(usersTable)
+        .set({ passwordHash })
+        .where(eq(usersTable.id, user.id));
 
       return { success: true };
     }),
