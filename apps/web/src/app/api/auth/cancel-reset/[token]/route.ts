@@ -5,7 +5,7 @@ import { and, eq } from "drizzle-orm";
 
 export async function GET(
   _request: Request,
-  { params }: { params: Promise<{ token: string }> }
+  { params }: { params: Promise<{ token: string }> },
 ) {
   const { token } = await params;
   const db = dbWrite();
@@ -16,10 +16,10 @@ export async function GET(
       and(
         eq(verificationTokensTable.token, token),
         eq(verificationTokensTable.type, "password_reset"),
-      )
+      ),
     );
 
   return NextResponse.redirect(
-    new URL("/auth/signin?cancelled=true", process.env.NEXT_PUBLIC_APP_URL!)
+    new URL("/auth/signin?cancelled=true", process.env.NEXT_PUBLIC_APP_URL),
   );
 }
