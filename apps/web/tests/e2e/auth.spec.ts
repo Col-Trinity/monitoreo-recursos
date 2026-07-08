@@ -24,7 +24,7 @@ test.describe("Auth flows", () => {
     await page.fill("#confirm", testPassword);
     await page.click('button[type="submit"]');
 
-    await expect(page).toHaveURL("/auth/verify-send");
+    await expect(page).toHaveURL("/");
 
     // bucaMOS EL USER
     const [user] = await db
@@ -67,7 +67,7 @@ test.describe("Auth flows", () => {
     await page.fill("#confirm", testPassword);
     await page.click('button[type="submit"]');
 
-    await expect(page).toHaveURL("/auth/verify-send");
+    await expect(page).toHaveURL("/");
 
     // verifica mail via db
     const [user] = await db
@@ -114,7 +114,7 @@ test.describe("Auth flows", () => {
     await page.fill("#password", testPassword);
     await page.fill("#confirm", testPassword);
     await page.click('button[type="submit"]');
-    await expect(page).toHaveURL("/auth/verify-send");
+    await expect(page).toHaveURL("/");
 
     // Verify email via DB
     const [user] = await db
