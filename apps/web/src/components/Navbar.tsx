@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useSession, signOut} from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import { api } from "@/trpc/react";
 export default function Navbar() {
@@ -95,11 +95,10 @@ export default function Navbar() {
                               })
                             }
                             disabled={switchWorkspace.isPending}
-                            className={`w-full px-4 py-2 text-left text-sm transition-colors hover:bg-gray-50 ${
-                              currentWorkspace?.id === item.workspaces.id
+                            className={`w-full px-4 py-2 text-left text-sm transition-colors hover:bg-gray-50 ${currentWorkspace?.id === item.workspaces.id
                                 ? "font-medium text-indigo-600"
                                 : "text-gray-700"
-                            }`}
+                              }`}
                           >
                             {item.workspaces.name}
                           </button>
@@ -111,44 +110,53 @@ export default function Navbar() {
               )}
             </div>
 
-        {/* Avatar + nombre con dropdown de perfil */}
-<div className="relative" ref={profileRef}>
-  <button
-    onClick={() => setProfileOpen((prev) => !prev)}
-    className="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-gray-50"
-  >
-    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500 text-sm font-medium text-white">
-      {session?.user?.name?.[0]?.toUpperCase() ?? "?"}
-    </div>
-    <span className="text-sm text-gray-700">
-      {session?.user?.name ?? "Usuario"}
-    </span>
-  </button>
+            {/* Avatar + nombre con dropdown de perfil */}
+            <div className="relative" ref={profileRef}>
+              <button
+                onClick={() => setProfileOpen((prev) => !prev)}
+                className="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-gray-50"
+              >
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500 text-sm font-medium text-white">
+                  {session?.user?.name?.[0]?.toUpperCase() ?? "?"}
+                </div>
+                <span className="text-sm text-gray-700">
+                  {session?.user?.name ?? "Usuario"}
+                </span>
+              </button>
 
-  {profileOpen && (
-    <div className="absolute right-0 z-50 mt-2 w-48 rounded-lg border border-gray-200 bg-white shadow-lg">
-      <ul className="py-1">
-        <li>
-          <Link
-            href="/settings/password"
-            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-            onClick={() => setProfileOpen(false)}
-          >
-            Cambiar contraseña
-          </Link>
-        </li>
-        <li>
-          <button
-            onClick={() => signOut({ callbackUrl: "/auth/signin" })}
-            className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50"
-          >
-            Cerrar sesión
-          </button>
-        </li>
-      </ul>
-    </div>
-  )}
-</div>
+              {profileOpen && (
+                <div className="absolute right-0 z-50 mt-2 w-48 rounded-lg border border-gray-200 bg-white shadow-lg">
+                  <ul className="py-1">
+                    <li>
+                      <li>
+                        <Link
+                          href="/settings/invite"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          onClick={() => setProfileOpen(false)}
+                        >
+                          Invitar al workspace
+                        </Link>
+                      </li>
+                      <Link
+                        href="/settings/password"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                        onClick={() => setProfileOpen(false)}
+                      >
+                        Cambiar contraseña
+                      </Link>
+                    </li>
+                    <li>
+                      <button
+                        onClick={() => signOut({ callbackUrl: "/auth/signin" })}
+                        className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50"
+                      >
+                        Cerrar sesión
+                      </button>
+                    </li>
+                  </ul>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </nav>

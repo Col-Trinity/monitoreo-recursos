@@ -26,6 +26,8 @@ function SigninForm() {
 
   const cancelled = searchParams.get("cancelled") === "true";
 
+  const redirect = searchParams.get("redirect");
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -44,8 +46,7 @@ function SigninForm() {
       return;
     }
 
-    router.push("/");
-  }
+router.push(redirect ?? "/");  }
 
   async function handleGoogleSignin() {
     await signIn("google", { callbackUrl: "/" });
