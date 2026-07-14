@@ -15,7 +15,7 @@ export default tseslint.config(
       "apps/web/**", // web tiene su propia config
     ],
   },
-  {
+  {                                     
     files: ["**/*.ts", "**/*.tsx"],
     extends: [...tseslint.configs.recommended, ...tseslint.configs.stylistic],
     rules: {

@@ -1,4 +1,5 @@
 import * as p from "drizzle-orm/pg-core";
+import { roleEnum, workspacesTable } from "./tenancy";
 
 export const languageEnum = p.pgEnum("language", ["en", "es", "pt"]);
 export const usersTable = p.pgTable("users", {
@@ -54,8 +55,29 @@ export const verificationTokensTable = p.pgTable("verification_tokens", {
   createdAt: p.timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+export const invitationsTable = p.pgTable("invitations", {
+  id: p.uuid("id").primaryKey().defaultRandom(),
+  workspaceId: p
+    .uuid("workspace_id")
+    .notNull()
+    .references(() => workspacesTable.id, { onDelete: "cascade" }),
+  email: p.varchar("email").notNull(),
+  role: roleEnum("role").notNull().default("member"),
+  token: p.varchar("token").notNull().unique(),
+  invitedBy: p
+    .uuid("invited_by")
+    .notNull()
+    .references(() => usersTable.id),
+  expiresAt: p.timestamp("expires_at", { withTimezone: true }).notNull(),
+  acceptedAt: p.timestamp("accepted_at", { withTimezone: true }),
+  createdAt: p.timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export type Invitation = typeof invitationsTable.$inferSelect;
+export type NewInvitation = typeof invitationsTable.$inferInsert;
+
 export type VerificationToken = typeof verificationTokensTable.$inferSelect;
-export type NewVerificationToken = typeof verificationTokensTable.$inferInsert; 
+export type NewVerificationToken = typeof verificationTokensTable.$inferInsert;
 
 export const accountsTable = p.pgTable(
   "accounts",

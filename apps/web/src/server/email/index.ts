@@ -73,3 +73,29 @@ export async function sendPasswordResetEmail(email: string, token: string) {
     throw new Error(`Resend error: ${result.error.message}`);
   }
 }
+
+
+export async function sendInvitationEmail(email: string, token:string ){
+  if (process.env.RESEND_SKIP_SEND === "true") {
+    console.log(`[test] skipping invitation email to ${email}`);
+    return;
+  }
+const invitationUrl = `${env.NEXT_PUBLIC_APP_URL}/invite/${token}`;
+  let result: Awaited<ReturnType<Resend["emails"]["send"]>>;
+  try{
+
+  result = await resend().emails.send({
+      from: "Watch-Dog <onboarding@resend.dev>",
+      to: email,
+      subject: "Te invitaron a un workspace — Watch-Dog",
+      html: `
+        <h1>Fuiste invitado a Watch-Dog</h1>
+        <p>Alguien te invitó a unirte a un workspace en Watch-Dog.</p>
+        <a href="${invitationUrl}">Aceptar invitación</a>
+        <p>Este link expira en 7 días.</p>
+        <p>Si no esperabas esta invitación, podés ignorar este email.</p>
+      `,
+    });  }catch(cause){
+    throw new Error(`Resend network error: ${String(cause)}`);
+  }
+}

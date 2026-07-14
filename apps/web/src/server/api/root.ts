@@ -1,4 +1,5 @@
 import { authRouter } from "./routers/auth";
+import { invitationsRouter } from "./routers/invitations";
 import { metricsRouter } from "./routers/metrics";
 import { userWorkspacesRouter } from "./routers/workspace";
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
@@ -11,7 +12,8 @@ import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 export const appRouter = createTRPCRouter({
   metrics: metricsRouter,
   auth: authRouter,
-  workspaces: userWorkspacesRouter
+  workspaces: userWorkspacesRouter,
+  invitations: invitationsRouter,
 });
 
 // export type definition of API
