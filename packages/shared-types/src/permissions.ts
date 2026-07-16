@@ -7,6 +7,7 @@ export enum Role {
 
 export enum Permission {
   workspaceManage = "workspace:manage",
+  workspaceDelete = "workspace:delete",
   membersInvite = "members:invite",
   membersChangeRole = "members:change-role",
   agentsCreate = "agents:create",
@@ -19,6 +20,7 @@ export enum Permission {
 export const rolePermissions: Record<Role, Permission[]> = {
   [Role.owner]: [
     Permission.workspaceManage,
+    Permission.workspaceDelete,
     Permission.membersInvite,
     Permission.membersChangeRole,
     Permission.agentsCreate,
