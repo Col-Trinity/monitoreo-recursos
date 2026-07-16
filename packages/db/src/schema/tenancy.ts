@@ -68,7 +68,7 @@ export const agentsTable = p.pgTable(
 
     name: p.varchar("name").notNull(),
     description: p.varchar("description").notNull(),
-    apiKey: p.varchar("api_key").unique().notNull(), // TODO: STORE HASHED
+    apiKey: p.varchar("api_key").unique().notNull(),
     active: p.boolean("active").notNull().default(true),
     lastHeartbeat: p.timestamp("last_heartbeat", { withTimezone: true }),
     createdAt: p.timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -78,6 +78,7 @@ export const agentsTable = p.pgTable(
       .notNull()
       .$onUpdate(() => new Date()),
     deletedAt: p.timestamp("deleted_at", { withTimezone: true }),
+    revokedAt: p.timestamp("revoked_at", { withTimezone: true }),
   },
   (table) => ({
     projectIdx: p.index("agents_workspace_id_idx").on(table.workspaceId),

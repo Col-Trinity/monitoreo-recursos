@@ -42,4 +42,7 @@ export {
 export {
   membershipsTable,
   workspacesTable,
+  agentsTable,
+  type Agent,
+  type NewAgent,
 } from "./schema/tenancy";
