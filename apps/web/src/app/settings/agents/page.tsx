@@ -30,6 +30,14 @@ export default function AgentsPage() {
     onSuccess: () => refetch(),
     onError: (err) => setError(err.message),
   });
+const rotate = api.agents.rotate.useMutation({
+  onSuccess: (data) => {
+    setApiKey(data.apiKey);
+    refetch();
+  },
+  onError: (err) => setError(err.message),
+});
+  
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -117,7 +125,7 @@ export default function AgentsPage() {
           </button>
         </form>
 
-        {/* Lista de agentes */}
+   {/* Lista de agentes */}
         <div className="flex flex-col gap-3">
           {agents?.map((agent) => (
             <div key={agent.id} className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3">
@@ -131,18 +139,26 @@ export default function AgentsPage() {
                 )}
               </div>
               {!agent.revokedAt && (
-                <button
-                  onClick={() => revoke.mutate({ agentId: agent.id })}
-                  disabled={revoke.isPending}
-                  className="rounded-lg bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 disabled:opacity-50"
-                >
-                  Revocar
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => rotate.mutate({ agentId: agent.id })}
+                    disabled={rotate.isPending}
+                    className="rounded-lg bg-indigo-50 px-3 py-1.5 text-xs font-medium text-indigo-600 hover:bg-indigo-100 disabled:opacity-50"
+                  >
+                    Rotar key
+                  </button>
+                  <button
+                    onClick={() => revoke.mutate({ agentId: agent.id })}
+                    disabled={revoke.isPending}
+                    className="rounded-lg bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100 disabled:opacity-50"
+                  >
+                    Revocar
+                  </button>
+                </div>
               )}
             </div>
           ))}
         </div>
-
         <p className="mt-6 text-center text-sm text-gray-500">
           <Link href="/" className="font-medium text-indigo-600 hover:underline">
             Volver al dashboard
