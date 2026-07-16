@@ -18,7 +18,7 @@ export async function sendVerificationEmail(email: string, token: string) {
   let result: Awaited<ReturnType<Resend["emails"]["send"]>>;
   try {
     result = await resend().emails.send({
-      from: "Watch-Dog <onboarding@resend.dev>",
+      from: "Watch-Dog <noreply@watchdog.daztanllc.com>",
       to: email,
       subject: "Verificá tu email — Watch-Dog",
       html: `
@@ -49,7 +49,7 @@ export async function sendPasswordResetEmail(email: string, token: string) {
   let result: Awaited<ReturnType<Resend["emails"]["send"]>>;
   try {
     result = await resend().emails.send({
-      from: "Watch-Dog <onboarding@resend.dev>",
+      from: "Watch-Dog <noreply@watchdog.daztanllc.com>",
       to: email,
       subject: "Restablecé tu contraseña — Watch-Dog",
       html: `
@@ -75,17 +75,16 @@ export async function sendPasswordResetEmail(email: string, token: string) {
 }
 
 
-export async function sendInvitationEmail(email: string, token:string ){
+export async function sendInvitationEmail(email: string, token: string) {
   if (process.env.RESEND_SKIP_SEND === "true") {
     console.log(`[test] skipping invitation email to ${email}`);
     return;
   }
-const invitationUrl = `${env.NEXT_PUBLIC_APP_URL}/invite/${token}`;
+  const invitationUrl = `${env.NEXT_PUBLIC_APP_URL}/invite/${token}`;
   let result: Awaited<ReturnType<Resend["emails"]["send"]>>;
-  try{
-
-  result = await resend().emails.send({
-      from: "Watch-Dog <onboarding@resend.dev>",
+  try {
+    result = await resend().emails.send({
+      from: "Watch-Dog <noreply@watchdog.daztanllc.com>",
       to: email,
       subject: "Te invitaron a un workspace — Watch-Dog",
       html: `
@@ -95,7 +94,12 @@ const invitationUrl = `${env.NEXT_PUBLIC_APP_URL}/invite/${token}`;
         <p>Este link expira en 7 días.</p>
         <p>Si no esperabas esta invitación, podés ignorar este email.</p>
       `,
-    });  }catch(cause){
+    });
+  } catch (cause) {
     throw new Error(`Resend network error: ${String(cause)}`);
+  }
+
+  if (result.error) {
+    throw new Error(`Resend error: ${result.error.message}`);
   }
 }
