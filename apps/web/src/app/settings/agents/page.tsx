@@ -21,23 +21,23 @@ export default function AgentsPage() {
       setApiKey(data.apiKey);
       setName("");
       setDescription("");
-      refetch();
+      void refetch();
     },
     onError: (err) => setError(err.message),
   });
 
   const revoke = api.agents.revoke.useMutation({
-    onSuccess: () => refetch(),
+    onSuccess: () => void refetch(),
     onError: (err) => setError(err.message),
   });
-const rotate = api.agents.rotate.useMutation({
-  onSuccess: (data) => {
-    setApiKey(data.apiKey);
-    refetch();
-  },
-  onError: (err) => setError(err.message),
-});
-  
+  const rotate = api.agents.rotate.useMutation({
+    onSuccess: (data) => {
+      setApiKey(data.apiKey);
+      void refetch();
+    },
+    onError: (err) => setError(err.message),
+  });
+
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -52,11 +52,11 @@ const rotate = api.agents.rotate.useMutation({
 
   function handleCopy() {
     if (!apiKey) return;
-    navigator.clipboard.writeText(apiKey);
+   void navigator.clipboard.writeText(apiKey);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+   window.setTimeout(() => setCopied(false), 2000);
   }
-    return (
+  return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50">
       <div className="w-full max-w-lg rounded-xl bg-white p-8 shadow-sm">
         <h1 className="mb-6 text-2xl font-semibold text-gray-900">
@@ -125,7 +125,7 @@ const rotate = api.agents.rotate.useMutation({
           </button>
         </form>
 
-   {/* Lista de agentes */}
+        {/* Lista de agentes */}
         <div className="flex flex-col gap-3">
           {agents?.map((agent) => (
             <div key={agent.id} className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3">
