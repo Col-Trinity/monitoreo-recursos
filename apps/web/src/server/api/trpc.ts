@@ -8,6 +8,7 @@
  */
 
 import { initTRPC, TRPCError } from "@trpc/server";
+import { Permission, Role, hasPermission } from "@watchdog/shared-types";
 import superjson from "superjson";
 import { ZodError, z } from "zod";
 
@@ -15,7 +16,6 @@ import { auth } from "@/server/auth";
 import { db } from "@/server/db";
 
 import { getWorkspaceMembership } from "../workspace-access";
-
 /**
  * 1. CONTEXT
  *
@@ -150,6 +150,40 @@ export const workspaceProcedure = protectedProcedure
     return next({
       ctx: {
         workspace: result.workspace,
+        membership: result.membership,
       },
     });
+  });
+
+export const memberProcedure = workspaceProcedure.use(({ ctx, next }) => {
+  const role = ctx.membership.role;
+  if (role === "viewer") {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+  return next({ ctx });
+});
+
+export const adminProcedure = workspaceProcedure.use(({ ctx, next }) => {
+  const role = ctx.membership.role;
+  if (role !== "owner" && role !== "admin") {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+  return next({ ctx });
+});
+
+export const ownerProcedure = workspaceProcedure.use(({ ctx, next }) => {
+  const role = ctx.membership.role;
+  if (role !== "owner") {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+  return next({ ctx });
+});
+
+export const withPermission = (permission: Permission) =>
+  workspaceProcedure.use(({ ctx, next }) => {
+    const role = ctx.membership.role as Role;
+    if (!hasPermission(role, permission)) {
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+    return next({ ctx });
   });
