@@ -2,10 +2,13 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/trpc/react";
 export default function Navbar() {
   const { data: session } = useSession();
+  const router = useRouter();
+  const { workspaceId } = useParams<{ workspaceId?: string }>();
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const utils = api.useUtils();
@@ -15,18 +18,9 @@ export default function Navbar() {
   const { data, isLoading } = api.workspaces.getAll.useQuery(undefined, {
     enabled: !!session,
   });
-  const { data: currentWorkspace } = api.workspaces.getCurrent.useQuery(
-    undefined,
-    {
-      enabled: !!session,
-    },
-  );
-  const switchWorkspace = api.workspaces.switchCurrent.useMutation({
-    onSuccess: () => {
-      setOpen(false);
-      void utils.invalidate();
-    },
-  });
+  const currentWorkspace = data?.find(
+    (item) => item.workspaces.id === workspaceId,
+  )?.workspaces;
   const deleteWorkspace = api.workspaces.delete.useMutation({
     onSuccess: () => {
       setOpen(false);
@@ -35,8 +29,6 @@ export default function Navbar() {
   });
 
   const ownedCount = data?.filter((i) => i.memberships.role === "owner").length ?? 0;
-
-
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -94,38 +86,16 @@ export default function Navbar() {
                         No tenés workspaces
                       </li>
                     ) : (
-<<<<<<< HEAD
-                      data?.map((item) => (
-                        <li key={item.workspaces.id}>
-                          <button
-                            onClick={() =>
-                              switchWorkspace.mutate({
-                                workspaceId: item.workspaces.id,
-                              })
-                            }
-                            disabled={switchWorkspace.isPending}
-                            className={`w-full px-4 py-2 text-left text-sm transition-colors hover:bg-gray-50 ${currentWorkspace?.id === item.workspaces.id
-                                ? "font-medium text-indigo-600"
-                                : "text-gray-700"
-                              }`}
-                          >
-                            {item.workspaces.name}
-                          </button>
-                        </li>
-                      ))
-=======
                       data?.map((item) => {
                         const isOwner = item.memberships.role === "owner";
                         const canDelete = isOwner && ownedCount > 1;
                         return (
                           <li key={item.workspaces.id} className="flex items-center">
                             <button
-                              onClick={() =>
-                                switchWorkspace.mutate({
-                                  workspaceId: item.workspaces.id,
-                                })
-                              }
-                              disabled={switchWorkspace.isPending}
+                              onClick={() => {
+                                setOpen(false);
+                                router.push(`/w/${item.workspaces.id}`);
+                              }}
                               className={`flex-1 px-4 py-2 text-left text-sm transition-colors hover:bg-gray-50 ${
                                 currentWorkspace?.id === item.workspaces.id
                                   ? "font-medium text-indigo-600"
@@ -153,7 +123,6 @@ export default function Navbar() {
                           </li>
                         );
                       })
->>>>>>> 55b89df (feat(workspace): allow owners to delete workspaces)
                     )}
                   </ul>
                 </div>
