@@ -2,7 +2,7 @@ import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
 import { encode as defaultEncode } from "next-auth/jwt";
 import { randomUUID } from "crypto";
-import { accountsTable, sessionsTable, usersTable } from "@watchdog/db/schema";
+import { accountsTable, sessionsTable, usersTable, membershipsTable, workspacesTable } from "@watchdog/db/schema";
 
 import { dbW, db } from "@/server/db";
 import { z } from "zod";
@@ -106,6 +106,26 @@ export const authConfig = {
           .update(usersTable)
           .set({ emailVerified: new Date() })
           .where(eq(usersTable.id, user.id!));
+
+        const [existingMembership] = await dbW
+          .select()
+          .from(membershipsTable)
+          .where(eq(membershipsTable.userId, user.id!));
+
+        if (!existingMembership) {
+          const [workspace] = await dbW
+            .insert(workspacesTable)
+            .values({ name: "My Workspace", description: "" })
+            .returning();
+
+          if (workspace) {
+            await dbW.insert(membershipsTable).values({
+              userId: user.id!,
+              workspaceId: workspace.id,
+              role: "owner",
+            });
+          }
+        }
       }
       return true;
     },

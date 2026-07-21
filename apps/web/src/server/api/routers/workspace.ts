@@ -1,9 +1,10 @@
-import { createTRPCRouter, protectedProcedure, currentWorkspaceProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { membershipsTable, workspacesTable } from "@watchdog/db/schema";
 import { eq, and } from "drizzle-orm";
-import { cookies } from "next/headers";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
+import { dbW } from "@/server/db";
+import { hasPermission, Permission, Role } from "@watchdog/shared-types";
 
 export const userWorkspacesRouter = createTRPCRouter({
   getAll: protectedProcedure.query(async ({ ctx }) => {
@@ -14,11 +15,7 @@ export const userWorkspacesRouter = createTRPCRouter({
       .where(eq(membershipsTable.userId, ctx.session.user.id));
   }),
 
-  getCurrent: currentWorkspaceProcedure.query(({ ctx }) => {
-    return ctx.currentWorkspace;
-  }),
-
-  switchCurrent: protectedProcedure
+  delete: protectedProcedure
     .input(z.object({ workspaceId: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
       const [membership] = await ctx.db
@@ -31,22 +28,31 @@ export const userWorkspacesRouter = createTRPCRouter({
           ),
         );
 
-      if (!membership) {
+      if (!membership || !hasPermission(membership.role as Role, Permission.workspaceDelete)) {
         throw new TRPCError({ code: "FORBIDDEN" });
       }
 
-      const [workspace] = await ctx.db
+      const ownedWorkspaces = await ctx.db
         .select()
-        .from(workspacesTable)
-        .where(eq(workspacesTable.id, input.workspaceId));
+        .from(membershipsTable)
+        .where(
+          and(
+            eq(membershipsTable.userId, ctx.session.user.id),
+            eq(membershipsTable.role, Role.owner),
+          ),
+        );
 
-      if (!workspace) {
-        throw new TRPCError({ code: "NOT_FOUND" });
+      if (ownedWorkspaces.length <= 1) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Cannot delete your last workspace",
+        });
       }
 
-      const cookieStore = await cookies();
-      cookieStore.set("current_workspace_slug", workspace.id);
+      await dbW
+        .delete(workspacesTable)
+        .where(eq(workspacesTable.id, input.workspaceId));
 
-      return workspace;
+      return { success: true };
     }),
 });
