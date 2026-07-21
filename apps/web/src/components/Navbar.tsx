@@ -149,7 +149,7 @@ export default function Navbar() {
                     <li>
                       <li>
                         <Link
-                          href="/settings/invite"
+                          href={`/w/${workspaceId}/settings/invite`}
                           className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                           onClick={() => setProfileOpen(false)}
                         >

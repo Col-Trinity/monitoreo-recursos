@@ -1,15 +1,15 @@
 "use client";
 import { useState } from "react";
+import { useParams } from "next/navigation";
 import { api } from "@/trpc/react";
 import Link from "next/link";
 
 export default function InvitePage() {
+  const { workspaceId } = useParams<{ workspaceId: string }>();
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<"member" | "admin">("member");
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
-
-  const { data: currentWorkspace } = api.workspaces.getCurrent.useQuery();
 
   const invite = api.invitations.create.useMutation({
     onSuccess: () => {
@@ -21,11 +21,10 @@ export default function InvitePage() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!currentWorkspace?.id) return;
     setError("");
     setSuccess(false);
     invite.mutate({
-      workspaceId: currentWorkspace.id,
+      workspaceId,
       email,
       role,
     });
@@ -90,7 +89,7 @@ export default function InvitePage() {
         </form>
 
         <p className="mt-6 text-center text-sm text-gray-500">
-          <Link href="/" className="font-medium text-indigo-600 hover:underline">
+          <Link href={`/w/${workspaceId}`} className="font-medium text-indigo-600 hover:underline">
             Volver al dashboard
           </Link>
         </p>
