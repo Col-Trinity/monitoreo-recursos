@@ -10,19 +10,19 @@ El objetivo de esta decisión es confirmar si NextAuth v5 (ya scaffoldeado) es l
 
 ## Tabla comparativa
 
-| Criterio                    | NextAuth v4                                                            | **NextAuth v5 (beta)**                                                       | Lucia                                                                 | Clerk                                                                    | Supabase Auth                                                              |
-|-----------------------------|------------------------------------------------------------------------|-------------------------------------------------------------------------------|-----------------------------------------------------------------------|--------------------------------------------------------------------------|----------------------------------------------------------------------------|
-| Self-hosted                 | ✅ BYOD                                                                | ✅ BYOD                                                                       | ✅ BYOD                                                               | ❌ SaaS (servidores de Clerk)                                            | ⚠️ SaaS por defecto, self-host disponible pero complejo                   |
-| Compatibilidad Next.js 15   | ⚠️ Problemas reportados con React 19 / App Router                     | ✅ Compatible (diseñado para App Router y Next.js 15)                         | ⚠️ Sin soporte oficial (deprecada)                                    | ✅ Compatible                                                            | ✅ Compatible                                                              |
-| Integraciones               | ⚠️ Solo Next.js                                                        | ✅ Next.js, SvelteKit, Express, Fastify (via `@auth/core`)                    | ✅ Next.js, SvelteKit                                                 | ✅ Next.js, React, Express y más                                         | ✅ Next.js, SvelteKit, Remix y más                                         |
-| OAuth providers             | ✅ Google, GitHub, 50+ providers                                       | ✅ Google, GitHub, 80+ providers                                              | ⚠️ Requiere Arctic para OAuth                                         | ✅ Google, GitHub y más                                                  | ✅ Google, GitHub y más                                                    |
-| Email/Password              | ✅ Credentials provider                                                | ✅ Credentials provider                                                       | ✅ Manejo manual (más control, más código)                             | ✅ Incluido                                                              | ✅ Incluido                                                                |
-| Adapter Drizzle             | ✅ `@auth/drizzle-adapter`                                             | ✅ `@auth/drizzle-adapter` (mismo paquete)                                    | ❌ No tiene adapter oficial                                           | ❌ No aplica (no usa tu DB)                                              | ❌ No aplica (usa su propia DB)                                            |
-| Propiedad de los datos      | ✅ Tu DB                                                               | ✅ Tu DB                                                                      | ✅ Tu DB                                                              | ❌ Datos en servidores de Clerk                                          | ⚠️ Datos en Supabase (o self-hosted)                                      |
-| Estado del proyecto         | ⚠️ Modo mantenimiento (sin features nuevas)                           | ✅ Beta activo, releases frecuentes                                           | ❌ **Deprecada oficialmente por su creador**                          | ✅ Empresa financiada, activo                                            | ✅ Activo                                                                  |
-| Comunidad / soporte         | ✅ 28k+ stars, docs maduras                                            | ✅ Mismo repo (28k+ stars), docs en actualización                             | ⚠️ 10.5k stars, sin mantenimiento futuro                              | ✅ Docs extensas, soporte comercial                                      | ✅ 75k+ stars (repo principal)                                             |
-| Costo                       | ✅ $0, open source                                                     | ✅ $0, open source                                                            | ✅ $0, open source                                                    | ⚠️ Gratis hasta 10k MAU, luego $0.02/usuario/mes                        | ⚠️ Gratis hasta 50k MAU, luego $0.00325/usuario/mes                       |
-| Costo de migración          | ⚠️ 3 tablas nuevas + renombrar campos en `users` y `sessions`         | ⚠️ 3 tablas nuevas + renombrar campos en `users` y `sessions`                 | ⚠️ Requiere reescribir lógica de auth + migración futura inevitable   | ⚠️ Datos quedan atados a Clerk, migración futura muy costosa             | ⚠️ Schema separado, datos en infraestructura de Supabase                  |
+| Criterio                  | NextAuth v4                                                   | **NextAuth v5 (beta)**                                        | Lucia                                                               | Clerk                                                        | Supabase Auth                                            |
+| ------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------ | -------------------------------------------------------- |
+| Self-hosted               | ✅ BYOD                                                       | ✅ BYOD                                                       | ✅ BYOD                                                             | ❌ SaaS (servidores de Clerk)                                | ⚠️ SaaS por defecto, self-host disponible pero complejo  |
+| Compatibilidad Next.js 15 | ⚠️ Problemas reportados con React 19 / App Router             | ✅ Compatible (diseñado para App Router y Next.js 15)         | ⚠️ Sin soporte oficial (deprecada)                                  | ✅ Compatible                                                | ✅ Compatible                                            |
+| Integraciones             | ⚠️ Solo Next.js                                               | ✅ Next.js, SvelteKit, Express, Fastify (via `@auth/core`)    | ✅ Next.js, SvelteKit                                               | ✅ Next.js, React, Express y más                             | ✅ Next.js, SvelteKit, Remix y más                       |
+| OAuth providers           | ✅ Google, GitHub, 50+ providers                              | ✅ Google, GitHub, 80+ providers                              | ⚠️ Requiere Arctic para OAuth                                       | ✅ Google, GitHub y más                                      | ✅ Google, GitHub y más                                  |
+| Email/Password            | ✅ Credentials provider                                       | ✅ Credentials provider                                       | ✅ Manejo manual (más control, más código)                          | ✅ Incluido                                                  | ✅ Incluido                                              |
+| Adapter Drizzle           | ✅ `@auth/drizzle-adapter`                                    | ✅ `@auth/drizzle-adapter` (mismo paquete)                    | ❌ No tiene adapter oficial                                         | ❌ No aplica (no usa tu DB)                                  | ❌ No aplica (usa su propia DB)                          |
+| Propiedad de los datos    | ✅ Tu DB                                                      | ✅ Tu DB                                                      | ✅ Tu DB                                                            | ❌ Datos en servidores de Clerk                              | ⚠️ Datos en Supabase (o self-hosted)                     |
+| Estado del proyecto       | ⚠️ Modo mantenimiento (sin features nuevas)                   | ✅ Beta activo, releases frecuentes                           | ❌ **Deprecada oficialmente por su creador**                        | ✅ Empresa financiada, activo                                | ✅ Activo                                                |
+| Comunidad / soporte       | ✅ 28k+ stars, docs maduras                                   | ✅ Mismo repo (28k+ stars), docs en actualización             | ⚠️ 10.5k stars, sin mantenimiento futuro                            | ✅ Docs extensas, soporte comercial                          | ✅ 75k+ stars (repo principal)                           |
+| Costo                     | ✅ $0, open source                                            | ✅ $0, open source                                            | ✅ $0, open source                                                  | ⚠️ Gratis hasta 10k MAU, luego $0.02/usuario/mes             | ⚠️ Gratis hasta 50k MAU, luego $0.00325/usuario/mes      |
+| Costo de migración        | ⚠️ 3 tablas nuevas + renombrar campos en `users` y `sessions` | ⚠️ 3 tablas nuevas + renombrar campos en `users` y `sessions` | ⚠️ Requiere reescribir lógica de auth + migración futura inevitable | ⚠️ Datos quedan atados a Clerk, migración futura muy costosa | ⚠️ Schema separado, datos en infraestructura de Supabase |
 
 ---
 
@@ -52,13 +52,13 @@ El objetivo de esta decisión es confirmar si NextAuth v5 (ya scaffoldeado) es l
 
 ### Por qué v5 y no v4
 
-| | v4 | v5 |
-|---|---|---|
-| React 19 | ⚠️ Problemas conocidos | ✅ |
-| Next.js 15 App Router | ⚠️ Problemas conocidos | ✅ |
-| `next/headers` async API | ❌ No compatible | ✅ |
-| Soporte multi-framework (`@auth/core`) | ❌ Solo Next.js | ✅ (útil si `apps/api` necesita auth) |
-| Estado | Mantenimiento | Beta activo |
+|                                        | v4                     | v5                                    |
+| -------------------------------------- | ---------------------- | ------------------------------------- |
+| React 19                               | ⚠️ Problemas conocidos | ✅                                    |
+| Next.js 15 App Router                  | ⚠️ Problemas conocidos | ✅                                    |
+| `next/headers` async API               | ❌ No compatible       | ✅                                    |
+| Soporte multi-framework (`@auth/core`) | ❌ Solo Next.js        | ✅ (útil si `apps/api` necesita auth) |
+| Estado                                 | Mantenimiento          | Beta activo                           |
 
 v4 tiene incompatibilidades documentadas con el stack actual. v5 fue diseñada para él.
 
@@ -74,10 +74,10 @@ El `DrizzleAdapter` requiere que el schema exponga las tablas con los nombres y 
 
 ### Tabla `users` — ajustes en `packages/db/src/schema/auth.ts`
 
-| Cambio | Detalle |
-|---|---|
+| Cambio                                                  | Detalle                                                                         |
+| ------------------------------------------------------- | ------------------------------------------------------------------------------- |
 | Renombrar columna `email_verified_at` → `emailVerified` | Auth.js busca la columna `emailVerified` (camelCase mapeado a snake en Drizzle) |
-| Agregar campo `image` (`varchar`) | Requerido por el tipo `AdapterUser` |
+| Agregar campo `image` (`varchar`)                       | Requerido por el tipo `AdapterUser`                                             |
 
 Los campos extra (`passwordHash`, `language`, `createdAt`, etc.) se conservan — Auth.js ignora columnas adicionales.
 
@@ -93,9 +93,8 @@ El `DrizzleAdapter` espera que la sesión se identifique por `sessionToken` (str
 
 ### Tablas nuevas requeridas
 
-| Tabla | Cuándo es necesaria |
-|---|---|
-| `accounts` | Si se agregan providers OAuth (Google, GitHub) |
-| `verificationTokens` | Si se usa magic link / email verification |
-| `authenticators` | Solo si se implementa WebAuthn/passkeys |
-
+| Tabla                | Cuándo es necesaria                            |
+| -------------------- | ---------------------------------------------- |
+| `accounts`           | Si se agregan providers OAuth (Google, GitHub) |
+| `verificationTokens` | Si se usa magic link / email verification      |
+| `authenticators`     | Solo si se implementa WebAuthn/passkeys        |

@@ -4,9 +4,9 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import path from "path";
 import { fileURLToPath } from "url";
-import * as schema from "../schema"
+import * as schema from "../schema";
 
-const { metricsTable, agentsTable, workspacesTable } = schema
+const { metricsTable, agentsTable, workspacesTable } = schema;
 const TEST_DB = "monitoreo_recursos_test";
 const BASE_URL =
   process.env.TEST_DB_BASE_URL ?? "postgres://monitor_user:monitor_password@localhost:5433";
@@ -29,7 +29,7 @@ describe("dedupe", () => {
     testSql = postgres(TEST_DB_URL, { max: 1 });
     await testSql.unsafe(`CREATE EXTENSION IF NOT EXISTS timescaledb`);
 
-    db = drizzle(testSql, { schema })
+    db = drizzle(testSql, { schema });
     await migrate(db, { migrationsFolder });
   }, 60_000);
 

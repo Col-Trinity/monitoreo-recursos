@@ -46,7 +46,8 @@ function SigninForm() {
       return;
     }
 
-router.push(redirect ?? "/");  }
+    router.push(redirect ?? "/");
+  }
 
   async function handleGoogleSignin() {
     await signIn("google", { callbackUrl: "/" });
@@ -59,10 +60,10 @@ router.push(redirect ?? "/");  }
           Iniciar sesión
         </h1>
         {cancelled && (
-  <div className="mb-4 rounded-lg bg-blue-50 px-3 py-2 text-sm text-blue-700">
-    Reset cancelado. Tu contraseña no fue modificada.
-  </div>
-)}
+          <div className="mb-4 rounded-lg bg-blue-50 px-3 py-2 text-sm text-blue-700">
+            Reset cancelado. Tu contraseña no fue modificada.
+          </div>
+        )}
 
         {reset && (
           <div className="mb-4 rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700">

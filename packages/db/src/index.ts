@@ -33,11 +33,7 @@ export function dbRead(): Db {
   return _dbRead;
 }
 
-export {
-  invitationsTable,
-  type Invitation,
-  type NewInvitation,
-} from "./schema/auth";
+export { invitationsTable, type Invitation, type NewInvitation } from "./schema/auth";
 
 export {
   membershipsTable,

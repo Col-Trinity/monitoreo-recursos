@@ -2,7 +2,13 @@ import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
 import { encode as defaultEncode } from "next-auth/jwt";
 import { randomUUID } from "crypto";
-import { accountsTable, sessionsTable, usersTable, membershipsTable, workspacesTable } from "@watchdog/db/schema";
+import {
+  accountsTable,
+  sessionsTable,
+  usersTable,
+  membershipsTable,
+  workspacesTable,
+} from "@watchdog/db/schema";
 
 import { dbW, db } from "@/server/db";
 import { z } from "zod";

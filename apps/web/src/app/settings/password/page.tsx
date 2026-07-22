@@ -34,7 +34,10 @@ export default function ChangePasswordPage() {
         </h1>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
-            <label htmlFor="currentPassword" className="text-sm font-medium text-gray-700">
+            <label
+              htmlFor="currentPassword"
+              className="text-sm font-medium text-gray-700"
+            >
               Contraseña actual
             </label>
             <input
@@ -47,7 +50,10 @@ export default function ChangePasswordPage() {
             />
           </div>
           <div className="flex flex-col gap-1">
-            <label htmlFor="newPassword" className="text-sm font-medium text-gray-700">
+            <label
+              htmlFor="newPassword"
+              className="text-sm font-medium text-gray-700"
+            >
               Nueva contraseña
             </label>
             <input
@@ -61,7 +67,10 @@ export default function ChangePasswordPage() {
             />
           </div>
           <div className="flex flex-col gap-1">
-            <label htmlFor="confirm" className="text-sm font-medium text-gray-700">
+            <label
+              htmlFor="confirm"
+              className="text-sm font-medium text-gray-700"
+            >
               Confirmar nueva contraseña
             </label>
             <input
@@ -88,7 +97,10 @@ export default function ChangePasswordPage() {
           </button>
         </form>
         <p className="mt-6 text-center text-sm text-gray-500">
-          <Link href="/" className="font-medium text-indigo-600 hover:underline">
+          <Link
+            href="/"
+            className="font-medium text-indigo-600 hover:underline"
+          >
             Volver al dashboard
           </Link>
         </p>

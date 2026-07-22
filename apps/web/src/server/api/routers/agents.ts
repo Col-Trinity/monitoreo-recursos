@@ -4,20 +4,23 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { dbW } from "@/server/db";
 import { agentsTable } from "@watchdog/db";
-import { randomBytes } from "node:crypto";
-import bcrypt from "bcryptjs";
+import { randomBytes, createHash } from "node:crypto";
 
+const hashApiKey = (key: string) =>
+  createHash("sha256").update(key).digest("hex");
 
-export const agentsRouter= createTRPCRouter({
-    create: protectedProcedure
-    .input(z.object({
-      workspaceId: z.string().uuid(),
-      name: z.string().min(1),
-      description: z.string().default(""),
-    }))
+export const agentsRouter = createTRPCRouter({
+  create: protectedProcedure
+    .input(
+      z.object({
+        workspaceId: z.string().uuid(),
+        name: z.string().min(1),
+        description: z.string().default(""),
+      }),
+    )
     .mutation(async ({ input }) => {
       const plainKey = "wd_" + randomBytes(32).toString("hex");
-      const hashedKey = await bcrypt.hash(plainKey, 10);
+      const hashedKey = hashApiKey(plainKey);
 
       const [agent] = await dbW
         .insert(agentsTable)
@@ -32,7 +35,7 @@ export const agentsRouter= createTRPCRouter({
       // NA SOLA VEZ
       return { agent, apiKey: plainKey };
     }),
-    list: protectedProcedure
+  list: protectedProcedure
     .input(z.object({ workspaceId: z.string().uuid() }))
     .query(async ({ input }) => {
       return await dbW
@@ -50,11 +53,11 @@ export const agentsRouter= createTRPCRouter({
           and(
             eq(agentsTable.workspaceId, input.workspaceId),
             isNull(agentsTable.deletedAt),
-          )
+          ),
         );
     }),
 
-    rotate: protectedProcedure
+  rotate: protectedProcedure
     .input(z.object({ agentId: z.string().uuid() }))
     .mutation(async ({ input }) => {
       // 1. Verificamos que el agente existe y no está revocado
@@ -66,7 +69,7 @@ export const agentsRouter= createTRPCRouter({
             eq(agentsTable.id, input.agentId),
             isNull(agentsTable.revokedAt),
             isNull(agentsTable.deletedAt),
-          )
+          ),
         );
 
       if (!agent) {
@@ -80,7 +83,7 @@ export const agentsRouter= createTRPCRouter({
       const plainKey = "wd_" + randomBytes(32).toString("hex");
 
       // 3. La hasheamos
-      const hashedKey = await bcrypt.hash(plainKey, 10);
+      const hashedKey = hashApiKey(plainKey);
 
       // 4. Reemplazamos el hash viejo
       await dbW
@@ -91,7 +94,7 @@ export const agentsRouter= createTRPCRouter({
       // 5. Retornamos la nueva key en plaintext UNA SOLA VEZ
       return { apiKey: plainKey };
     }),
-    revoke: protectedProcedure
+  revoke: protectedProcedure
     .input(z.object({ agentId: z.string().uuid() }))
     .mutation(async ({ input }) => {
       const [agent] = await dbW
@@ -102,7 +105,7 @@ export const agentsRouter= createTRPCRouter({
             eq(agentsTable.id, input.agentId),
             isNull(agentsTable.revokedAt),
             isNull(agentsTable.deletedAt),
-          )
+          ),
         );
 
       if (!agent) {

@@ -60,6 +60,8 @@ export default function WorkspacePage() {
                     d.metrics.createdAt ?? new Date(),
                   ).toLocaleTimeString(),
                 }));
+
+                console.log(`Filtered data for ${type}:`, filtered); // Log the filtered data for debugging
               return (
                 <div key={type} className="rounded-xl bg-white p-4 shadow-sm">
                   <h2 className="mb-2 text-sm font-medium text-gray-700">

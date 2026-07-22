@@ -31,8 +31,8 @@ export default function InvitePage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50">
-      <div className="rounded-xl bg-white p-8 shadow-sm text-center">
-        <h1 className="text-xl font-semibold text-gray-900 mb-2">
+      <div className="rounded-xl bg-white p-8 text-center shadow-sm">
+        <h1 className="mb-2 text-xl font-semibold text-gray-900">
           Procesando invitación...
         </h1>
         <p className="text-sm text-gray-500">Espera un momento.</p>

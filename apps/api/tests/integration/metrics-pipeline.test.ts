@@ -94,7 +94,7 @@ describe("Metrics Pipeline", () => {
     });
     await app.listen({ port: 3099, host: "0.0.0.0" });
 
-    // usa la imagen construida y la laventa 
+    // usa la imagen construida y la laventa
     const builtImage = new GenericContainer("watchdog-agent:test");
     agentContainer = await builtImage
       .withEnvironment({
