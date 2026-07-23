@@ -25,7 +25,7 @@ export default function WorkspacePage() {
   const { data: session } = useSession();
   const { data, isLoading, isError } = api.metrics.getAll.useQuery(
     { workspaceId },
-    { refetchInterval: 2000 },
+    { refetchInterval: 8000 },
   );
 
   return (
@@ -61,7 +61,6 @@ export default function WorkspacePage() {
                   ).toLocaleTimeString(),
                 }));
 
-              console.log(`Filtered data for ${type}:`, filtered); // Log the filtered data for debugging
               return (
                 <div key={type} className="rounded-xl bg-white p-4 shadow-sm">
                   <h2 className="mb-2 text-sm font-medium text-gray-700">
