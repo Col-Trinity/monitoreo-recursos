@@ -23,7 +23,7 @@ const metricsStreamPlugin: FastifyPluginAsync<{
 
     const apiKey = authHeader.split("Bearer ")[1];
     if (!apiKey) return reply.status(401).send({ error: "Formato inválido" });
-//  Busca en la DB si existe un agente con ese hash
+    //  Busca en la DB si existe un agente con ese hash
     const [agent] = await dbWrite()
       .select()
       .from(agentsTable)
@@ -85,7 +85,6 @@ const metricsStreamPlugin: FastifyPluginAsync<{
     });
 
     await new Promise<void>((resolve) => {
-
       rl.on("close", resolve); // agente cerró limpiamente
       rl.on("error", resolve); // agente se cayó
     });

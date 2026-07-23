@@ -83,12 +83,8 @@
           "name": "sessions_user_id_users_id_fk",
           "tableFrom": "sessions",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -175,9 +171,7 @@
         "users_email_unique": {
           "name": "users_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "policies": {},
@@ -227,12 +221,8 @@
           "name": "verification_tokens_user_id_users_id_fk",
           "tableFrom": "verification_tokens",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -242,9 +232,7 @@
         "verification_tokens_token_unique": {
           "name": "verification_tokens_token_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "token"
-          ]
+          "columns": ["token"]
         }
       },
       "policies": {},
@@ -342,12 +330,8 @@
           "name": "agents_workspace_id_workspaces_id_fk",
           "tableFrom": "agents",
           "tableTo": "workspaces",
-          "columnsFrom": [
-            "workspace_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["workspace_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -357,9 +341,7 @@
         "agents_api_key_unique": {
           "name": "agents_api_key_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "api_key"
-          ]
+          "columns": ["api_key"]
         }
       },
       "policies": {},
@@ -453,12 +435,8 @@
           "name": "memberships_user_id_users_id_fk",
           "tableFrom": "memberships",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -466,12 +444,8 @@
           "name": "memberships_workspace_id_workspaces_id_fk",
           "tableFrom": "memberships",
           "tableTo": "workspaces",
-          "columnsFrom": [
-            "workspace_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["workspace_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -479,10 +453,7 @@
       "compositePrimaryKeys": {
         "memberships_user_id_workspace_id_pk": {
           "name": "memberships_user_id_workspace_id_pk",
-          "columns": [
-            "user_id",
-            "workspace_id"
-          ]
+          "columns": ["user_id", "workspace_id"]
         }
       },
       "uniqueConstraints": {},
@@ -674,12 +645,8 @@
           "name": "alert_events_alert_rule_id_alerts_rules_id_fk",
           "tableFrom": "alert_events",
           "tableTo": "alerts_rules",
-          "columnsFrom": [
-            "alert_rule_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["alert_rule_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -687,12 +654,8 @@
           "name": "alert_events_user_id_to_notify_users_id_fk",
           "tableFrom": "alert_events",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id_to_notify"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id_to_notify"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -771,12 +734,8 @@
           "name": "alerts_rules_workspace_id_workspaces_id_fk",
           "tableFrom": "alerts_rules",
           "tableTo": "workspaces",
-          "columnsFrom": [
-            "workspace_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["workspace_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -784,12 +743,8 @@
           "name": "alerts_rules_created_by_user_id_users_id_fk",
           "tableFrom": "alerts_rules",
           "tableTo": "users",
-          "columnsFrom": [
-            "created_by_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by_user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -942,12 +897,8 @@
           "name": "audit_log_user_id_users_id_fk",
           "tableFrom": "audit_log",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -955,12 +906,8 @@
           "name": "audit_log_workspace_id_workspaces_id_fk",
           "tableFrom": "audit_log",
           "tableTo": "workspaces",
-          "columnsFrom": [
-            "workspace_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["workspace_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1076,12 +1023,8 @@
           "name": "metrics_agent_id_agents_id_fk",
           "tableFrom": "metrics",
           "tableTo": "agents",
-          "columnsFrom": [
-            "agent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["agent_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1089,10 +1032,7 @@
       "compositePrimaryKeys": {
         "metrics_id_created_at_pk": {
           "name": "metrics_id_created_at_pk",
-          "columns": [
-            "id",
-            "created_at"
-          ]
+          "columns": ["id", "created_at"]
         }
       },
       "uniqueConstraints": {},
@@ -1105,73 +1045,37 @@
     "public.language": {
       "name": "language",
       "schema": "public",
-      "values": [
-        "en",
-        "es",
-        "pt"
-      ]
+      "values": ["en", "es", "pt"]
     },
     "public.role": {
       "name": "role",
       "schema": "public",
-      "values": [
-        "owner",
-        "admin",
-        "viewer"
-      ]
+      "values": ["owner", "admin", "viewer"]
     },
     "public.action": {
       "name": "action",
       "schema": "public",
-      "values": [
-        "created",
-        "updated",
-        "deleted",
-        "invited",
-        "login",
-        "logout"
-      ]
+      "values": ["created", "updated", "deleted", "invited", "login", "logout"]
     },
     "public.metrics_type": {
       "name": "metrics_type",
       "schema": "public",
-      "values": [
-        "memory",
-        "disk",
-        "cpu",
-        "network"
-      ]
+      "values": ["memory", "disk", "cpu", "network"]
     },
     "public.resource_type": {
       "name": "resource_type",
       "schema": "public",
-      "values": [
-        "user",
-        "workspace",
-        "agent",
-        "alert",
-        "membership"
-      ]
+      "values": ["user", "workspace", "agent", "alert", "membership"]
     },
     "public.status": {
       "name": "status",
       "schema": "public",
-      "values": [
-        "active",
-        "resolved",
-        "ack"
-      ]
+      "values": ["active", "resolved", "ack"]
     },
     "public.trigger_type": {
       "name": "trigger_type",
       "schema": "public",
-      "values": [
-        "memory",
-        "disk",
-        "cpu",
-        "network",
-        "custom"
-      ]
+      "values": ["memory", "disk", "cpu", "network", "custom"]
     }
   },
   "schemas": {},

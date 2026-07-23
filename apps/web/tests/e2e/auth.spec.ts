@@ -24,8 +24,7 @@ test.describe("Auth flows", () => {
     await page.fill("#confirm", testPassword);
     await page.click('button[type="submit"]');
 
-    await expect(page).toHaveURL("/");
-
+    await expect(page).toHaveURL(/\/w\/.+/);
     // bucaMOS EL USER
     const [user] = await db
       .select()
@@ -67,8 +66,7 @@ test.describe("Auth flows", () => {
     await page.fill("#confirm", testPassword);
     await page.click('button[type="submit"]');
 
-    await expect(page).toHaveURL("/");
-
+    await expect(page).toHaveURL(/\/w\/.+/);
     // verifica mail via db
     const [user] = await db
       .select()
@@ -90,7 +88,7 @@ test.describe("Auth flows", () => {
     await page.fill("#password", testPassword);
     await page.click('button[type="submit"]');
 
-    await expect(page).toHaveURL("/");
+    await expect(page).toHaveURL(/\/w\/.+/);
   });
 
   test("password reset flow", async ({ page }) => {
@@ -114,8 +112,7 @@ test.describe("Auth flows", () => {
     await page.fill("#password", testPassword);
     await page.fill("#confirm", testPassword);
     await page.click('button[type="submit"]');
-    await expect(page).toHaveURL("/");
-
+    await expect(page).toHaveURL(/\/w\/.+/);
     // Verify email via DB
     const [user] = await db
       .select()
@@ -159,6 +156,6 @@ test.describe("Auth flows", () => {
     await page.fill("#email", testEmail);
     await page.fill("#password", repeatPassword);
     await page.click('button[type="submit"]');
-    await expect(page).toHaveURL("/");
+    await expect(page).toHaveURL(/\/w\/.+/);
   });
 });

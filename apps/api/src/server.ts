@@ -19,7 +19,7 @@ await fastify.register(metricsStreamPlugin, {
   metricsEmitter,
 });
 
-await fastify.register(adminQueuesPlugin)
+await fastify.register(adminQueuesPlugin);
 
 fastify.get("/health", async () => ({ status: "ok" }));
 

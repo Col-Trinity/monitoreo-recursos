@@ -3,7 +3,6 @@ import Fastify from "fastify";
 import { EventEmitter } from "node:events";
 import metricsStreamPlugin from "./metrics-stream";
 
-
 vi.mock("@watchdog/db", () => ({
   dbRead: vi.fn().mockReturnValue({
     select: vi.fn().mockReturnValue({
@@ -12,23 +11,23 @@ vi.mock("@watchdog/db", () => ({
       }),
     }),
   }),
-}))
-  vi.mock("ioredis", () => {
+}));
+vi.mock("ioredis", () => {
   return {
     default: vi.fn().mockImplementation(() => ({
       on: vi.fn(),
       quit: vi.fn(),
     })),
-  }
-})
+  };
+});
 vi.mock("bullmq", () => {
   return {
     Queue: vi.fn().mockImplementation(() => ({
       add: vi.fn(),
       close: vi.fn(),
     })),
-  }
-})
+  };
+});
 
 describe("POST /metrics/stream", () => {
   const app = Fastify();
@@ -63,11 +62,9 @@ describe("POST /metrics/stream", () => {
       headers: {
         "Content-Type": "application/x-ndjson",
         Authorization: "Bearer invalid-key",
-      },  
+      },
       payload: JSON.stringify({ type: "banana", value: {} }) + "\n",
     });
     expect(response.statusCode).toBe(401);
   });
-
-
 });

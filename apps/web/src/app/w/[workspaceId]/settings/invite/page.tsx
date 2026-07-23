@@ -51,7 +51,10 @@ export default function InvitePage() {
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
-            <label htmlFor="email" className="text-sm font-medium text-gray-700">
+            <label
+              htmlFor="email"
+              className="text-sm font-medium text-gray-700"
+            >
               Email
             </label>
             <input
@@ -89,7 +92,10 @@ export default function InvitePage() {
         </form>
 
         <p className="mt-6 text-center text-sm text-gray-500">
-          <Link href={`/w/${workspaceId}`} className="font-medium text-indigo-600 hover:underline">
+          <Link
+            href={`/w/${workspaceId}`}
+            className="font-medium text-indigo-600 hover:underline"
+          >
             Volver al dashboard
           </Link>
         </p>

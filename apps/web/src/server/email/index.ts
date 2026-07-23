@@ -44,7 +44,7 @@ export async function sendPasswordResetEmail(email: string, token: string) {
     return;
   }
   const resetUrl = `${env.NEXT_PUBLIC_APP_URL}/auth/reset/${token}`;
-  const cancelUrl = `${env.NEXT_PUBLIC_APP_URL}/api/auth/cancel-reset/${token}`; // reste token 
+  const cancelUrl = `${env.NEXT_PUBLIC_APP_URL}/api/auth/cancel-reset/${token}`; // reste token
 
   let result: Awaited<ReturnType<Resend["emails"]["send"]>>;
   try {
@@ -73,7 +73,6 @@ export async function sendPasswordResetEmail(email: string, token: string) {
     throw new Error(`Resend error: ${result.error.message}`);
   }
 }
-
 
 export async function sendInvitationEmail(email: string, token: string) {
   if (process.env.RESEND_SKIP_SEND === "true") {

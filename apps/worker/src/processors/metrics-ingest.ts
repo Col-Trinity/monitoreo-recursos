@@ -2,7 +2,7 @@ import { type MetricsIngestPayload, metricsIngestQueue, QUEUES } from "@watchdog
 import { dbWrite, metricsTable } from "@watchdog/db";
 import { Worker, type Job, Queue } from "bullmq";
 import { env } from "@watchdog/env";
-import { Redis } from "ioredis";
+import { type Redis } from "ioredis";
 
 const buffer: MetricsIngestPayload[] = [];
 let bufferBytes = 0;

@@ -28,7 +28,8 @@ export default function Navbar() {
     },
   });
 
-  const ownedCount = data?.filter((i) => i.memberships.role === "owner").length ?? 0;
+  const ownedCount =
+    data?.filter((i) => i.memberships.role === "owner").length ?? 0;
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -90,7 +91,10 @@ export default function Navbar() {
                         const isOwner = item.memberships.role === "owner";
                         const canDelete = isOwner && ownedCount > 1;
                         return (
-                          <li key={item.workspaces.id} className="flex items-center">
+                          <li
+                            key={item.workspaces.id}
+                            className="flex items-center"
+                          >
                             <button
                               onClick={() => {
                                 setOpen(false);
@@ -111,12 +115,28 @@ export default function Navbar() {
                                     workspaceId: item.workspaces.id,
                                   })
                                 }
-                                disabled={!canDelete || deleteWorkspace.isPending}
-                                title={!canDelete ? "No podés borrar tu único workspace" : "Borrar workspace"}
+                                disabled={
+                                  !canDelete || deleteWorkspace.isPending
+                                }
+                                title={
+                                  !canDelete
+                                    ? "No podés borrar tu único workspace"
+                                    : "Borrar workspace"
+                                }
                                 className="mr-2 rounded p-1 text-gray-400 transition-colors hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-30"
                               >
-                                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                <svg
+                                  className="h-3.5 w-3.5"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                  strokeWidth={2}
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                  />
                                 </svg>
                               </button>
                             )}
@@ -147,6 +167,15 @@ export default function Navbar() {
                 <div className="absolute right-0 z-50 mt-2 w-48 rounded-lg border border-gray-200 bg-white shadow-lg">
                   <ul className="py-1">
                     <li>
+                      <li>
+                        <Link
+                          href={`/w/${workspaceId}/settings/agents`}
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          onClick={() => setProfileOpen(false)}
+                        >
+                          Agentes
+                        </Link>
+                      </li>
                       <li>
                         <Link
                           href={`/w/${workspaceId}/settings/invite`}

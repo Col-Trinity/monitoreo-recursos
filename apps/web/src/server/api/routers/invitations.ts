@@ -9,11 +9,13 @@ import { randomBytes } from "node:crypto";
 
 export const invitationsRouter = createTRPCRouter({
   create: protectedProcedure
-    .input(z.object({
-      workspaceId: z.string().uuid(),
-      email: z.string().email(),
-      role: z.enum(["member", "admin"]).default("member"),
-    }))
+    .input(
+      z.object({
+        workspaceId: z.string().uuid(),
+        email: z.string().email(),
+        role: z.enum(["member", "admin"]).default("member"),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const token = randomBytes(32).toString("hex");
 
@@ -42,7 +44,7 @@ export const invitationsRouter = createTRPCRouter({
             eq(invitationsTable.workspaceId, input.workspaceId),
             isNull(invitationsTable.acceptedAt),
             gt(invitationsTable.expiresAt, new Date()),
-          )
+          ),
         );
     }),
 
@@ -55,7 +57,7 @@ export const invitationsRouter = createTRPCRouter({
 
       return { success: true };
     }),
-    
+
   accept: protectedProcedure
     .input(z.object({ token: z.string() }))
     .mutation(async ({ ctx, input }) => {
@@ -67,7 +69,7 @@ export const invitationsRouter = createTRPCRouter({
             eq(invitationsTable.token, input.token),
             isNull(invitationsTable.acceptedAt),
             gt(invitationsTable.expiresAt, new Date()),
-          )
+          ),
         );
 
       if (!invitation) {
@@ -78,11 +80,14 @@ export const invitationsRouter = createTRPCRouter({
       }
 
       // Crear el membership
-      await dbW.insert(membershipsTable).values({
-        userId: ctx.session.user.id,
-        workspaceId: invitation.workspaceId,
-        role: invitation.role,
-      }).onConflictDoNothing();
+      await dbW
+        .insert(membershipsTable)
+        .values({
+          userId: ctx.session.user.id,
+          workspaceId: invitation.workspaceId,
+          role: invitation.role,
+        })
+        .onConflictDoNothing();
 
       // Marcar como aceptada
       await dbW

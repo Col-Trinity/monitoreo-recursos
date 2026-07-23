@@ -11,7 +11,10 @@ export const userWorkspacesRouter = createTRPCRouter({
     return await ctx.db
       .select()
       .from(membershipsTable)
-      .innerJoin(workspacesTable, eq(membershipsTable.workspaceId, workspacesTable.id))
+      .innerJoin(
+        workspacesTable,
+        eq(membershipsTable.workspaceId, workspacesTable.id),
+      )
       .where(eq(membershipsTable.userId, ctx.session.user.id));
   }),
 
@@ -28,7 +31,10 @@ export const userWorkspacesRouter = createTRPCRouter({
           ),
         );
 
-      if (!membership || !hasPermission(membership.role as Role, Permission.workspaceDelete)) {
+      if (
+        !membership ||
+        !hasPermission(membership.role as Role, Permission.workspaceDelete)
+      ) {
         throw new TRPCError({ code: "FORBIDDEN" });
       }
 

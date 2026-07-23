@@ -1,6 +1,7 @@
 # Configuración de Google OAuth
 
 ## Requisitos previos
+
 - Cuenta de Google
 - Acceso al archivo `.env` del proyecto
 
@@ -21,9 +22,9 @@
 2. Tipo de aplicación: **Aplicación web**
 3. Nombre: `Watchdog Dev` (o `Watchdog Prod` para producción)
 4. Agregar en **Orígenes autorizados de JavaScript**:
-http://localhost:3000
+   http://localhost:3000
 5. Agregar en **URIs de redireccionamiento autorizados**:
-http://localhost:3000/api/auth/callback/google
+   http://localhost:3000/api/auth/callback/google
 6. Hacer click en **Crear** y guardar las credenciales en formato JSON
 
 ---

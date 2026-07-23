@@ -1,0 +1,1 @@
+ALTER TABLE "memberships" ADD COLUMN "revoked_at" timestamp with time zone;
