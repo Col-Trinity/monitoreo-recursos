@@ -29,11 +29,10 @@ const metricsStreamPlugin: FastifyPluginAsync<{
       .from(agentsTable)
       .where(eq(agentsTable.apiKey, hashApiKey(apiKey)));
     if (!agent) return reply.status(401).send({ error: "API key inválida" });
-    
 
-if (!agent) return reply.status(401).send({ error: "API key inválida" });
-if (agent.revokedAt) return reply.status(401).send({ error: "Agente revocado" });
-if (!agent.active) return reply.status(401).send({ error: "Agente inactivo" });
+    if (!agent) return reply.status(401).send({ error: "API key inválida" });
+    if (agent.revokedAt) return reply.status(401).send({ error: "Agente revocado" });
+    if (!agent.active) return reply.status(401).send({ error: "Agente inactivo" });
     const rl = createInterface({ input: request.body as NodeJS.ReadableStream });
 
     rl.on("line", async (line) => {
