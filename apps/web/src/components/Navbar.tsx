@@ -167,24 +167,24 @@ export default function Navbar() {
                 <div className="absolute right-0 z-50 mt-2 w-48 rounded-lg border border-gray-200 bg-white shadow-lg">
                   <ul className="py-1">
                     <li>
-                      <li>
-                        <Link
-                          href={`/w/${workspaceId}/settings/agents`}
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                          onClick={() => setProfileOpen(false)}
-                        >
-                          Agentes
-                        </Link>
-                      </li>
-                      <li>
-                        <Link
-                          href={`/w/${workspaceId}/settings/invite`}
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                          onClick={() => setProfileOpen(false)}
-                        >
-                          Invitar al workspace
-                        </Link>
-                      </li>
+                      <Link
+                        href={`/w/${workspaceId}/settings/agents`}
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                        onClick={() => setProfileOpen(false)}
+                      >
+                        Agentes
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        href={`/w/${workspaceId}/settings/invite`}
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                        onClick={() => setProfileOpen(false)}
+                      >
+                        Invitar al workspace
+                      </Link>
+                    </li>
+                    <li>
                       <Link
                         href="/settings/password"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
