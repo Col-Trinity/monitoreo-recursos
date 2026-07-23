@@ -8,7 +8,11 @@
  */
 
 import { initTRPC, TRPCError } from "@trpc/server";
-import { Permission, Role, hasPermission } from "@watchdog/shared-types";
+import {
+  type Permission,
+  type Role,
+  hasPermission,
+} from "@watchdog/shared-types";
 import superjson from "superjson";
 import { ZodError, z } from "zod";
 
