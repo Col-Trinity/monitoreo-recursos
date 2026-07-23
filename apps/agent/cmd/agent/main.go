@@ -67,16 +67,26 @@ func main() {
 		case <-ctx.Done():
 			log.Println("agent shutting down")
 			deadline := time.After(cfg.shutdownTimeout)
+			drainTicker := time.NewTicker(100 * time.Millisecond)
+			defer drainTicker.Stop()
 			for {
 				select {
 				case <-deadline:
 					log.Println("shutdown timeout, discarding buffer")
 					return
-				default:
-					log.Printf("draining %d items", sse.BufferSize())
-					if sse.BufferSize() == 0 {
+				case <-drainTicker.C:
+					size := sse.BufferSize()
+					if size == 0 {
 						return
 					}
+					log.Printf("draining %d items", size)
+					containers := sse.Peek(cfg.agentServerMaxCycles)
+					sse.Publish(containers)
+					timestamps := make([]int64, 0, len(containers))
+					for _, container := range containers {
+						timestamps = append(timestamps, container.Timestamp)
+					}
+					sse.Clean(timestamps)
 				}
 			}
 
