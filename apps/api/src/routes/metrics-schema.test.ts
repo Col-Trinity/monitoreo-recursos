@@ -2,9 +2,12 @@ import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import Fastify from "fastify";
 import { EventEmitter } from "node:events";
 import metricsStreamPlugin from "./metrics-stream";
+import authAgentPlugin from "../plugins/auth-agent";
 
 vi.mock("@watchdog/db", () => ({
-  dbRead: vi.fn().mockReturnValue({
+  agentsTable: {},
+  workspacesTable: {},
+  dbWrite: vi.fn().mockReturnValue({
     select: vi.fn().mockReturnValue({
       from: vi.fn().mockReturnValue({
         where: vi.fn().mockResolvedValue([]), // devuelve array vacío = agente no encontrado
@@ -38,6 +41,7 @@ describe("POST /metrics/stream", () => {
       done(null, payload);
     });
     // registramos el plugin antes de los tests
+    await app.register(authAgentPlugin);
     await app.register(metricsStreamPlugin, {
       metricsEmitter: new EventEmitter(),
     });
@@ -52,7 +56,7 @@ describe("POST /metrics/stream", () => {
       method: "POST",
       url: "/metrics/stream",
     });
-    expect(response.statusCode).toBe(403);
+    expect(response.statusCode).toBe(401);
   });
 
   it("should reject invalid metric schema", async () => {
