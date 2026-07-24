@@ -41,4 +41,6 @@ export {
   agentsTable,
   type Agent,
   type NewAgent,
+  type Workspace,
+  type NewWorkspace,
 } from "./schema/tenancy";
