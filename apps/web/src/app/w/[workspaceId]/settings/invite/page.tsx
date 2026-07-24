@@ -91,6 +91,13 @@ export default function InvitePage() {
           </button>
         </form>
 
+        <Link
+          href={`/w/${workspaceId}/settings/workspace/members`}
+          className="mt-4 block w-full rounded-lg border border-gray-300 py-2 text-center text-sm font-medium text-gray-700 hover:bg-gray-50"
+        >
+          Ver miembros
+        </Link>
+
         <p className="mt-6 text-center text-sm text-gray-500">
           <Link
             href={`/w/${workspaceId}`}

@@ -7,7 +7,7 @@ import { createHash } from "node:crypto";
 declare module "fastify" {
   interface FastifyRequest {
     agent: Agent | null;
-    workspace: Workspace | null; 
+    workspace: Workspace | null;
   }
 }
 const authAgentPlugin: FastifyPluginAsync = async (fastify) => {
