@@ -4,6 +4,7 @@ import { env } from "@watchdog/env";
 import { EventEmitter } from "node:events";
 import metricsStreamPlugin from "./routes/metrics-stream";
 import adminQueuesPlugin from "./routes/admin-queue";
+import authAgentPlugin from "./plugins/auth-agent";
 
 const metricsEmitter = new EventEmitter();
 
@@ -15,6 +16,7 @@ fastify.addContentTypeParser("application/x-ndjson", (_request, payload, done) =
   done(null, payload);
 });
 
+await fastify.register(authAgentPlugin);
 await fastify.register(metricsStreamPlugin, {
   metricsEmitter,
 });

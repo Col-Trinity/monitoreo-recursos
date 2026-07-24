@@ -1,38 +1,21 @@
 import type { FastifyPluginAsync } from "fastify";
 import { Queue } from "bullmq";
 import type { EventEmitter } from "node:events";
-import { agentsTable } from "@watchdog/db/schema";
-import { eq } from "drizzle-orm";
-import { dbWrite } from "@watchdog/db";
+
 import { createInterface } from "node:readline";
 import { MetricType, metricsIngestQueue, MetricsContainerSchema } from "@watchdog/shared-types";
-import { createHash } from "node:crypto";
+
 import Redis from "ioredis";
 import { env } from "@watchdog/env";
+import { authenticateAgent } from "../plugins/auth-agent";
 
 const metricsStreamPlugin: FastifyPluginAsync<{
   metricsEmitter: EventEmitter;
 }> = async (fastify, opts) => {
   const connection = new Redis(env.REDIS_URL!, { maxRetriesPerRequest: null });
   const metricsQueue = new Queue(metricsIngestQueue.name, { connection });
-  const hashApiKey = (key: string) => createHash("sha256").update(key).digest("hex");
 
-  fastify.post("/metrics/stream", async (request, reply) => {
-    const authHeader = request.headers.authorization;
-    if (!authHeader) return reply.status(403).send({ error: "API key requerida" });
-
-    const apiKey = authHeader.split("Bearer ")[1];
-    if (!apiKey) return reply.status(401).send({ error: "Formato inválido" });
-    //  Busca en la DB si existe un agente con ese hash
-    const [agent] = await dbWrite()
-      .select()
-      .from(agentsTable)
-      .where(eq(agentsTable.apiKey, hashApiKey(apiKey)));
-    if (!agent) return reply.status(401).send({ error: "API key inválida" });
-
-    if (!agent) return reply.status(401).send({ error: "API key inválida" });
-    if (agent.revokedAt) return reply.status(401).send({ error: "Agente revocado" });
-    if (!agent.active) return reply.status(401).send({ error: "Agente inactivo" });
+  fastify.post("/metrics/stream", { preHandler: authenticateAgent }, async (request, reply) => {
     const rl = createInterface({ input: request.body as NodeJS.ReadableStream });
 
     rl.on("line", async (line) => {
@@ -64,7 +47,7 @@ const metricsStreamPlugin: FastifyPluginAsync<{
 
         try {
           await metricsQueue.add(metricsIngestQueue.jobName, {
-            agentId: agent.id,
+            agentId: request.agent!.id,
             metricsType: envelope.type,
             metricValue,
             hostName,
