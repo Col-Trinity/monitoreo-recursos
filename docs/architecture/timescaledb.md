@@ -217,6 +217,88 @@ o se modifican los existentes.
 En lugar de recalcular el promedio completo cada consulta, TimescaleDB lo mantiene
 actualizado en tiempo real. **Resultado:** agregaciones increíblemente rápidas y precisas.
 
+#### Configuración actual en Watch-Dog: metrics_1m / metrics_1h / metrics_1d
+
+Watch-Dog tiene tres continuous aggregates, encadenadas en cascada — cada una se
+calcula a partir de la anterior, no de la tabla `metrics` cruda (excepto la primera):
+
+```
+metrics (raw, cada ~5s) → metrics_1m → metrics_1h → metrics_1d
+```
+
+Cada una agrega `avg`, `min`, `max` y `count` (`sample_count`) por
+`(bucket_start, agent_id, host_name, metrics_type)`.
+
+##### ¿Cuándo usar cada nivel?
+
+| Vista         | Granularidad | Usar para                                                          |
+| ------------- | ------------- | ------------------------------------------------------------------- |
+| `metrics_1m`  | 1 minuto      | Gráficos en tiempo real / dashboard de las últimas horas            |
+| `metrics_1h`  | 1 hora        | Vistas de "último día" o "última semana", tendencias de mediano plazo |
+| `metrics_1d`  | 1 día         | Reportes históricos, comparativas de meses, retención larga         |
+
+Regla práctica: **cuanto más largo el rango de tiempo consultado, más alto el nivel
+de agregación que conviene usar.** Consultar `metrics_1m` para un rango de 30 días
+sería tan lento como consultar la tabla cruda — para eso está `metrics_1d`.
+
+##### Por qué el promedio se recalcula ponderado, no como `avg(avg)`
+
+Como `metrics_1h` agrega sobre `metrics_1m` (no sobre datos crudos), promediar los
+promedios de cada minuto (`avg(avg_value)`) da un resultado incorrecto si los buckets
+de 1 minuto no tienen la misma cantidad de muestras (por ejemplo, un agente caído
+unos segundos). La fórmula correcta pondera por `sample_count`:
+
+```sql
+sum(avg_value * sample_count) / sum(sample_count) AS avg_value
+```
+
+`min`, `max` y `sum(sample_count)` sí son válidos de reagregar directamente, porque
+son asociativos (el mínimo de mínimos es el mínimo real, etc.) — el promedio es el
+único caso que necesita este ajuste.
+
+##### Gotcha: alias de `time_bucket` con el mismo nombre que la columna de origen
+
+Al encadenar CAGGs, si el alias de salida de `time_bucket()` tiene el mismo nombre
+que la columna de entrada (por ejemplo `time_bucket('1 hour', bucket_start) AS bucket_start`),
+TimescaleDB no logra validar la vista y falla con:
+
+```
+ERROR: continuous aggregate view must include a valid time bucket function
+```
+
+El fix es agrupar por posición ordinal en vez de por nombre:
+
+```sql
+GROUP BY 1, agent_id, host_name, metrics_type   -- en vez de GROUP BY bucket_start, ...
+```
+
+(Ver [issue #5185 de timescaledb](https://github.com/timescale/timescaledb/issues/5185).)
+
+##### Estado del refresh: manual por ahora
+
+A diferencia de lo que dice la tabla comparativa de arriba, **estas continuous
+aggregates todavía no se actualizan solas.** Se crearon con `WITH NO DATA` y sin
+`add_continuous_aggregate_policy` — el refresh automático en background es un ticket
+aparte. Por ahora, para que reflejen datos nuevos hace falta refrescarlas a mano:
+
+```sql
+CALL refresh_continuous_aggregate('metrics_1m', NULL, NULL);
+CALL refresh_continuous_aggregate('metrics_1h', NULL, NULL);
+CALL refresh_continuous_aggregate('metrics_1d', NULL, NULL);
+```
+
+Importante el orden: como están encadenadas, hay que refrescar `metrics_1m` antes
+que `metrics_1h`, y `metrics_1h` antes que `metrics_1d`.
+
+##### Deuda técnica: p95
+
+El ticket original pedía también el percentil 95 (`p95`) como agregado. Quedó
+pendiente: a diferencia de `avg`/`min`/`max`/`count`, el percentil **no es
+reagregable** — no se puede calcular el p95 de una hora a partir de los p95 de
+cada minuto, hace falta reprocesar los valores crudos o usar una estructura
+aproximada (como `tdigest`/`percentile_agg` del `timescaledb_toolkit`). Se deja
+para una iteración futura.
+
 ### Retention Policies: Políticas de Retención
 
 #### ¿Por qué eliminar datos antiguos?
