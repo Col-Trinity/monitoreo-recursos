@@ -1,7 +1,6 @@
 services:
   postgres:
     image: timescale/timescaledb-ha:pg16
-    restart: unless-stopped
     container_name: watchdog-postgres
     environment:
       POSTGRES_USER: monitor_user
@@ -53,7 +52,6 @@ services:
 
   redis:
     image: redis:7-alpine
-    restart: unless-stopped
     container_name: watchdog-redis
     ports:
       - "6379:6379"
