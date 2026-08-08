@@ -66,31 +66,48 @@ export default function AgentsPage() {
         )}
 
         {/* Modal API key — se muestra solo al crear */}
-        {apiKey && (
-          <div className="mb-6 rounded-lg border border-yellow-200 bg-yellow-50 p-4">
-            <p className="mb-2 text-sm font-medium text-yellow-800">
-              ⚠️ Copiá esta key ahora. No la vas a poder ver de nuevo.
-            </p>
-            <code className="mb-3 block rounded bg-yellow-100 p-2 text-xs break-all text-yellow-900">
-              {apiKey}
-            </code>
-            <div className="flex gap-2">
-              <button
-                onClick={handleCopy}
-                className="rounded-lg bg-yellow-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-yellow-700"
-              >
-                {copied ? "¡Copiado!" : "Copiar"}
-              </button>
-              <button
-                onClick={() => setApiKey(null)}
-                className="rounded-lg bg-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-300"
-              >
-                Cerrar
-              </button>
-            </div>
-          </div>
-        )}
-
+       {apiKey && (
+  <div className="mb-6 rounded-lg border border-yellow-200 bg-yellow-50 p-4">
+    <p className="mb-2 text-sm font-medium text-yellow-800">
+      ⚠️ Copiá esta key ahora. No la vas a poder ver de nuevo.
+    </p>
+    <code className="mb-3 block rounded bg-yellow-100 p-2 text-xs break-all text-yellow-900">
+      {apiKey}
+    </code>
+    <p className="mb-2 text-sm font-medium text-yellow-800">
+      Para instalar el agente en tu servidor, corré este comando:
+    </p>
+    <code className="mb-3 block rounded bg-yellow-100 p-2 text-xs break-all text-yellow-900">
+      {`curl -sSL http://watchdog.daztanllc.com/install.sh | WATCHDOG_KEY=${apiKey} bash`}
+    </code>
+    <div className="flex gap-2">
+      <button
+        onClick={handleCopy}
+        className="rounded-lg bg-yellow-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-yellow-700"
+      >
+        {copied ? "¡Copiado!" : "Copiar key"}
+      </button>
+      <button
+        onClick={() => {
+          void navigator.clipboard.writeText(
+            `curl -sSL http://watchdog.daztanllc.com/install.sh | WATCHDOG_KEY=${apiKey} bash`
+          );
+          setCopied(true);
+          window.setTimeout(() => setCopied(false), 2000);
+        }}
+        className="rounded-lg bg-yellow-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-yellow-600"
+      >
+        Copiar comando
+      </button>
+      <button
+        onClick={() => setApiKey(null)}
+        className="rounded-lg bg-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-300"
+      >
+        Cerrar
+      </button>
+    </div>
+  </div>
+)}
         {/* Formulario crear agente */}
         <form onSubmit={handleSubmit} className="mb-8 flex flex-col gap-4">
           <div className="flex flex-col gap-1">
