@@ -309,6 +309,31 @@ de TimescaleDB, pero ahora es solo para casos puntuales: forzar un refresh
 inmediato sin esperar al schedule (como hace el test de integración, que no puede
 esperar 30s a que corra el job solo) o rellenar un rango histórico.
 
+##### Trade-off: latencia vs costo de refresh
+
+Cada nivel tiene un `schedule_interval` distinto, y no es arbitrario — es un balance
+entre **qué tan al día están los datos** y **cuánto trabajo le exige a la base**:
+
+| Vista | `schedule_interval` | Latencia máxima | Costo |
+| ----- | -------------------- | ---------------- | ----- |
+| `metrics_1m` | 30s | ~1-3 min de atraso | Alto: corre ~2,880 veces/día |
+| `metrics_1h` | 5 min | ~1h de atraso | Medio: corre ~288 veces/día |
+| `metrics_1d` | 1h | ~1 día de atraso | Bajo: corre ~24 veces/día |
+
+**Más `schedule_interval` (refresca seguido) = menor latencia, mayor costo.**
+`metrics_1m` alimenta dashboards en tiempo real, así que vale la pena pagar el costo
+de refrescar cada 30s — si no, el gráfico "en vivo" se vería desactualizado por minutos.
+
+**Menos `schedule_interval` (refresca poco) = menor costo, mayor latencia tolerada.**
+`metrics_1d` alimenta reportes históricos, donde a nadie le importa si el dato de
+"hoy" tarda hasta 1 hora en aparecer — pero sí importaría gastar CPU refrescando
+una agregación diaria cada 30 segundos, sin ningún beneficio real.
+
+El motivo por el que esto no explota en costo pese a los refreshs frecuentes de
+`metrics_1m` es el `start_offset`: cada refresh solo recalcula una ventana chica
+(3 minutos), no la tabla entera — el costo por ejecución es barato, lo que hace
+viable correrlo muy seguido.
+
 ##### Deuda técnica: p95
 
 El ticket original pedía también el percentil 95 (`p95`) como agregado. Quedó
