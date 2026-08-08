@@ -274,21 +274,40 @@ GROUP BY 1, agent_id, host_name, metrics_type   -- en vez de GROUP BY bucket_sta
 
 (Ver [issue #5185 de timescaledb](https://github.com/timescale/timescaledb/issues/5185).)
 
-##### Estado del refresh: manual por ahora
+##### Refresh automático: continuous aggregate policies
 
-A diferencia de lo que dice la tabla comparativa de arriba, **estas continuous
-aggregates todavía no se actualizan solas.** Se crearon con `WITH NO DATA` y sin
-`add_continuous_aggregate_policy` — el refresh automático en background es un ticket
-aparte. Por ahora, para que reflejen datos nuevos hace falta refrescarlas a mano:
+Desde la migración `0020_living_skin.sql`, las tres vistas se refrescan solas en
+background mediante `add_continuous_aggregate_policy` — ya no hace falta llamar
+`refresh_continuous_aggregate` a mano en uso normal:
 
 ```sql
-CALL refresh_continuous_aggregate('metrics_1m', NULL, NULL);
-CALL refresh_continuous_aggregate('metrics_1h', NULL, NULL);
-CALL refresh_continuous_aggregate('metrics_1d', NULL, NULL);
+SELECT add_continuous_aggregate_policy('metrics_1m',
+  start_offset => INTERVAL '3 minutes',
+  end_offset => INTERVAL '1 minute',
+  schedule_interval => INTERVAL '30 seconds');
+
+SELECT add_continuous_aggregate_policy('metrics_1h',
+  start_offset => INTERVAL '3 hours',
+  end_offset => INTERVAL '1 hour',
+  schedule_interval => INTERVAL '5 minutes');
+
+SELECT add_continuous_aggregate_policy('metrics_1d',
+  start_offset => INTERVAL '3 days',
+  end_offset => INTERVAL '1 day',
+  schedule_interval => INTERVAL '1 hour');
 ```
 
-Importante el orden: como están encadenadas, hay que refrescar `metrics_1m` antes
-que `metrics_1h`, y `metrics_1h` antes que `metrics_1d`.
+El `end_offset` de cada nivel deja sin tocar el bucket "en curso" (todavía puede
+recibir filas), y el `start_offset` da margen para recalcular buckets recientes si
+llegan datos tarde (ej: un agente que estuvo caído). Como `metrics_1h` lee de
+`metrics_1m` y `metrics_1d` lee de `metrics_1h`, los offsets están pensados en
+cascada: para cuando el job de `metrics_1h` corre (mirando hasta 1h atrás),
+`metrics_1m` ya viene refrescándose hace rato sobre esa ventana.
+
+El `CALL refresh_continuous_aggregate(...)` manual sigue existiendo como mecanismo
+de TimescaleDB, pero ahora es solo para casos puntuales: forzar un refresh
+inmediato sin esperar al schedule (como hace el test de integración, que no puede
+esperar 30s a que corra el job solo) o rellenar un rango histórico.
 
 ##### Deuda técnica: p95
 
