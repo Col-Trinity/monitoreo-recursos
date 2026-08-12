@@ -424,6 +424,56 @@ SELECT add_retention_policy('metrics', INTERVAL '30 days');
 **3. Crear una migración nueva** en `packages/db/drizzle/` con esos cambios
 y registrarla en `_journal.json`.
 
+### Retention Strategy: Estrategia de Retención por Nivel
+
+Cada nivel de agregación tiene su propia retention policy, cada vez más larga
+a medida que el dato está más comprimido:
+
+| Nivel        | Tabla         | Retención | Motivo                                          |
+| ------------ | ------------- | --------- | ------------------------------------------------ |
+| Raw          | `metrics`     | 7 días    | Alto volumen, solo útil para debug reciente       |
+| 1 minuto     | `metrics_1m`  | 30 días   | Detalle suficiente para el último mes             |
+| 1 hora       | `metrics_1h`  | 1 año     | Tendencias de mediano plazo                       |
+| 1 día        | `metrics_1d`  | Sin límite| Volumen insignificante, historial de largo plazo  |
+
+#### Configuración actual
+
+La retention de `metrics` ya estaba configurada (ver sección anterior). Para los
+continuous aggregates se agregó en `packages/db/drizzle/0021_metrics_retention_policies.sql`:
+
+```sql
+SELECT add_retention_policy('metrics_1m', INTERVAL '30 days', if_not_exists => true);
+
+SELECT add_retention_policy('metrics_1h', INTERVAL '1 year', if_not_exists => true);
+```
+
+`add_retention_policy` funciona igual sobre un continuous aggregate que sobre una
+hypertable normal: por dentro, un continuous aggregate también está particionado
+en chunks, así que Timescale puede aplicarle la misma lógica de borrado por chunk.
+
+`metrics_1d` **no** tiene retention policy — queda sin límite de forma intencional.
+
+#### ¿Por qué `metrics_1d` no tiene límite?
+
+`metrics_1d` es el nivel más agregado: 1 fila por día, por agente, host y tipo
+de métrica. Con 100 agentes y 5 tipos de métrica, eso son ~182,500 filas por
+año — un volumen insignificante en storage, incluso a varios años de historia.
+
+Justamente por eso es el único nivel que tiene sentido conservar para siempre:
+es el dato que permite responder preguntas de largo plazo ("¿cómo veníamos hace
+2 años?", planificación de capacidad) sin pagar el costo de guardar el detalle
+crudo o por minuto/hora. Borrarlo tiraría el único registro histórico barato
+que tiene el sistema.
+
+#### Cómo verificar las policies activas
+
+```bash
+task db:retention-status
+```
+
+Debería listar 3 policies: `metrics` (7 days), `metrics_1m` (30 days) y
+`metrics_1h` (1 year). `metrics_1d` no aparece — es el comportamiento esperado.
+
 ### Compression: Comprimiendo Datos Antiguos
 
 #### ¿Por qué comprimir datos?
