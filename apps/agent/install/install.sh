@@ -1,8 +1,7 @@
 #!/bin/bash
 set -e
 
-WATCHDOG_API_URL="${WATCHDOG_API_URL:-http://watchdog.daztanllc.com}"
-INSTALL_DIR="/usr/local/bin"
+WATCHDOG_API_URL="${WATCHDOG_API_URL:-https://watchdog.daztanllc.com}"INSTALL_DIR="/usr/local/bin"
 AGENT_BIN="watchdog-agent"
 CONFIG_FILE="$HOME/.watchdog/config"
 
