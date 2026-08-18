@@ -31,6 +31,24 @@ export const metricsTable = p.pgTable(
   }),
 );
 
+// metrics_1m/1h/1d son TimescaleDB continuous aggregates creadas por SQL crudo
+// (ver drizzle/0017-0019). `.existing()` le dice a Drizzle que no las gestione
+// (sin CREATE/DROP en migraciones) — solo las usamos para queries tipadas.
+const aggregatedMetricsColumns = {
+  bucketStart: p.timestamp("bucket_start", { withTimezone: true }).notNull(),
+  agentId: p.uuid("agent_id").notNull(),
+  hostName: p.varchar("host_name").notNull(),
+  metricsType: metricsEnum("metrics_type").notNull(),
+  avgValue: p.doublePrecision("avg_value"),
+  minValue: p.doublePrecision("min_value"),
+  maxValue: p.doublePrecision("max_value"),
+  sampleCount: p.bigint("sample_count", { mode: "number" }),
+};
+
+export const metrics1mView = p.pgMaterializedView("metrics_1m", aggregatedMetricsColumns).existing();
+export const metrics1hView = p.pgMaterializedView("metrics_1h", aggregatedMetricsColumns).existing();
+export const metrics1dView = p.pgMaterializedView("metrics_1d", aggregatedMetricsColumns).existing();
+
 // TODO: Delete `triggerEnum` and use `metricsEnum` instead
 // Evaluate if triggerEnum should merge with metricsEnum - keep separate for now
 // since triggers can have `custom` type which doesn't apply to metrics
