@@ -1,7 +1,8 @@
 #!/bin/bash
 set -e
 
-WATCHDOG_API_URL="${WATCHDOG_API_URL:-https://watchdog.daztanllc.com}"INSTALL_DIR="/usr/local/bin"
+WATCHDOG_API_URL="${WATCHDOG_API_URL:-https://watchdog.daztanllc.com}"
+INSTALL_DIR="/usr/local/bin"
 AGENT_BIN="watchdog-agent"
 CONFIG_FILE="$HOME/.watchdog/config"
 
@@ -64,7 +65,7 @@ pkill -f "$AGENT_BIN" 2>/dev/null || true
 # Iniciar el agente leyendo la configuración
 echo "✓ Iniciando el agente..."
 source "$CONFIG_FILE"
-WATCHDOG_KEY="$WATCHDOG_KEY" \
+AGENT_API_KEY="$WATCHDOG_KEY" \
 AGENT_API_URL="$AGENT_API_URL" \
 nohup ${INSTALL_DIR}/${AGENT_BIN} > "$HOME/.watchdog/agent.log" 2>&1 &
 
