@@ -43,6 +43,12 @@ export function dbRead(): Db {
 export { invitationsTable, type Invitation, type NewInvitation } from "./schema/auth";
 
 export {
+  queryMetrics,
+  pickAggregationLevel,
+  type MetricPoint,
+} from "./queries/metrics";
+
+export {
   membershipsTable,
   workspacesTable,
   agentsTable,
