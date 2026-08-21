@@ -91,6 +91,7 @@ func main() {
 			}
 
 		case <-ticker.C:
+			log.Println("ticker fired, collecting metrics...")
 			collectCtx, cancel := context.WithTimeout(ctx, cfg.collectTimeout)
 
 			var wg sync.WaitGroup
@@ -123,12 +124,13 @@ func main() {
 
 			container := protocol.MetricsContainer{
 				Hostname:  hostname,
-				Timestamp: time.Now().UnixNano(),
+				Timestamp: time.Now().UnixMilli(),
 				Metrics:   metrics,
 			}
 			sse.Send(container)
 
 		case <-tickerPublish.C:
+			log.Println("publish ticker fired")
 			containers := sse.Peek(cfg.agentServerMaxCycles)
 			if len(containers) == 0 {
 				continue

@@ -27,7 +27,7 @@ export enum MetricType {
 }
 
 export const CpuValueSchema = z.object({
-  usage: z.number().min(0).max(100),
+  usage: z.number().min(0),
 });
 
 export const MemoryValueSchema = z.object({
@@ -35,7 +35,7 @@ export const MemoryValueSchema = z.object({
   available: z.number().nonnegative(),
   cached: z.number().nonnegative(),
   total: z.number().nonnegative(),
-  usedPercent: z.number().min(0).max(100),
+  usedPercent: z.number().min(0),
 });
 
 export const DiskValueSchema = z.object({
@@ -43,7 +43,7 @@ export const DiskValueSchema = z.object({
   used: z.number().nonnegative(),
   total: z.number().nonnegative(),
   free: z.number().nonnegative(),
-  usedPercent: z.number().min(0).max(100),
+  usedPercent: z.number().min(0),
 });
 
 export const NetworkValueSchema = z.object({
