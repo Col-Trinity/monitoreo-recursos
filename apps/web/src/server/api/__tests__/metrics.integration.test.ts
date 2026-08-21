@@ -173,4 +173,29 @@ describe("metrics router RBAC (integration)", () => {
       }),
     ).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
+
+  it("getByWorkspace: user sin membership al workspace -> 403", async () => {
+    const caller = createCaller({
+      db,
+      session: {
+        user: {
+          id: userId,
+          emailVerified: null,
+          name: "Test User",
+          email: "test-rbac@test.com",
+        },
+        expires: new Date(Date.now() + 86_400_000).toISOString(),
+      },
+      headers: new Headers(),
+    });
+
+    await expect(
+      caller.getByWorkspace({
+        workspaceId: workspaceBId,
+        metric: "cpu",
+        from: new Date("2026-01-01T00:00:00Z"),
+        to: new Date("2026-01-01T01:00:00Z"),
+      }),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
 });

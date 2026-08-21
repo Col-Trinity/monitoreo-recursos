@@ -5,7 +5,7 @@ import {
 } from "@/server/api/trpc";
 import { metricsTable, queryMetrics } from "@watchdog/db";
 import { agentsTable } from "@watchdog/db/schema";
-import { desc, eq, and } from "drizzle-orm";
+import { desc, eq, and, isNull } from "drizzle-orm";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 
@@ -49,5 +49,37 @@ export const metricsRouter = createTRPCRouter({
         from: input.from,
         to: input.to,
       });
+    }),
+  getByWorkspace: memberProcedure
+    .input(
+      z.object({
+        metric: z.enum(["cpu", "memory", "disk", "network"]),
+        from: z.date(),
+        to: z.date(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const agents = await ctx.db
+        .select()
+        .from(agentsTable)
+        .where(
+          and(
+            eq(agentsTable.workspaceId, ctx.workspace.id),
+            isNull(agentsTable.deletedAt),
+          ),
+        );
+
+      return await Promise.all(
+        agents.map(async (agent) => ({
+          agentId: agent.id,
+          agentName: agent.name,
+          points: await queryMetrics({
+            agentId: agent.id,
+            metric: input.metric,
+            from: input.from,
+            to: input.to,
+          }),
+        })),
+      );
     }),
 });
