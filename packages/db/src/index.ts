@@ -2,7 +2,14 @@ import { env } from "@watchdog/env";
 import { createDb, type Db } from "./client";
 
 export { createDb, type Db } from "./client";
-export { metricsTable, type Metric, type NewMetric } from "./schema/metrics";
+export {
+  metricsTable,
+  metrics1mView,
+  metrics1hView,
+  metrics1dView,
+  type Metric,
+  type NewMetric,
+} from "./schema/metrics";
 export {
   usersTable,
   sessionsTable,
