@@ -100,7 +100,7 @@ func (s *SSEClient) Send(metric protocol.MetricsContainer) {
 
 // Run mantiene la conexión persistente con backoff exponencial
 func (s *SSEClient) Run(ctx context.Context, apiURL string) {
-	 log.Printf("SSEClient Run started, apiURL: %s", apiURL) 
+	log.Printf("SSEClient Run started, apiURL: %s", apiURL)
 	backoff := 1 * time.Second
 	maxBackoff := 60 * time.Second
 
