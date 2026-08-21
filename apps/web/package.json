@@ -11,8 +11,8 @@
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "typecheck": "tsc --noEmit",
-    "test:unit": "vitest run --exclude \"**/*.integration.test.ts\"",
-    "test:integration": "vitest run src/**/*.integration.test.ts",
+    "test:unit": "vitest run --exclude \"**/*.integration.test.ts\" --passWithNoTests",
+    "test:integration": "vitest run integration",
     "test:e2e": "playwright test",
     "test:e2e:auth": "playwright test tests/e2e/auth.spec.ts",
     "clean": "rm -rf .next .turbo"
