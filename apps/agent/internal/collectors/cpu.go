@@ -36,8 +36,13 @@ func (c *CPUCollector) Collect(_ context.Context) (protocol.MetricEnvelope, erro
 		return protocol.MetricEnvelope{}, fmt.Errorf("no cpu data")
 	}
 
+	usage := percents[0]
+	if usage > 100 {
+		usage = 100
+	}
+
 	// Armamos el value
-	value, err := json.Marshal(protocol.CPUValue{Usage: percents[0]})
+	value, err := json.Marshal(protocol.CPUValue{Usage: usage})
 	if err != nil {
 		return protocol.MetricEnvelope{}, err
 	}

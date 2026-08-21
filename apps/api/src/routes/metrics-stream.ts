@@ -34,11 +34,11 @@ const metricsStreamPlugin: FastifyPluginAsync<{
 
         switch (envelope.type) {
           case MetricType.CPU:
-            metricValue = envelope.value.usage;
+            metricValue = Math.min(envelope.value.usage, 100);
             break;
           case MetricType.MEMORY:
           case MetricType.DISK:
-            metricValue = envelope.value.usedPercent;
+            metricValue = Math.min(envelope.value.usedPercent, 100);
             break;
           case MetricType.NETWORK:
             metricValue = envelope.value.rx;

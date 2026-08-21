@@ -100,6 +100,7 @@ func (s *SSEClient) Send(metric protocol.MetricsContainer) {
 
 // Run mantiene la conexión persistente con backoff exponencial
 func (s *SSEClient) Run(ctx context.Context, apiURL string) {
+	 log.Printf("SSEClient Run started, apiURL: %s", apiURL) 
 	backoff := 1 * time.Second
 	maxBackoff := 60 * time.Second
 
@@ -122,6 +123,7 @@ func (s *SSEClient) Run(ctx context.Context, apiURL string) {
 
 // connect establece la conexión y drena el buffer
 func (s *SSEClient) connect(ctx context.Context, apiURL string) error {
+	log.Printf("attempting connection to %s", apiURL)
 	pr, pw := io.Pipe()
 	errCh := make(chan error, 1)
 
@@ -141,6 +143,11 @@ func (s *SSEClient) connect(ctx context.Context, apiURL string) error {
 		}
 		_ = resp.Body.Close()
 		_ = pw.Close()
+		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+			errCh <- fmt.Errorf("server responded with status %s", resp.Status)
+			return
+		}
+		log.Printf("stream closed by server: %s", resp.Status)
 		errCh <- nil
 	}()
 

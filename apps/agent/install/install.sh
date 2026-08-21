@@ -1,7 +1,8 @@
 #!/bin/bash
 set -e
 
-WATCHDOG_API_URL="${WATCHDOG_API_URL:-http://watchdog.daztanllc.com}"
+WATCHDOG_API_URL="${WATCHDOG_API_URL:-https://watchdog.daztanllc.com}"
+AGENT_API_URL="${AGENT_API_URL:-$WATCHDOG_API_URL/api}"
 INSTALL_DIR="/usr/local/bin"
 AGENT_BIN="watchdog-agent"
 CONFIG_FILE="$HOME/.watchdog/config"
@@ -45,7 +46,7 @@ echo "✓ Guardando configuración..."
 mkdir -p "$HOME/.watchdog"
 cat > "$CONFIG_FILE" << EOF
 WATCHDOG_KEY=$WATCHDOG_KEY
-AGENT_API_URL=$WATCHDOG_API_URL
+AGENT_API_URL=$AGENT_API_URL
 EOF
 chmod 600 "$CONFIG_FILE"
 

@@ -32,12 +32,17 @@ func (c *DiskCollector) Collect(_ context.Context) (protocol.MetricEnvelope, err
 		return protocol.MetricEnvelope{}, err
 	}
 
+	usedPercent := diskStat.UsedPercent
+	if usedPercent > 100 {
+		usedPercent = 100
+	}
+
 	value, err := json.Marshal(protocol.DiskValue{
 		Path:        diskStat.Path,
 		Used:        int64(diskStat.Used),
 		Total:       int64(diskStat.Total),
 		Free:        int64(diskStat.Free),
-		UsedPercent: diskStat.UsedPercent,
+		UsedPercent: usedPercent,
 	})
 	if err != nil {
 		return protocol.MetricEnvelope{}, err
