@@ -11,7 +11,8 @@
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "typecheck": "tsc --noEmit",
-    "test:unit": "echo \"TODO: vitest\"",
+    "test:unit": "vitest run --exclude \"**/*.integration.test.ts\" --passWithNoTests",
+    "test:integration": "vitest run integration",
     "test:e2e": "playwright test",
     "test:e2e:auth": "playwright test tests/e2e/auth.spec.ts",
     "clean": "rm -rf .next .turbo"
@@ -50,10 +51,12 @@
     "eslint": "^9.23.0",
     "eslint-config-next": "^15.2.3",
     "postcss": "^8.5.3",
+    "postgres": "^3.4.9",
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
     "tailwindcss": "^4.0.15",
     "typescript": "^5.8.2",
-    "typescript-eslint": "^8.27.0"
+    "typescript-eslint": "^8.27.0",
+    "vitest": "^3.2.0"
   }
 }
