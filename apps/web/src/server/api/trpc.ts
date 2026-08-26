@@ -13,6 +13,7 @@ import {
   type Role,
   hasPermission,
 } from "@watchdog/shared-types";
+import type { Session } from "next-auth";
 import superjson from "superjson";
 import { ZodError, z } from "zod";
 
@@ -33,7 +34,7 @@ import { getWorkspaceMembership } from "../workspace-access";
  * @see https://trpc.io/docs/server/context
  */
 export const createTRPCContext = async (opts: { headers: Headers }) => {
-  const session = await auth();
+  const session: Session | null = await auth();
 
   return {
     db,
