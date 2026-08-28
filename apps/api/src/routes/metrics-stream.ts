@@ -46,12 +46,19 @@ const metricsStreamPlugin: FastifyPluginAsync<{
         }
 
         try {
-          await metricsQueue.add(metricsIngestQueue.jobName, {
-            agentId: request.agent!.id,
-            metricsType: envelope.type,
-            metricValue,
-            hostName,
-          });
+          await metricsQueue.add(
+            metricsIngestQueue.jobName,
+            {
+              agentId: request.agent!.id,
+              metricsType: envelope.type,
+              metricValue,
+              hostName,
+            },
+            {
+              removeOnComplete: 1000,
+              removeOnFail: 5000,
+            },
+          );
         } catch (err) {
           fastify.log.error(err, "Redis unavailable");
           reply.status(503).send({ error: "Service unavailable, retry later" });
