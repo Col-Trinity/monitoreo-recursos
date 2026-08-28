@@ -50,9 +50,10 @@ AGENT_API_URL=$AGENT_API_URL
 EOF
 chmod 600 "$CONFIG_FILE"
 
-# Descargar el binario
+# Descargar el binario# Descargar el binario
 BINARY="agent-${OS}-${ARCH}"
-DOWNLOAD_URL="${WATCHDOG_API_URL}/agent/${BINARY}"
+GITHUB_REPO="Col-Trinity/monitoreo-recursos"
+DOWNLOAD_URL="https://github.com/${GITHUB_REPO}/releases/latest/download/${BINARY}"
 echo "✓ Descargando agente para ${OS}/${ARCH}..."
 curl -sSL "$DOWNLOAD_URL" -o "/tmp/$AGENT_BIN"
 chmod +x "/tmp/$AGENT_BIN"
