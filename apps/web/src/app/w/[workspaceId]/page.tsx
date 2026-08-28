@@ -59,7 +59,9 @@ export default function WorkspacePage() {
                   hora: new Date(
                     d.metrics.createdAt ?? new Date(),
                   ).toLocaleTimeString(),
-                }));
+                  timestamp: d.metrics.createdAt ?? new Date(),
+                }))
+                .sort((a, b) => +a.timestamp - +b.timestamp);
 
               return (
                 <div key={type} className="rounded-xl bg-white p-4 shadow-sm">
@@ -75,7 +77,7 @@ export default function WorkspacePage() {
                       />
                       <YAxis
                         domain={
-                          type === "network" ? ["auto", "auto"] : [0, 100]
+                          type === "network" ? ["auto", "auto"] : [0, "auto"]
                         }
                         tick={{ fontSize: 11, fill: "#6b7280" }}
                       />
