@@ -10,6 +10,7 @@ const schema = z.object({
 
   API_PORT: z.coerce.number().int().positive().default(3001),
   API_HOST: z.string().default("0.0.0.0"),
+  API_URL: z.string().url().default("http://localhost:3001"),
 
   NEXT_PUBLIC_API_URL: z.string().url().optional(),
 
