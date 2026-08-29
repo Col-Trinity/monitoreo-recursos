@@ -23,7 +23,7 @@ export function pickAggregationLevel(from: Date, to: Date): "raw" | "1m" | "1h" 
   const hour = 60 * 60 * 1000;
   const day = 24 * hour;
 
-  if (rangeMs < 1 * hour) return "raw";
+  if (rangeMs <= 1 * hour) return "raw";
   if (rangeMs < 1 * day) return "1m";
   if (rangeMs < 30 * day) return "1h";
   return "1d";
