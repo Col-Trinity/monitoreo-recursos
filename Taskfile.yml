@@ -98,7 +98,7 @@ tasks:
     cmds:
       - "{{.COMPOSE}} up -d postgres postgres-replica redis"
     status:
-      - docker ps --filter "name=watchdog-postgres" --filter "status=running" --format "{{`{{.Names}}`}}" | grep -q watchdog-postgres
+      - docker ps --filter "name=^watchdog-postgres$" --filter "status=running" --format "{{`{{.Names}}`}}" | grep -q watchdog-postgres
 
   docker:stop:
     desc: Stop containers (keep volumes)
