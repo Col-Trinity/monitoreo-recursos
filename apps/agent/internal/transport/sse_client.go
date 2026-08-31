@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"sync/atomic"
 	"time"
 
 	"github.com/Col-Trinity/monitoreo-recursos/apps/agent/internal/protocol"
@@ -75,6 +76,7 @@ type SSEClient struct {
 	buffer     BufferMetrics
 	metrics    chan protocol.MetricsContainer
 	reconnects int64
+	connected  atomic.Bool
 }
 
 // NewSSEClient crea un nuevo SSEClient
@@ -106,6 +108,7 @@ func (s *SSEClient) Run(ctx context.Context, apiURL string) {
 
 	for {
 		err := s.connect(ctx, apiURL)
+		s.connected.Store(false)
 		if err != nil {
 			log.Printf("connection failed: %v, retrying in %s (buffered: %d)", err, backoff, s.BufferSize())
 			s.reconnects++
@@ -152,6 +155,7 @@ func (s *SSEClient) connect(ctx context.Context, apiURL string) error {
 	}()
 
 	log.Println("connected to server_________________________________")
+	s.connected.Store(true)
 	for {
 		select {
 		case metric := <-s.metrics:
@@ -179,6 +183,11 @@ func (s *SSEClient) write(pw *io.PipeWriter, metric protocol.MetricsContainer) e
 // Reconnects devuelve el total de reconexiones realizadas.
 func (s *SSEClient) Reconnects() int64 {
 	return s.reconnects
+}
+
+// IsConnected indica si el cliente tiene una conexión SSE activa con el servidor.
+func (s *SSEClient) IsConnected() bool {
+	return s.connected.Load()
 }
 
 // BufferSize devuelve la cantidad de métricas en espera en el canal.
