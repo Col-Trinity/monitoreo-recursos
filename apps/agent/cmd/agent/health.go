@@ -24,26 +24,34 @@ func startHealthServer(port string, sse *transport.SSEClient) {
 		w.Header().Set("Content-Type", "application/json")
 		if !sse.IsConnected() {
 			w.WriteHeader(http.StatusServiceUnavailable)
-			json.NewEncoder(w).Encode(map[string]any{"status": "error"})
+			if err := json.NewEncoder(w).Encode(map[string]any{"status": "error"}); err != nil {
+				log.Printf("health encode error: %v", err)
+			}
 			return
 		}
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]any{"status": "ok"})
+		if err := json.NewEncoder(w).Encode(map[string]any{"status": "ok"}); err != nil {
+			log.Printf("health encode error: %v", err)
+		}
 	})
 
 	mux.HandleFunc("/health", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		if !sse.IsConnected() {
 			w.WriteHeader(http.StatusServiceUnavailable)
-			json.NewEncoder(w).Encode(map[string]any{"status": "error"})
+			if err := json.NewEncoder(w).Encode(map[string]any{"status": "error"}); err != nil {
+				log.Printf("health encode error: %v", err)
+			}
 			return
 		}
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]any{
+		if err := json.NewEncoder(w).Encode(map[string]any{
 			"status":               "ok",
 			"sse_reconnects_total": sse.Reconnects(),
 			"buffer_size":          sse.BufferSize(),
-		})
+		}); err != nil {
+			log.Printf("health encode error: %v", err)
+		}
 	})
 
 	go func() {
