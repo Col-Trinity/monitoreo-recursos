@@ -7,9 +7,9 @@ export async function GET() {
       db.select().from(metricsTable).limit(1),
     ]);
 
-    return Response.json({ ok: true }, { status: 200 });
+    return Response.json({ status: "ok" }, { status: 200 });
   } catch (error) {
     console.error(error);
-    return Response.json({ ok: false }, { status: 503 });
+    return Response.json({ status: "error" }, { status: 503 });
   }
 }

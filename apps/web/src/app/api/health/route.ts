@@ -19,6 +19,6 @@ export async function GET() {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
-    return Response.json({ status: "error", error: message }, { status: 500 });
+    return Response.json({ status: "error", error: message }, { status: 503 });
   }
 }
