@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { eq } from "drizzle-orm";
-import { verificationTokensTable, usersTable, agentsTable } from "@watchdog/db";
+import { verificationTokensTable, usersTable } from "@watchdog/db";
 import { dbWrite } from "@watchdog/db";
 import http from "http";
 
@@ -76,8 +76,8 @@ test.describe("Dashboard e2e: signup -> ver metrica", () => {
     const testPassword = "password123";
 
     // 1. Interceptar Resend para no mandar emails reales
-    await page.route("https://api.resend.com/**", (route) => {
-      route.fulfill({
+    await page.route("https://api.resend.com/**", async (route) => {
+      await route.fulfill({
         status: 200,
         contentType: "application/json",
         body: JSON.stringify({ id: "fake-email-id" }),
@@ -118,7 +118,7 @@ test.describe("Dashboard e2e: signup -> ver metrica", () => {
 
     // 5. Obtener workspaceId de la URL
     const currentUrl = page.url();
-    const workspaceId = currentUrl.match(/\/w\/([^/]+)/)?.[1];
+    const workspaceId = /\/w\/([^/]+)/.exec(currentUrl)?.[1];
     if (!workspaceId)
       throw new Error("No se pudo obtener workspaceId de la URL");
 
