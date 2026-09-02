@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { and, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure, workspaceProcedure } from "@/server/api/trpc";
 import { dbW } from "@/server/db";
 import { agentsTable } from "@watchdog/db";
 import { randomBytes, createHash } from "node:crypto";
@@ -55,6 +55,35 @@ export const agentsRouter = createTRPCRouter({
             isNull(agentsTable.deletedAt),
           ),
         );
+    }),
+
+  getById: workspaceProcedure
+    .input(z.object({ agentId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const [agent] = await dbW
+        .select({
+          id: agentsTable.id,
+          name: agentsTable.name,
+          description: agentsTable.description,
+          active: agentsTable.active,
+          lastHeartbeat: agentsTable.lastHeartbeat,
+          createdAt: agentsTable.createdAt,
+          revokedAt: agentsTable.revokedAt,
+        })
+        .from(agentsTable)
+        .where(
+          and(
+            eq(agentsTable.id, input.agentId),
+            eq(agentsTable.workspaceId, ctx.workspace.id),
+            isNull(agentsTable.deletedAt),
+          ),
+        );
+
+      if (!agent) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      return agent;
     }),
 
   rotate: protectedProcedure
