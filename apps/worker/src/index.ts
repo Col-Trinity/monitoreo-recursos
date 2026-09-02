@@ -1,21 +1,22 @@
 import { Redis } from "ioredis";
 import { env } from "@watchdog/env";
 import http from "http";
+import { Queue } from "bullmq";
+import { metricsIngestQueue } from "@watchdog/shared-types";
 import { flush, createWorker } from "./processors/metrics-ingest";
+import { handleHealthRequest } from "./health";
+
 const connection = new Redis(env.REDIS_URL, { maxRetriesPerRequest: null });
+const metricsQueue = new Queue(metricsIngestQueue.name, { connection });
 
 const worker = createWorker(connection);
 
 worker.on("ready", () => console.log("[worker] ready"));
 
-const healthServer = http.createServer((req, res) => {
-  if (req.url === "/health" && req.method === "GET") {
-    res.writeHead(200, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ status: "ok" }));
-  } else {
-    res.writeHead(404);
-    res.end();
-  }
+const healthServer = http.createServer(async (req, res) => {
+  if (await handleHealthRequest(req, res, connection, metricsQueue)) return;
+  res.writeHead(404);
+  res.end();
 });
 
 const HEALTH_PORT = 3002;
@@ -34,6 +35,7 @@ async function shutdown() {
   }, SHUTDOWN_TIMEOUT);
   await worker.close();
   await flush();
+  await metricsQueue.close();
   await connection.quit();
 
   clearTimeout(timer);

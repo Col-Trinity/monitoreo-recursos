@@ -3,14 +3,47 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/Col-Trinity/monitoreo-recursos/apps/agent/internal/transport"
 	"log"
 	"net/http"
+
+	"github.com/Col-Trinity/monitoreo-recursos/apps/agent/internal/transport"
 )
 
 func startHealthServer(port string, sse *transport.SSEClient) {
-	http.HandleFunc("/health", func(w http.ResponseWriter, _ *http.Request) {
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("/live", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		if err := json.NewEncoder(w).Encode(map[string]any{"status": "ok"}); err != nil {
+			log.Printf("health encode error: %v", err)
+		}
+	})
+
+	mux.HandleFunc("/ready", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		if !sse.IsConnected() {
+			w.WriteHeader(http.StatusServiceUnavailable)
+			if err := json.NewEncoder(w).Encode(map[string]any{"status": "error"}); err != nil {
+				log.Printf("health encode error: %v", err)
+			}
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		if err := json.NewEncoder(w).Encode(map[string]any{"status": "ok"}); err != nil {
+			log.Printf("health encode error: %v", err)
+		}
+	})
+
+	mux.HandleFunc("/health", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		if !sse.IsConnected() {
+			w.WriteHeader(http.StatusServiceUnavailable)
+			if err := json.NewEncoder(w).Encode(map[string]any{"status": "error"}); err != nil {
+				log.Printf("health encode error: %v", err)
+			}
+			return
+		}
 		w.WriteHeader(http.StatusOK)
 		if err := json.NewEncoder(w).Encode(map[string]any{
 			"status":               "ok",
@@ -20,8 +53,9 @@ func startHealthServer(port string, sse *transport.SSEClient) {
 			log.Printf("health encode error: %v", err)
 		}
 	})
+
 	go func() {
-		if err := http.ListenAndServe(":"+port, nil); err != nil {
+		if err := http.ListenAndServe(":"+port, mux); err != nil {
 			log.Fatalf("health server error: %v", err)
 		}
 	}()

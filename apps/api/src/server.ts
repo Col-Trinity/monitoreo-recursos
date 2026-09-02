@@ -5,6 +5,7 @@ import { EventEmitter } from "node:events";
 import metricsStreamPlugin from "./routes/metrics-stream";
 import adminQueuesPlugin from "./routes/admin-queue";
 import authAgentPlugin from "./plugins/auth-agent";
+import healthPlugin from "./routes/health";
 
 const metricsEmitter = new EventEmitter();
 
@@ -22,8 +23,8 @@ await fastify.register(metricsStreamPlugin, {
 });
 
 await fastify.register(adminQueuesPlugin);
+await fastify.register(healthPlugin);
 
-fastify.get("/health", async () => ({ status: "ok" }));
 
 fastify.get("/metrics/sse", (request, reply) => {
   reply.hijack();
