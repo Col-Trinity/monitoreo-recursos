@@ -8,7 +8,7 @@ loadDotenv({ path: path.resolve(__dirname, "../../.env") });
 
 export default defineConfig({
   testDir: "./tests",
-  testMatch: "tests/e2e/auth.spec.ts",
+  testMatch: "tests/e2e/*.spec.ts",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -24,11 +24,25 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
   ],
-  webServer: {
-    command:
-      "pnpm build && RESEND_SKIP_SEND=true AUTH_TRUST_HOST=true pnpm start",
-    url: "http://localhost:3000",
-    reuseExistingServer: false,
-    timeout: 180_000,
-  },
+  webServer: [
+    {
+      command: "pnpm --filter @watchdog/api dev",
+      url: "http://localhost:3001/health",
+      reuseExistingServer: true, // si ya está corriendo, la reutiliza
+      timeout: 180_000,
+    },
+    {
+      command: "pnpm --filter @watchdog/worker dev",
+      url: "http://localhost:3002/health",
+      reuseExistingServer: true,
+      timeout: 180_000,
+    },
+    {
+      command:
+        "pnpm build && RESEND_SKIP_SEND=true AUTH_TRUST_HOST=true pnpm start",
+      url: "http://localhost:3000",
+      reuseExistingServer: false,
+      timeout: 180_000,
+    },
+  ],
 });

@@ -113,6 +113,7 @@ export default function AgentsPage() {
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium text-gray-700">Nombre</label>
             <input
+              id="name"
               type="text"
               required
               value={name}
