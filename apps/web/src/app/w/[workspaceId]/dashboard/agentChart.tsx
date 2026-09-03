@@ -17,6 +17,7 @@ interface Props {
   agentId: string;
   agentName: string;
   workspaceId: string;
+  lastHeartbeat: Date | null;
 }
 
 const getRange = () => {
@@ -25,7 +26,7 @@ const getRange = () => {
   return { from, to };
 };
 
-export default function AgentChart({ agentId, agentName, workspaceId }: Props) {
+export default function AgentChart({ agentId, agentName, workspaceId, lastHeartbeat}: Props) {
   const [range, setRange] = useState(getRange);
 
   useEffect(() => {
@@ -51,6 +52,9 @@ export default function AgentChart({ agentId, agentName, workspaceId }: Props) {
     hora: new Date(d.timestamp).toLocaleTimeString(),
   }));
 
+  const isOnline =
+    lastHeartbeat !== null &&
+    new Date().getTime() - new Date(lastHeartbeat).getTime() < 2 * 60 * 1000;
   return (
     <div className="rounded-xl bg-white p-4 shadow-sm">
       <Link
@@ -58,7 +62,17 @@ export default function AgentChart({ agentId, agentName, workspaceId }: Props) {
         className="mb-1 text-sm font-semibold text-gray-800 hover:underline"
       >
         {agentName}
-      </Link>      <p className="mb-3 text-xs text-gray-500">CPU (%)</p>
+      </Link>
+      <span
+        className={`rounded-full px-2 py-0.5 text-xs font-medium ${isOnline
+            ? "bg-green-50 text-green-600"
+            : "bg-gray-100 text-gray-500"
+          }`}
+      >
+        {isOnline ? "Online" : "Offline"}
+      </span>
+
+      <p className="mb-3 text-xs text-gray-500">CPU (%)</p>
 
       {isLoading && <p className="text-sm text-gray-400">Cargando...</p>}
       {isError && <p className="text-sm text-red-500">Error al cargar</p>}

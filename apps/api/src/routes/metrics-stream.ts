@@ -9,16 +9,39 @@ import Redis from "ioredis";
 import { env } from "@watchdog/env";
 import { authenticateAgent } from "../plugins/auth-agent";
 
+import { eq } from "drizzle-orm";
+import { agentsTable, dbWrite } from "@watchdog/db";
+
 const metricsStreamPlugin: FastifyPluginAsync<{
   metricsEmitter: EventEmitter;
 }> = async (fastify, opts) => {
   const connection = new Redis(env.REDIS_URL!, { maxRetriesPerRequest: null });
   const metricsQueue = new Queue(metricsIngestQueue.name, { connection });
 
+  const HEARTBEAT_THROTTLE_MS = 30_000;
+
   fastify.post("/metrics/stream", { preHandler: authenticateAgent }, async (request, reply) => {
     const rl = createInterface({ input: request.body as NodeJS.ReadableStream });
 
+    let lastHeartbeatWrite = 0;
+    const writeHeartbeat = async () => {
+      lastHeartbeatWrite = Date.now();
+      try {
+        await dbWrite()
+          .update(agentsTable)
+          .set({ lastHeartbeat: new Date() })
+          .where(eq(agentsTable.id, request.agent!.id));
+      } catch (err) {
+        fastify.log.error(err, "Error actualizando lastHeartbeat");
+      }
+    };
+    const touchHeartbeat = async () => {
+      if (Date.now() - lastHeartbeatWrite < HEARTBEAT_THROTTLE_MS) return;
+      await writeHeartbeat();
+    };
+
     rl.on("line", async (line) => {
+      await touchHeartbeat();
       const parsed = MetricsContainerSchema.safeParse(JSON.parse(line));
       if (!parsed.success) {
         reply.status(400).send({ error: "Invalid metric schema" });
@@ -76,9 +99,11 @@ const metricsStreamPlugin: FastifyPluginAsync<{
         });
       }
     });
-
     await new Promise<void>((resolve) => {
-      rl.on("close", resolve); // agente cerró limpiamente
+      rl.on("close", async () => {
+        await writeHeartbeat();
+        resolve();
+      });
       rl.on("error", resolve); // agente se cayó
     });
     return reply.status(200).send({ message: "stream closed" });
