@@ -95,19 +95,25 @@ describe("audit_log (integration)", () => {
     if (!row) throw new Error("no hay filas para probar el trigger");
 
     // postgres-js envuelve el error real de Postgres en `.cause`
-    await expect(
-      db
-        .update(auditLogTable)
-        .set({ action: "hacked" })
-        .where(eq(auditLogTable.id, row.id)),
-    ).rejects.toMatchObject({
-      cause: { message: expect.stringContaining("append-only") },
-    });
+    const updateError: unknown = await db
+      .update(auditLogTable)
+      .set({ action: "hacked" })
+      .where(eq(auditLogTable.id, row.id))
+      .catch((error: unknown) => error);
 
-    await expect(
-      db.delete(auditLogTable).where(eq(auditLogTable.id, row.id)),
-    ).rejects.toMatchObject({
-      cause: { message: expect.stringContaining("append-only") },
-    });
+    expect(updateError).toBeInstanceOf(Error);
+    const updateCause = (updateError as Error).cause;
+    expect(updateCause).toBeInstanceOf(Error);
+    expect((updateCause as Error).message).toContain("append-only");
+
+    const deleteError: unknown = await db
+      .delete(auditLogTable)
+      .where(eq(auditLogTable.id, row.id))
+      .catch((error: unknown) => error);
+
+    expect(deleteError).toBeInstanceOf(Error);
+    const deleteCause = (deleteError as Error).cause;
+    expect(deleteCause).toBeInstanceOf(Error);
+    expect((deleteCause as Error).message).toContain("append-only");
   });
 });
