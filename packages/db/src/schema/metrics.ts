@@ -109,52 +109,6 @@ export const alertEventTable = p.pgTable(
   }),
 );
 
-export const resourceTypeEnum = p.pgEnum("resource_type", [
-  "user",
-  "workspace",
-  "agent",
-  "alert",
-  "membership",
-]);
-
-export const actionEnum = p.pgEnum("action", [
-  "created",
-  "updated",
-  "deleted",
-  "invited",
-  "login",
-  "logout",
-]);
-
-export const auditLogTable = p.pgTable(
-  "audit_log",
-  {
-    id: p.uuid("id").primaryKey().defaultRandom(),
-    userId: p
-      .uuid("user_id")
-      .notNull()
-      .references(() => usersTable.id),
-    ipAddress: p.varchar("ip_address"),
-    userAgent: p.varchar("user_agent"),
-    workspaceId: p
-      .uuid("workspace_id")
-      .notNull()
-      .references(() => workspacesTable.id),
-    resourceId: p.uuid("resource_id").notNull(),
-    resourceType: resourceTypeEnum("resource_type"),
-    action: actionEnum("action"),
-
-    changes: p.json("changes"),
-    createdAt: p.timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  },
-  (table) => ({
-    userIdx: p.index("audit_user_idx").on(table.userId),
-    workspaceIdx: p.index("audit_workspace_idx").on(table.workspaceId),
-    createdAtIdx: p.index("audit_created_at_idx").on(table.createdAt),
-    resourceLookupIdx: p.index("audit_resource_idx").on(table.resourceType, table.resourceId),
-  }),
-);
-
 export type Metric = typeof metricsTable.$inferSelect;
 export type NewMetric = typeof metricsTable.$inferInsert;
 
@@ -163,6 +117,30 @@ export type NewAlertRule = typeof alertsRuleTable.$inferInsert;
 
 export type AlertEvent = typeof alertEventTable.$inferSelect;
 export type NewAlertEvent = typeof alertEventTable.$inferInsert;
+
+export const auditLogTable = p.pgTable(
+  "audit_log",
+  {
+    id: p.uuid("id").defaultRandom().primaryKey(),
+    workspaceId: p
+      .uuid("workspace_id")
+      .references(() => workspacesTable.id, { onDelete: "set null" }),
+    userId: p
+      .uuid("user_id")
+      .references(() => usersTable.id, { onDelete: "set null" }),
+    action: p.text("action").notNull(),
+    resourceType: p.text("resource_type").notNull(),
+    resourceId: p.text("resource_id"),
+    metadata: p.jsonb("metadata").$type<Record<string, unknown>>(),
+    createdAt: p.timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    workspaceIdx: p.index("audit_workspace_idx").on(table.workspaceId),
+    userIdx: p.index("audit_user_idx").on(table.userId),
+    createdAtIdx: p.index("audit_created_at_idx").on(table.createdAt),
+    resourceLookupIdx: p.index("audit_resource_idx").on(table.resourceType, table.resourceId),
+  }),
+);
 
 export type AuditLog = typeof auditLogTable.$inferSelect;
 export type NewAuditLog = typeof auditLogTable.$inferInsert;
