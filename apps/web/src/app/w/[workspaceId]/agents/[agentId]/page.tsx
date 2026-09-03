@@ -22,15 +22,18 @@ export default async function AgentDetailPage({ params }: Props) {
   const status = agent.revokedAt
     ? "Revocado"
     : agent.active
-    ? "Activo"
-    : "Inactivo";
+      ? "Activo"
+      : "Inactivo";
 
   const statusColor = agent.revokedAt
     ? "text-red-600 bg-red-50"
     : agent.active
-    ? "text-green-600 bg-green-50"
-    : "text-gray-600 bg-gray-100";
+      ? "text-green-600 bg-green-50"
+      : "text-gray-600 bg-gray-100";
 
+  const isOnline =
+    agent.lastHeartbeat !== null &&
+    new Date().getTime() - new Date(agent.lastHeartbeat).getTime() < 2 * 60 * 1000;
   return (
     <div className="min-h-screen bg-gray-50 px-6 py-8">
       <div className="mx-auto max-w-3xl">
@@ -54,6 +57,12 @@ export default async function AgentDetailPage({ params }: Props) {
             </span>
             <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusColor}`}>
               {status}
+            </span>
+            <span
+              className={`rounded-full px-2 py-0.5 text-xs font-medium ${isOnline ? "bg-green-50 text-green-600" : "bg-gray-100 text-gray-500"
+                }`}
+            >
+              {isOnline ? "Online" : "Offline"}
             </span>
           </div>
         </div>

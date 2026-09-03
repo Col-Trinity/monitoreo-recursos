@@ -27,6 +27,7 @@ export default async function DashboardPage({ params }: Props) {
               agentId={agent.id}
               agentName={agent.name}
               workspaceId={workspaceId}
+              lastHeartbeat={agent.lastHeartbeat}
             />
           ))}
         </div>

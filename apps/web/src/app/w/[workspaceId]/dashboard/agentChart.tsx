@@ -17,6 +17,7 @@ interface Props {
   agentId: string;
   agentName: string;
   workspaceId: string;
+  lastHeartbeat: Date | null;
 }
 
 const getRange = () => {
@@ -25,7 +26,7 @@ const getRange = () => {
   return { from, to };
 };
 
-export default function AgentChart({ agentId, agentName, workspaceId }: Props) {
+export default function AgentChart({ agentId, agentName, workspaceId, lastHeartbeat: initialHeartbeat }: Props) {
   const [range, setRange] = useState(getRange);
 
   useEffect(() => {
@@ -34,6 +35,18 @@ export default function AgentChart({ agentId, agentName, workspaceId }: Props) {
     }, 10000);
     return () => clearInterval(interval);
   }, []);
+
+  // polling de agentes para mantener lastHeartbeat fresco
+  const { data: agents } = api.agents.list.useQuery(
+    { workspaceId },
+    { refetchInterval: 10000 }
+  );
+
+  const freshHeartbeat = agents?.find((a) => a.id === agentId)?.lastHeartbeat ?? initialHeartbeat;
+
+  const isOnline =
+    freshHeartbeat !== null &&
+    new Date().getTime() - new Date(freshHeartbeat).getTime() < 2 * 60 * 1000;
 
   const { data, isLoading, isError } = api.metrics.getByAgent.useQuery(
     {
@@ -53,12 +66,23 @@ export default function AgentChart({ agentId, agentName, workspaceId }: Props) {
 
   return (
     <div className="rounded-xl bg-white p-4 shadow-sm">
-      <Link
-        href={`/w/${workspaceId}/agents/${agentId}`}
-        className="mb-1 text-sm font-semibold text-gray-800 hover:underline"
-      >
-        {agentName}
-      </Link>      <p className="mb-3 text-xs text-gray-500">CPU (%)</p>
+      <div className="mb-3 flex items-center justify-between">
+        <Link
+          href={`/w/${workspaceId}/agents/${agentId}`}
+          className="text-sm font-semibold text-gray-800 hover:underline"
+        >
+          {agentName}
+        </Link>
+        <span
+          className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+            isOnline ? "bg-green-50 text-green-600" : "bg-gray-100 text-gray-500"
+          }`}
+        >
+          {isOnline ? "Online" : "Offline"}
+        </span>
+      </div>
+
+      <p className="mb-3 text-xs text-gray-500">CPU (%)</p>
 
       {isLoading && <p className="text-sm text-gray-400">Cargando...</p>}
       {isError && <p className="text-sm text-red-500">Error al cargar</p>}
