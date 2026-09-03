@@ -9,6 +9,7 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { dbW } from "@/server/db";
 import { hasPermission, Permission, Role } from "@watchdog/shared-types";
+import { audit } from "@/server/audit";
 
 export const userWorkspacesRouter = createTRPCRouter({
   getAll: protectedProcedure.query(async ({ ctx }) => {
@@ -59,9 +60,17 @@ export const userWorkspacesRouter = createTRPCRouter({
         });
       }
 
-      await dbW
-        .delete(workspacesTable)
-        .where(eq(workspacesTable.id, input.workspaceId));
+      await dbW.transaction(async (tx) => {
+        await audit(tx, ctx, {
+          workspaceId: input.workspaceId,
+          action: "workspace.deleted",
+          resource: { type: "workspace", id: input.workspaceId },
+        });
+
+        await tx
+          .delete(workspacesTable)
+          .where(eq(workspacesTable.id, input.workspaceId));
+      });
 
       return { success: true };
     }),
@@ -121,15 +130,24 @@ export const userWorkspacesRouter = createTRPCRouter({
         throw new TRPCError({ code: "FORBIDDEN" });
       }
 
-      await dbW
-        .update(membershipsTable)
-        .set({ role: input.role })
-        .where(
-          and(
-            eq(membershipsTable.userId, input.userId),
-            eq(membershipsTable.workspaceId, input.workspaceId),
-          ),
-        );
+      await dbW.transaction(async (tx) => {
+        await tx
+          .update(membershipsTable)
+          .set({ role: input.role })
+          .where(
+            and(
+              eq(membershipsTable.userId, input.userId),
+              eq(membershipsTable.workspaceId, input.workspaceId),
+            ),
+          );
+
+        await audit(tx, ctx, {
+          workspaceId: input.workspaceId,
+          action: "member.role_changed",
+          resource: { type: "membership", id: input.userId },
+          metadata: { newRole: input.role },
+        });
+      });
 
       return { success: true };
     }),
@@ -167,14 +185,22 @@ export const userWorkspacesRouter = createTRPCRouter({
         throw new TRPCError({ code: "FORBIDDEN" });
       }
 
-      await dbW
-        .delete(membershipsTable)
-        .where(
-          and(
-            eq(membershipsTable.userId, input.userId),
-            eq(membershipsTable.workspaceId, input.workspaceId),
-          ),
-        );
+      await dbW.transaction(async (tx) => {
+        await tx
+          .delete(membershipsTable)
+          .where(
+            and(
+              eq(membershipsTable.userId, input.userId),
+              eq(membershipsTable.workspaceId, input.workspaceId),
+            ),
+          );
+
+        await audit(tx, ctx, {
+          workspaceId: input.workspaceId,
+          action: "member.removed",
+          resource: { type: "membership", id: input.userId },
+        });
+      });
 
       return { success: true };
     }),

@@ -6,6 +6,7 @@ import { dbW } from "@/server/db";
 import { invitationsTable, membershipsTable } from "@watchdog/db";
 import { sendInvitationEmail } from "@/server/email";
 import { randomBytes } from "node:crypto";
+import { audit } from "@/server/audit";
 
 export const invitationsRouter = createTRPCRouter({
   create: protectedProcedure
@@ -19,13 +20,32 @@ export const invitationsRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const token = randomBytes(32).toString("hex");
 
-      await dbW.insert(invitationsTable).values({
-        workspaceId: input.workspaceId,
-        email: input.email,
-        role: input.role,
-        token,
-        invitedBy: ctx.session.user.id,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 días
+      await dbW.transaction(async (tx) => {
+        const [invitation] = await tx
+          .insert(invitationsTable)
+          .values({
+            workspaceId: input.workspaceId,
+            email: input.email,
+            role: input.role,
+            token,
+            invitedBy: ctx.session.user.id,
+            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 días
+          })
+          .returning({ id: invitationsTable.id });
+
+        if (!invitation) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "No se pudo crear la invitación",
+          });
+        }
+
+        await audit(tx, ctx, {
+          workspaceId: input.workspaceId,
+          action: "invitation.created",
+          resource: { type: "invitation", id: invitation.id },
+          metadata: { email: input.email, role: input.role },
+        });
       });
 
       await sendInvitationEmail(input.email, token);
@@ -50,10 +70,26 @@ export const invitationsRouter = createTRPCRouter({
 
   revoke: protectedProcedure
     .input(z.object({ invitationId: z.string().uuid() }))
-    .mutation(async ({ input }) => {
-      await dbW
-        .delete(invitationsTable)
-        .where(eq(invitationsTable.id, input.invitationId));
+    .mutation(async ({ ctx, input }) => {
+      await dbW.transaction(async (tx) => {
+        const [invitation] = await tx
+          .delete(invitationsTable)
+          .where(eq(invitationsTable.id, input.invitationId))
+          .returning({ workspaceId: invitationsTable.workspaceId });
+
+        if (!invitation) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Invitación no encontrada",
+          });
+        }
+
+        await audit(tx, ctx, {
+          workspaceId: invitation.workspaceId,
+          action: "invitation.revoked",
+          resource: { type: "invitation", id: input.invitationId },
+        });
+      });
 
       return { success: true };
     }),
@@ -78,22 +114,30 @@ export const invitationsRouter = createTRPCRouter({
           message: "Invitación inválida o expirada",
         });
       }
+      await dbW.transaction(async (tx) => {
+        // Crear el membership
+        await tx
+          .insert(membershipsTable)
+          .values({
+            userId: ctx.session.user.id,
+            workspaceId: invitation.workspaceId,
+            role: invitation.role,
+          })
+          .onConflictDoNothing();
 
-      // Crear el membership
-      await dbW
-        .insert(membershipsTable)
-        .values({
-          userId: ctx.session.user.id,
+        // Marcar como aceptada
+        await tx
+          .update(invitationsTable)
+          .set({ acceptedAt: new Date() })
+          .where(eq(invitationsTable.id, invitation.id));
+
+        await audit(tx, ctx, {
           workspaceId: invitation.workspaceId,
-          role: invitation.role,
-        })
-        .onConflictDoNothing();
-
-      // Marcar como aceptada
-      await dbW
-        .update(invitationsTable)
-        .set({ acceptedAt: new Date() })
-        .where(eq(invitationsTable.id, invitation.id));
+          action: "invitation.accepted",
+          resource: { type: "invitation", id: invitation.id },
+          metadata: { role: invitation.role },
+        });
+      });
 
       return { workspaceId: invitation.workspaceId };
     }),
