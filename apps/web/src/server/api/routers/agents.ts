@@ -5,6 +5,7 @@ import { createTRPCRouter, protectedProcedure, workspaceProcedure } from "@/serv
 import { dbW } from "@/server/db";
 import { agentsTable } from "@watchdog/db";
 import { randomBytes, createHash } from "node:crypto";
+import { audit } from "@/server/audit";
 
 const hashApiKey = (key: string) =>
   createHash("sha256").update(key).digest("hex");
@@ -18,20 +19,35 @@ export const agentsRouter = createTRPCRouter({
         description: z.string().default(""),
       }),
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
       const plainKey = "wd_" + randomBytes(32).toString("hex");
       const hashedKey = hashApiKey(plainKey);
 
-      const [agent] = await dbW
-        .insert(agentsTable)
-        .values({
-          workspaceId: input.workspaceId,
-          name: input.name,
-          description: input.description,
-          apiKey: hashedKey,
-        })
-        .returning({ id: agentsTable.id, name: agentsTable.name });
+      const agent = await dbW.transaction(async (tx) => {
+        const [agent] = await tx
+          .insert(agentsTable)
+          .values({
+            workspaceId: input.workspaceId,
+            name: input.name,
+            description: input.description,
+            apiKey: hashedKey,
+          })
+          .returning({ id: agentsTable.id, name: agentsTable.name });
 
+        if (!agent) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "No se pudo crear el agente",
+          });
+        }
+
+        await audit(tx, ctx, {
+          workspaceId: input.workspaceId,
+          action: "apikey.created",
+          resource: { type: "agent", id: agent.id },
+        });
+        return agent;
+      });
       // NA SOLA VEZ
       return { agent, apiKey: plainKey };
     }),
@@ -88,7 +104,7 @@ export const agentsRouter = createTRPCRouter({
 
   rotate: protectedProcedure
     .input(z.object({ agentId: z.string().uuid() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
       // 1. Verificamos que el agente existe y no está revocado
       const [agent] = await dbW
         .select()
@@ -115,17 +131,25 @@ export const agentsRouter = createTRPCRouter({
       const hashedKey = hashApiKey(plainKey);
 
       // 4. Reemplazamos el hash viejo
-      await dbW
-        .update(agentsTable)
-        .set({ apiKey: hashedKey })
-        .where(eq(agentsTable.id, input.agentId));
+      await dbW.transaction(async (tx) => {
+        await tx
+          .update(agentsTable)
+          .set({ apiKey: hashedKey })
+          .where(eq(agentsTable.id, input.agentId));
+
+        await audit(tx, ctx, {
+          workspaceId: agent.workspaceId,
+          action: "apikey.rotated",
+          resource: { type: "agent", id: input.agentId },
+        });
+      });
 
       // 5. Retornamos la nueva key en plaintext UNA SOLA VEZ
       return { apiKey: plainKey };
     }),
   revoke: protectedProcedure
     .input(z.object({ agentId: z.string().uuid() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
       const [agent] = await dbW
         .select()
         .from(agentsTable)
@@ -143,11 +167,18 @@ export const agentsRouter = createTRPCRouter({
           message: "Agente no encontrado o ya revocado",
         });
       }
+      await dbW.transaction(async (tx) => {
+        await tx
+          .update(agentsTable)
+          .set({ revokedAt: new Date() })
+          .where(eq(agentsTable.id, input.agentId));
 
-      await dbW
-        .update(agentsTable)
-        .set({ revokedAt: new Date() })
-        .where(eq(agentsTable.id, input.agentId));
+        await audit(tx, ctx, {
+          workspaceId: agent.workspaceId,
+          action: "apikey.revoked",
+          resource: { type: "agent", id: input.agentId },
+        });
+      });
 
       return { success: true };
     }),

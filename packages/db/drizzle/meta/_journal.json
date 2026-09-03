@@ -155,6 +155,27 @@
       "when": 1786554339504,
       "tag": "0021_metrics_retention_policies",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1788370436556,
+      "tag": "0022_cold_mikhail_rasputin",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1788373098641,
+      "tag": "0023_audit_log_append_only",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1788401620328,
+      "tag": "0024_first_nightcrawler",
+      "breakpoints": true
     }
   ]
 }
