@@ -76,6 +76,7 @@ const metricsStreamPlugin: FastifyPluginAsync<{
               metricsType: envelope.type,
               metricValue,
               hostName,
+              correlationId: request.id,
             },
             {
               removeOnComplete: 1000,

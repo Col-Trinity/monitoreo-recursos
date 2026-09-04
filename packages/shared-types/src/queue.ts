@@ -14,6 +14,7 @@ export const MetricsIngestPayloadSchema = z.object({
   metricsType: z.nativeEnum(MetricType),
   metricValue: z.number(),
   hostName: z.string(),
+  correlationId: z.string(),
 });
 
 export type MetricsIngestPayload = z.infer<typeof MetricsIngestPayloadSchema>;

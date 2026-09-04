@@ -10,6 +10,7 @@ type config struct {
 	APIURL               string
 	HealthPort           string
 	APIKey               string
+	Environment          string
 	interval             time.Duration
 	shutdownTimeout      time.Duration
 	collectTimeout       time.Duration
@@ -59,6 +60,7 @@ func getConfig() (*config, error) {
 		APIURL:               getenv("AGENT_API_URL", "http://localhost:3001") + "/metrics/stream",
 		HealthPort:           getenv("AGENT_HEALTH_PORT", "3003"),
 		APIKey:               getenv("AGENT_API_KEY", "dev-api-key-12345"),
+		Environment:          getenv("AGENT_ENV", "development"),
 		interval:             interval,
 		shutdownTimeout:      shutdownTimeout,
 		collectTimeout:       collectTimeout,

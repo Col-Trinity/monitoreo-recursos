@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log"
+	"log/slog"
 	"os"
 	"os/signal"
 	"sync"
@@ -33,6 +34,13 @@ func main() {
 		log.Fatalf("failed to get config: %v", err)
 	}
 
+	level := slog.LevelInfo
+	if cfg.Environment != "production" {
+		level = slog.LevelDebug
+	}
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: level})).With("service", "agent")
+	slog.SetDefault(logger)
+
 	// creamos el SSEClient
 	sse := transport.NewSSEClient(cfg.APIURL, cfg.APIKey, cfg.bufferMaxContainers)
 
@@ -59,27 +67,27 @@ func main() {
 	tickerPublish := time.NewTicker(cfg.agentPublishInterval)
 	defer tickerPublish.Stop()
 
-	log.Printf("agent started: posting to %s every %s", cfg.APIURL, cfg.interval)
+	slog.Info("agent started", "api_url", cfg.APIURL, "interval", cfg.interval)
 
 	for {
 		select {
 
 		case <-ctx.Done():
-			log.Println("agent shutting down")
+			slog.Info("agent shutting down")
 			deadline := time.After(cfg.shutdownTimeout)
 			drainTicker := time.NewTicker(100 * time.Millisecond)
 			defer drainTicker.Stop()
 			for {
 				select {
 				case <-deadline:
-					log.Println("shutdown timeout, discarding buffer")
+					slog.Warn("shutdown timeout, discarding buffer")
 					return
 				case <-drainTicker.C:
 					size := sse.BufferSize()
 					if size == 0 {
 						return
 					}
-					log.Printf("draining %d items", size)
+					slog.Info("draining buffer", "size", size)
 					containers := sse.Peek(cfg.agentServerMaxCycles)
 					sse.Publish(containers)
 					timestamps := make([]int64, 0, len(containers))
@@ -91,7 +99,7 @@ func main() {
 			}
 
 		case <-ticker.C:
-			log.Println("ticker fired, collecting metrics...")
+			slog.Debug("ticker fired, collecting metrics")
 			collectCtx, cancel := context.WithTimeout(ctx, cfg.collectTimeout)
 
 			var wg sync.WaitGroup
@@ -113,9 +121,9 @@ func main() {
 			for result := range ch {
 				if result.err != nil {
 					if errors.Is(result.err, context.DeadlineExceeded) {
-						log.Printf("collector timeout: %v", result.err)
+						slog.Warn("collector timeout", "err", result.err)
 					} else {
-						log.Printf("collector error: %v", result.err)
+						slog.Error("collector error", "err", result.err)
 					}
 					continue
 				}
@@ -130,7 +138,7 @@ func main() {
 			sse.Send(container)
 
 		case <-tickerPublish.C:
-			log.Println("publish ticker fired")
+			slog.Debug("publish ticker fired")
 			containers := sse.Peek(cfg.agentServerMaxCycles)
 			if len(containers) == 0 {
 				continue
