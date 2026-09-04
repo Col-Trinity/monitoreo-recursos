@@ -6,12 +6,28 @@ import metricsStreamPlugin from "./routes/metrics-stream";
 import adminQueuesPlugin from "./routes/admin-queue";
 import authAgentPlugin from "./plugins/auth-agent";
 import healthPlugin from "./routes/health";
+import { randomUUID } from "node:crypto";
 
 const metricsEmitter = new EventEmitter();
 
-const fastify = Fastify({ logger: true });
+const fastify = Fastify({
+  logger: {
+    level: env.NODE_ENV === "production" ? "info" : "debug",
+    transport:
+      env.NODE_ENV === "development"
+        ? { target: "pino-pretty", options: { translateTime: "HH:MM:ss", ignore: "pid,hostname" } }
+        : undefined,
+    base: { service: "api" },
+  },
+  genReqId: () => randomUUID(), //generate Request Id
+  requestIdLogLabel: "correlation_id",
+});
 
 await fastify.register(cors);
+
+fastify.addHook("onSend", async (request, reply) => {
+  reply.header("x-correlation-id", request.id);
+});
 
 fastify.addContentTypeParser("application/x-ndjson", (_request, payload, done) => {
   done(null, payload);
@@ -24,7 +40,6 @@ await fastify.register(metricsStreamPlugin, {
 
 await fastify.register(adminQueuesPlugin);
 await fastify.register(healthPlugin);
-
 
 fastify.get("/metrics/sse", (request, reply) => {
   reply.hijack();
