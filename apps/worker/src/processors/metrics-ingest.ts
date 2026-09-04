@@ -3,6 +3,7 @@ import { dbWrite, metricsTable } from "@watchdog/db";
 import { Worker, type Job, Queue } from "bullmq";
 import { env } from "@watchdog/env";
 import { type Redis } from "ioredis";
+import { logger } from "../logger";
 
 const buffer: MetricsIngestPayload[] = [];
 let bufferBytes = 0;
@@ -22,7 +23,7 @@ export async function flush() {
       })),
     )
     .onConflictDoNothing();
-  console.log(`[worker] flushed ${batch.length} metrics`);
+  logger.info({ count: batch.length }, "flushed metrics");
 }
 
 export function createWorker(connection: Redis): Worker {
@@ -30,6 +31,7 @@ export function createWorker(connection: Redis): Worker {
     metricsIngestQueue.name,
     async (job: Job) => {
       const data = metricsIngestQueue.parse(job.data);
+      logger.info({ correlation_id: data.correlationId, agentId: data.agentId }, "job received");
       buffer.push(data);
       bufferBytes += Buffer.byteLength(JSON.stringify(data));
 
@@ -48,7 +50,7 @@ export function createWorker(connection: Redis): Worker {
     },
   );
   worker.on("failed", async (job, err) => {
-    console.error(`[worker] ${job?.name}#${job?.id} failed:`, err);
+    logger.error({ correlation_id: job?.data?.correlationId, jobId: job?.id, err }, "job failed");
     if (job && job.attemptsMade >= 3) {
       const dlq = new Queue(QUEUES.METRICS_INGEST.dlq, { connection });
       await dlq.add(metricsIngestQueue.jobName, job.data);
