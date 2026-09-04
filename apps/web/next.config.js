@@ -1,8 +1,7 @@
-// Load root monorepo .env BEFORE Next picks up its own env handling.
-// Single source of truth across apps.
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { config as loadDotenv } from "dotenv";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 loadDotenv({ path: path.resolve(__dirname, "../../.env") });
@@ -20,4 +19,12 @@ const config = {
   ],
 };
 
-export default config;
+export default withSentryConfig(config, {
+  org: "daztan-llc",
+  project: "watchdog-api",
+  silent: !process.env.CI,
+  widenClientFileUpload: true,
+  sourcemaps: { disable: true },
+  disableLogger: true,
+  automaticVercelMonitors: false,
+});
