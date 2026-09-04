@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
+	"log/slog"
 	"net/http"
 	"sync/atomic"
 	"time"
@@ -102,7 +102,7 @@ func (s *SSEClient) Send(metric protocol.MetricsContainer) {
 
 // Run mantiene la conexión persistente con backoff exponencial
 func (s *SSEClient) Run(ctx context.Context, apiURL string) {
-	log.Printf("SSEClient Run started, apiURL: %s", apiURL)
+	slog.Info("SSEClient run started", "api_url", apiURL)
 	backoff := 1 * time.Second
 	maxBackoff := 60 * time.Second
 
@@ -110,7 +110,7 @@ func (s *SSEClient) Run(ctx context.Context, apiURL string) {
 		err := s.connect(ctx, apiURL)
 		s.connected.Store(false)
 		if err != nil {
-			log.Printf("connection failed: %v, retrying in %s (buffered: %d)", err, backoff, s.BufferSize())
+			slog.Warn("connection failed, retrying", "err", err, "backoff", backoff, "buffered", s.BufferSize())
 			s.reconnects++
 			select {
 			case <-ctx.Done():
@@ -126,7 +126,7 @@ func (s *SSEClient) Run(ctx context.Context, apiURL string) {
 
 // connect establece la conexión y drena el buffer
 func (s *SSEClient) connect(ctx context.Context, apiURL string) error {
-	log.Printf("attempting connection to %s", apiURL)
+	slog.Debug("attempting connection", "api_url", apiURL)
 	pr, pw := io.Pipe()
 	errCh := make(chan error, 1)
 
@@ -144,17 +144,19 @@ func (s *SSEClient) connect(ctx context.Context, apiURL string) error {
 			errCh <- err
 			return
 		}
+		correlationID := resp.Header.Get("X-Correlation-Id")
+		slog.Info("Received response from server", "correlation_id", correlationID, "status", resp.StatusCode)
 		_ = resp.Body.Close()
 		_ = pw.Close()
 		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 			errCh <- fmt.Errorf("server responded with status %s", resp.Status)
 			return
 		}
-		log.Printf("stream closed by server: %s", resp.Status)
+		slog.Info("stream closed by server", "status", resp.Status)
 		errCh <- nil
 	}()
 
-	log.Println("connected to server_________________________________")
+	slog.Info("connected to server")
 	s.connected.Store(true)
 	for {
 		select {
@@ -208,7 +210,7 @@ func (s *SSEClient) Publish(containers []protocol.MetricsContainer) {
 		select {
 		case s.metrics <- container:
 		default:
-			log.Printf("metrics channel full, dropping container")
+			slog.Warn("metrics channel full, dropping container")
 		}
 	}
 }
