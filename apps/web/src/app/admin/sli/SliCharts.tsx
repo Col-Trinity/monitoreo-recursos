@@ -78,7 +78,7 @@ function SliChartCard({
             <XAxis dataKey="hora" tick={{ fontSize: 11, fill: "#6b7280" }} />
             <YAxis tick={{ fontSize: 11, fill: "#6b7280" }} />
             <Tooltip
-              formatter={(val) => [`${val} ${unit}`, title]}
+              formatter={(val) => [`${String(val)} ${unit}`, title]}
               labelFormatter={(label) => `Hora: ${label}`}
             />
             <Line
