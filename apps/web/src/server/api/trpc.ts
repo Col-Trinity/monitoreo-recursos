@@ -139,6 +139,12 @@ export const protectedProcedure = t.procedure
     });
   });
 
+export const superAdminProcedure = protectedProcedure.use(({ ctx, next }) => {
+  if (!ctx.session.user.isSuperAdmin) {
+    throw new TRPCError({ code: "FORBIDDEN" });
+  }
+  return next({ ctx });
+});
 export const workspaceProcedure = protectedProcedure
   .input(z.object({ workspaceId: z.string().uuid() }))
   .use(async ({ ctx, input, next }) => {
