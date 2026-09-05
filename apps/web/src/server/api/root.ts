@@ -5,6 +5,7 @@ import { userWorkspacesRouter } from "./routers/workspace";
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 import { agentsRouter } from "./routers/agents";
 import { auditLogRouter } from "./routers/auditLog";
+import { sliRouter } from "./routers/sli";
 
 export const appRouter = createTRPCRouter({
   metrics: metricsRouter,
@@ -13,6 +14,7 @@ export const appRouter = createTRPCRouter({
   invitations: invitationsRouter,
   agents: agentsRouter,
   auditLog: auditLogRouter,
+  sli: sliRouter,
 });
 
 export type AppRouter = typeof appRouter;

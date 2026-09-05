@@ -24,12 +24,13 @@
   },
   "dependencies": {
     "@watchdog/env": "workspace:*",
+    "bcryptjs": "^3.0.3",
     "drizzle-orm": "^0.45.2",
     "postgres": "^3.4.9"
   },
   "devDependencies": {
-    "@watchdog/tsconfig": "workspace:*",
     "@types/node": "^20.14.10",
+    "@watchdog/tsconfig": "workspace:*",
     "drizzle-kit": "^0.31.10",
     "tsx": "^4.21.0",
     "typescript": "^5.8.2",

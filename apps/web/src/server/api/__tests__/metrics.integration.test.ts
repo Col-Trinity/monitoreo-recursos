@@ -129,6 +129,7 @@ describe("metrics router RBAC (integration)", () => {
         user: {
           id: userId,
           emailVerified: null,
+          isSuperAdmin: false,
           name: "Test User",
           email: "test-rbac@test.com",
         },
@@ -155,6 +156,7 @@ describe("metrics router RBAC (integration)", () => {
         user: {
           id: userId,
           emailVerified: null,
+          isSuperAdmin: false,
           name: "Test User",
           email: "test-rbac@test.com",
         },
@@ -181,6 +183,7 @@ describe("metrics router RBAC (integration)", () => {
         user: {
           id: userId,
           emailVerified: null,
+          isSuperAdmin: false,
           name: "Test User",
           email: "test-rbac@test.com",
         },

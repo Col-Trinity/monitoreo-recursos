@@ -4,8 +4,10 @@ import { metricsTable } from "./schema/metrics";
 import { workspacesTable, agentsTable, membershipsTable } from "./schema/tenancy";
 import { usersTable } from "./schema";
 import { createHash } from "node:crypto";
+import bcrypt from "bcryptjs";
 
 const hashApiKey = (key: string) => createHash("sha256").update(key).digest("hex");
+const hashPassword = (password: string) => bcrypt.hash(password, 12);
 
 async function seed() {
   const db = createDb(env.DATABASE_URL, { max: 1 });
@@ -29,7 +31,7 @@ async function seed() {
     .values({
       name: "dev user",
       email: "dev@watchdog.test",
-      passwordHash: "password",
+      passwordHash: await hashPassword("password"),
     })
     .onConflictDoNothing()
     .returning();
