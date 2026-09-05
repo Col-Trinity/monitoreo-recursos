@@ -10,6 +10,7 @@ export const usersTable = p.pgTable("users", {
   emailVerified: p.timestamp("email_verified", { withTimezone: true }),
   image: p.varchar("image"),
   language: languageEnum("language"),
+  isSuperAdmin: p.boolean("is_super_admin").notNull().default(false),
   createdAt: p.timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: p
     .timestamp("updated_at", { withTimezone: true })

@@ -26,12 +26,14 @@ const adapter = DrizzleAdapter(dbW, {
 declare module "next-auth" {
   interface User {
     emailVerified: Date | null;
+    isSuperAdmin?: boolean;
   }
 
   interface Session extends DefaultSession {
     user: {
       id: string;
       emailVerified: Date | null;
+      isSuperAdmin: boolean;
     } & DefaultSession["user"];
   }
 }
@@ -148,6 +150,7 @@ export const authConfig = {
         id: user.id,
         emailVerified:
           (user as { emailVerified?: Date | null }).emailVerified ?? null,
+        isSuperAdmin: (user as { isSuperAdmin?: boolean }).isSuperAdmin ?? false,
       },
     }),
   },
