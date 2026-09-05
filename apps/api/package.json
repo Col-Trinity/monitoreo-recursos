@@ -18,6 +18,7 @@
     "@bull-board/api": "^7.1.5",
     "@bull-board/fastify": "^7.1.5",
     "@fastify/cors": "^11.2.0",
+    "@sentry/node": "^10.73.0",
     "@watchdog/db": "workspace:*",
     "@watchdog/env": "workspace:*",
     "@watchdog/shared-types": "workspace:*",

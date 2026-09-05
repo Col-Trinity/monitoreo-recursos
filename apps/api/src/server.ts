@@ -1,6 +1,13 @@
+import * as Sentry from "@sentry/node";
+import { env } from "@watchdog/env";
+
+Sentry.init({
+  dsn: env.SENTRY_DSN,
+  environment: process.env.NODE_ENV ?? "development",
+});
+
 import Fastify from "fastify";
 import cors from "@fastify/cors";
-import { env } from "@watchdog/env";
 import { EventEmitter } from "node:events";
 import metricsStreamPlugin from "./routes/metrics-stream";
 import adminQueuesPlugin from "./routes/admin-queue";
@@ -34,10 +41,7 @@ fastify.addContentTypeParser("application/x-ndjson", (_request, payload, done) =
 });
 
 await fastify.register(authAgentPlugin);
-await fastify.register(metricsStreamPlugin, {
-  metricsEmitter,
-});
-
+await fastify.register(metricsStreamPlugin, { metricsEmitter });
 await fastify.register(adminQueuesPlugin);
 await fastify.register(healthPlugin);
 
@@ -60,9 +64,15 @@ fastify.get("/metrics/sse", (request, reply) => {
   });
 });
 
+fastify.setErrorHandler((error, _request, reply) => {
+  Sentry.captureException(error);
+  void reply.status(500).send({ error: "Internal Server Error" });
+});
+
 try {
   await fastify.listen({ port: env.API_PORT, host: env.API_HOST });
 } catch (err) {
+  Sentry.captureException(err);
   fastify.log.error(err);
   process.exit(1);
 }

@@ -26,6 +26,8 @@ const schema = z.object({
     .default(10 * 1024 * 1024),
 
   RESEND_API_KEY: z.string().optional(),
+  SENTRY_DSN: z.string().optional(),
+  NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
   NEXT_PUBLIC_APP_URL: z.string().url().default("http://localhost:3000"),
 });
 
