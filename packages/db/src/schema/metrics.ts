@@ -56,8 +56,8 @@ export const metrics1dView = p
   .existing();
 
 export const metricEnum = p.pgEnum("metric_type", ["memory", "disk", "cpu", "network"]);
-export const operatorEnum = p.pgEnum("operator_enum", ["gt", "lt", "eq", "gte", "lte"]);
-export const alertsRuleTable = p.pgTable("alerts_rules", {
+export const operatorEnum = p.pgEnum("operator", ["gt", "lt", "eq", "gte", "lte"]);
+export const alertRulesTable = p.pgTable("alert_rules", {
   id: p.uuid("id").primaryKey().defaultRandom(),
   name: p.varchar("name").notNull(),
   description: p.varchar("description"),
@@ -86,25 +86,24 @@ export const alertsRuleTable = p.pgTable("alerts_rules", {
 });
 
 export const statusEnum = p.pgEnum("status", ["active", "resolved", "ack"]);
-export const alertEventTable = p.pgTable(
+export const alertEventsTable = p.pgTable(
   "alert_events",
   {
     id: p.uuid("id").primaryKey().defaultRandom(),
     alertRuleId: p
       .uuid("alert_rule_id")
       .notNull()
-      .references(() => alertsRuleTable.id),
-
-    userIdToNotify: p
-      .uuid("user_id_to_notify")
+      .references(() => alertRulesTable.id),
+    agentId: p
+      .uuid("agent_id")
       .notNull()
-      .references(() => usersTable.id),
-    triggerValue: p.integer("trigger_value"),
-    startedAt: p.timestamp("started_at", { withTimezone: true }).notNull(),
+      .references(() => agentsTable.id),
+    triggerValue: p.real("trigger_value").notNull(),
+    status: statusEnum("status").notNull().default("active"),
+    startedAt: p.timestamp("started_at", { withTimezone: true }).defaultNow().notNull(),
     ackAt: p.timestamp("ack_at", { withTimezone: true }),
     resolvedAt: p.timestamp("resolved_at", { withTimezone: true }),
-    status: statusEnum("status"),
-    createdAt: p.timestamp("created_at", { withTimezone: true }),
+    createdAt: p.timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: p
       .timestamp("updated_at", { withTimezone: true })
       .defaultNow()
@@ -121,11 +120,11 @@ export const alertEventTable = p.pgTable(
 export type Metric = typeof metricsTable.$inferSelect;
 export type NewMetric = typeof metricsTable.$inferInsert;
 
-export type AlertRule = typeof alertsRuleTable.$inferSelect;
-export type NewAlertRule = typeof alertsRuleTable.$inferInsert;
+export type AlertRule = typeof alertRulesTable.$inferSelect;
+export type NewAlertRule = typeof alertRulesTable.$inferInsert;
 
-export type AlertEvent = typeof alertEventTable.$inferSelect;
-export type NewAlertEvent = typeof alertEventTable.$inferInsert;
+export type AlertEvent = typeof alertEventsTable.$inferSelect;
+export type NewAlertEvent = typeof alertEventsTable.$inferInsert;
 
 export const auditLogTable = p.pgTable(
   "audit_log",
