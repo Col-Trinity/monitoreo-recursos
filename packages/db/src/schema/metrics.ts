@@ -45,29 +45,38 @@ const aggregatedMetricsColumns = {
   sampleCount: p.bigint("sample_count", { mode: "number" }),
 };
 
-export const metrics1mView = p.pgMaterializedView("metrics_1m", aggregatedMetricsColumns).existing();
-export const metrics1hView = p.pgMaterializedView("metrics_1h", aggregatedMetricsColumns).existing();
-export const metrics1dView = p.pgMaterializedView("metrics_1d", aggregatedMetricsColumns).existing();
+export const metrics1mView = p
+  .pgMaterializedView("metrics_1m", aggregatedMetricsColumns)
+  .existing();
+export const metrics1hView = p
+  .pgMaterializedView("metrics_1h", aggregatedMetricsColumns)
+  .existing();
+export const metrics1dView = p
+  .pgMaterializedView("metrics_1d", aggregatedMetricsColumns)
+  .existing();
 
-// TODO: Delete `triggerEnum` and use `metricsEnum` instead
-// Evaluate if triggerEnum should merge with metricsEnum - keep separate for now
-// since triggers can have `custom` type which doesn't apply to metrics
-// TODO: Maybe in the future we need to referenciate `agentId` too
-export const triggerEnum = p.pgEnum("trigger_type", ["memory", "disk", "cpu", "network", "custom"]);
-export const alertsRuleTable = p.pgTable("alerts_rules", {
+export const metricEnum = p.pgEnum("metric_type", ["memory", "disk", "cpu", "network"]);
+export const operatorEnum = p.pgEnum("operator", ["gt", "lt", "eq", "gte", "lte"]);
+export const alertRulesTable = p.pgTable("alert_rules", {
   id: p.uuid("id").primaryKey().defaultRandom(),
+  name: p.varchar("name").notNull(),
+  description: p.varchar("description"),
+  agentId: p.uuid("agent_id").references(() => agentsTable.id),
   workspaceId: p
     .uuid("workspace_id")
     .notNull()
     .references(() => workspacesTable.id),
-  createByUserId: p
-    .uuid("created_by_user_id")
+  createdBy: p
+    .uuid("created_by")
     .notNull()
     .references(() => usersTable.id),
-  notifiedUserId: p.varchar("notified_user_id"),
-  triggerType: triggerEnum("trigger_type"),
-  metadata: p.json("metadata"),
-  createdAt: p.timestamp("created_at", { withTimezone: true }),
+  metricType: metricEnum("metric_type").notNull(),
+  operator: operatorEnum("operator").notNull(),
+  threshold: p.real("threshold").notNull(),
+  enabled: p.boolean("enabled").notNull().default(true),
+  actions: p.jsonb("actions").notNull().default([]),
+  durationSeconds: p.integer("duration_seconds").notNull(),
+  createdAt: p.timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: p
     .timestamp("updated_at", { withTimezone: true })
     .defaultNow()
@@ -77,25 +86,24 @@ export const alertsRuleTable = p.pgTable("alerts_rules", {
 });
 
 export const statusEnum = p.pgEnum("status", ["active", "resolved", "ack"]);
-export const alertEventTable = p.pgTable(
+export const alertEventsTable = p.pgTable(
   "alert_events",
   {
     id: p.uuid("id").primaryKey().defaultRandom(),
     alertRuleId: p
       .uuid("alert_rule_id")
       .notNull()
-      .references(() => alertsRuleTable.id),
-
-    userIdToNotify: p
-      .uuid("user_id_to_notify")
+      .references(() => alertRulesTable.id),
+    agentId: p
+      .uuid("agent_id")
       .notNull()
-      .references(() => usersTable.id),
-    triggerValue: p.integer("trigger_value"),
-    startedAt: p.timestamp("started_at", { withTimezone: true }).notNull(),
+      .references(() => agentsTable.id),
+    triggerValue: p.real("trigger_value").notNull(),
+    status: statusEnum("status").notNull().default("active"),
+    startedAt: p.timestamp("started_at", { withTimezone: true }).defaultNow().notNull(),
     ackAt: p.timestamp("ack_at", { withTimezone: true }),
     resolvedAt: p.timestamp("resolved_at", { withTimezone: true }),
-    status: statusEnum("status"),
-    createdAt: p.timestamp("created_at", { withTimezone: true }),
+    createdAt: p.timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: p
       .timestamp("updated_at", { withTimezone: true })
       .defaultNow()
@@ -112,11 +120,11 @@ export const alertEventTable = p.pgTable(
 export type Metric = typeof metricsTable.$inferSelect;
 export type NewMetric = typeof metricsTable.$inferInsert;
 
-export type AlertRule = typeof alertsRuleTable.$inferSelect;
-export type NewAlertRule = typeof alertsRuleTable.$inferInsert;
+export type AlertRule = typeof alertRulesTable.$inferSelect;
+export type NewAlertRule = typeof alertRulesTable.$inferInsert;
 
-export type AlertEvent = typeof alertEventTable.$inferSelect;
-export type NewAlertEvent = typeof alertEventTable.$inferInsert;
+export type AlertEvent = typeof alertEventsTable.$inferSelect;
+export type NewAlertEvent = typeof alertEventsTable.$inferInsert;
 
 export const auditLogTable = p.pgTable(
   "audit_log",
@@ -125,9 +133,7 @@ export const auditLogTable = p.pgTable(
     workspaceId: p
       .uuid("workspace_id")
       .references(() => workspacesTable.id, { onDelete: "set null" }),
-    userId: p
-      .uuid("user_id")
-      .references(() => usersTable.id, { onDelete: "set null" }),
+    userId: p.uuid("user_id").references(() => usersTable.id, { onDelete: "set null" }),
     action: p.text("action").notNull(),
     resourceType: p.text("resource_type").notNull(),
     resourceId: p.text("resource_id"),
