@@ -26,16 +26,17 @@ export default async function AuditLogPage({ params }: Props) {
       ),
     );
 
-  if (!membership || (membership.role !== "admin" && membership.role !== "owner")) {
+  if (
+    !membership ||
+    (membership.role !== "admin" && membership.role !== "owner")
+  ) {
     notFound();
   }
 
   return (
     <div className="min-h-screen bg-gray-50 px-6 py-8">
       <div className="mx-auto max-w-5xl">
-        <h1 className="mb-6 text-2xl font-semibold text-gray-900">
-          Audit Log
-        </h1>
+        <h1 className="mb-6 text-2xl font-semibold text-gray-900">Audit Log</h1>
         <AuditLogTable workspaceId={workspaceId} />
       </div>
     </div>

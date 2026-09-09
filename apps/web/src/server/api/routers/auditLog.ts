@@ -15,9 +15,7 @@ export const auditLogRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
-      const filters = [
-        eq(auditLogTable.workspaceId, ctx.workspace.id),
-      ];
+      const filters = [eq(auditLogTable.workspaceId, ctx.workspace.id)];
 
       if (input.action) {
         filters.push(eq(auditLogTable.action, input.action));

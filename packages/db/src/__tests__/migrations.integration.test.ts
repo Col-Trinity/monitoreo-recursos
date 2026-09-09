@@ -76,7 +76,8 @@ describe("migrations", () => {
       const oneMinuteRows = await testSql`SELECT * FROM metrics_1m WHERE agent_id = ${agent.id}`;
       expect(oneMinuteRows).toHaveLength(60);
 
-      const oneHourRows = await testSql`SELECT * FROM metrics_1h WHERE agent_id = ${agent.id} LIMIT 10`;
+      const oneHourRows =
+        await testSql`SELECT * FROM metrics_1h WHERE agent_id = ${agent.id} LIMIT 10`;
       expect(oneHourRows.length).toBeGreaterThan(0);
       expect(oneHourRows[0]).toMatchObject({
         agent_id: agent.id,

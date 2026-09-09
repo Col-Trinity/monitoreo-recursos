@@ -61,7 +61,14 @@ export default function AlertRulesPage() {
         <AlertRuleForm
           onSubmit={(data) => {
             setError("");
-            create.mutate({ workspaceId: workspaceId ?? "", ...data, actions: data.actions as any });
+            create.mutate({
+              workspaceId: workspaceId ?? "",
+              ...data,
+              actions: data.actions.map((action) => ({
+                type: action.type,
+                config: action.config as never,
+              })),
+            });
           }}
           isPending={create.isPending}
         />
@@ -69,8 +76,16 @@ export default function AlertRulesPage() {
         <div className="mt-8">
           <AlertRulesTable
             rules={rules ?? []}
-            onToggle={(id, enabled) => toggleEnabled.mutate({ workspaceId: workspaceId ?? "", id, enabled })}
-            onDelete={(id) => deleteRule.mutate({ workspaceId: workspaceId ?? "", id })}
+            onToggle={(id, enabled) =>
+              toggleEnabled.mutate({
+                workspaceId: workspaceId ?? "",
+                id,
+                enabled,
+              })
+            }
+            onDelete={(id) =>
+              deleteRule.mutate({ workspaceId: workspaceId ?? "", id })
+            }
             isPending={toggleEnabled.isPending || deleteRule.isPending}
           />
         </div>

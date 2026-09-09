@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'apps/agent/**'
+      - "apps/agent/**"
   workflow_dispatch:
 
 jobs:

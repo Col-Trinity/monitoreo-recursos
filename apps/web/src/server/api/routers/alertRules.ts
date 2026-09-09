@@ -5,11 +5,19 @@ import { alertRulesTable } from "@watchdog/db";
 import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 
-
 const alertActionSchema = z.discriminatedUnion("type", [
-  z.object({ type: z.literal("email"), config: z.object({ to: z.string().email() }) }),
-  z.object({ type: z.literal("webhook"), config: z.object({ url: z.string().url() }) }),
-  z.object({ type: z.literal("betterstack"), config: z.object({ incident_name: z.string().min(1) }) }),
+  z.object({
+    type: z.literal("email"),
+    config: z.object({ to: z.string().email() }),
+  }),
+  z.object({
+    type: z.literal("webhook"),
+    config: z.object({ url: z.string().url() }),
+  }),
+  z.object({
+    type: z.literal("betterstack"),
+    config: z.object({ incident_name: z.string().min(1) }),
+  }),
 ]);
 
 const alertRuleSchema = z.object({
@@ -24,13 +32,12 @@ const alertRuleSchema = z.object({
 });
 
 export const alertRulesRouter = createTRPCRouter({
-  list: adminProcedure
-    .query(async ({ ctx }) => {
-      return await dbW
-        .select()
-        .from(alertRulesTable)
-        .where(eq(alertRulesTable.workspaceId, ctx.workspace.id));
-    }),
+  list: adminProcedure.query(async ({ ctx }) => {
+    return await dbW
+      .select()
+      .from(alertRulesTable)
+      .where(eq(alertRulesTable.workspaceId, ctx.workspace.id));
+  }),
   create: adminProcedure
     .input(alertRuleSchema)
     .mutation(async ({ ctx, input }) => {
@@ -75,9 +82,7 @@ export const alertRulesRouter = createTRPCRouter({
           durationSeconds: input.durationSeconds,
           actions: input.actions,
         })
-        .where(
-          eq(alertRulesTable.id, input.id),
-        )
+        .where(eq(alertRulesTable.id, input.id))
         .returning();
 
       if (!rule) {
@@ -92,9 +97,7 @@ export const alertRulesRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const [rule] = await dbW
         .delete(alertRulesTable)
-        .where(
-          eq(alertRulesTable.id, input.id),
-        )
+        .where(eq(alertRulesTable.id, input.id))
         .returning();
 
       if (!rule) {
@@ -112,9 +115,7 @@ export const alertRulesRouter = createTRPCRouter({
         .set({
           enabled: input.enabled,
         })
-        .where(
-          eq(alertRulesTable.id, input.id),
-        )
+        .where(eq(alertRulesTable.id, input.id))
         .returning();
 
       if (!rule) {
@@ -123,4 +124,4 @@ export const alertRulesRouter = createTRPCRouter({
 
       return rule;
     }),
-})
+});

@@ -1,7 +1,11 @@
 import { TRPCError } from "@trpc/server";
 import { and, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure, workspaceProcedure } from "@/server/api/trpc";
+import {
+  createTRPCRouter,
+  protectedProcedure,
+  workspaceProcedure,
+} from "@/server/api/trpc";
 import { dbW } from "@/server/db";
 import { agentsTable } from "@watchdog/db";
 import { randomBytes, createHash } from "node:crypto";

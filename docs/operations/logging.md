@@ -8,13 +8,13 @@ Los tres servicios de backend (`apps/api`, `apps/worker`, `apps/agent`) loguean 
 
 Todo log line trae, como mínimo:
 
-| Campo | Significado |
-|---|---|
-| `level` (api/worker) / `level` (agent) | Severidad: `debug`, `info`, `warn`, `error` |
-| `time` | Timestamp |
-| `service` | `"api"`, `"worker"` o `"agent"` — de qué proceso vino la línea |
-| `correlation_id` | Presente en los logs relacionados a una conexión de un agente puntual (ver más abajo). Ausente en logs que no están atados a ningún request (arranque del proceso, shutdown, etc.) |
-| `msg` | Mensaje corto y fijo, sin datos interpolados adentro del texto |
+| Campo                                  | Significado                                                                                                                                                                        |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `level` (api/worker) / `level` (agent) | Severidad: `debug`, `info`, `warn`, `error`                                                                                                                                        |
+| `time`                                 | Timestamp                                                                                                                                                                          |
+| `service`                              | `"api"`, `"worker"` o `"agent"` — de qué proceso vino la línea                                                                                                                     |
+| `correlation_id`                       | Presente en los logs relacionados a una conexión de un agente puntual (ver más abajo). Ausente en logs que no están atados a ningún request (arranque del proceso, shutdown, etc.) |
+| `msg`                                  | Mensaje corto y fijo, sin datos interpolados adentro del texto                                                                                                                     |
 
 Los datos variables (ids, tamaños, urls, errores) van como **campos separados** del JSON, nunca metidos dentro del string de `msg` — así se pueden filtrar/buscar sin parsear texto libre.
 
@@ -119,18 +119,28 @@ Puntos importantes:
 ## Ejemplo real, mismo `correlation_id` en los tres servicios
 
 **api** — al llegar la conexión:
+
 ```json
 {"level":30,"time":..., "service":"api","correlation_id":"8010ab06-1c1d-429a-bcba-d740bd4def5b","msg":"incoming request", ...}
 ```
 
 **worker** — al procesar cada job de esa conexión:
+
 ```json
 {"level":30,"time":..., "service":"worker","correlation_id":"8010ab06-1c1d-429a-bcba-d740bd4def5b","agentId":"c7cc79fe-a543-4b2b-a354-1b9402489820","msg":"job received"}
 ```
 
 **agent** — al recibir una respuesta de la api (error o cierre del stream):
+
 ```json
-{"time":"...","level":"INFO","msg":"received response from server","service":"agent","correlation_id":"5db544b2-044a-4612-af31-3a46482d0d0f","status":401}
+{
+  "time": "...",
+  "level": "INFO",
+  "msg": "received response from server",
+  "service": "agent",
+  "correlation_id": "5db544b2-044a-4612-af31-3a46482d0d0f",
+  "status": 401
+}
 ```
 
 Buscando ese id en los tres logs (por ejemplo con `grep` en dev, o el buscador del sistema de logs en producción) se reconstruye el recorrido completo de esa conexión puntual, sin mezclarse con las de otros agentes.

@@ -15,7 +15,9 @@ const METRICS = [
 export default async function AgentDetailPage({ params }: Props) {
   const { workspaceId, agentId } = await params;
 
-  const agent = await api.agents.getById({ workspaceId, agentId }).catch(() => null);
+  const agent = await api.agents
+    .getById({ workspaceId, agentId })
+    .catch(() => null);
 
   if (!agent) notFound();
 
@@ -33,11 +35,11 @@ export default async function AgentDetailPage({ params }: Props) {
 
   const isOnline =
     agent.lastHeartbeat !== null &&
-    new Date().getTime() - new Date(agent.lastHeartbeat).getTime() < 2 * 60 * 1000;
+    new Date().getTime() - new Date(agent.lastHeartbeat).getTime() <
+      2 * 60 * 1000;
   return (
     <div className="min-h-screen bg-gray-50 px-6 py-8">
       <div className="mx-auto max-w-3xl">
-
         {/* Metadata */}
         <div className="mb-6 rounded-xl bg-white p-5 shadow-sm">
           <h1 className="text-xl font-semibold text-gray-900">{agent.name}</h1>
@@ -55,12 +57,17 @@ export default async function AgentDetailPage({ params }: Props) {
               <span className="font-medium">Creado: </span>
               {new Date(agent.createdAt).toLocaleDateString()}
             </span>
-            <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusColor}`}>
+            <span
+              className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusColor}`}
+            >
               {status}
             </span>
             <span
-              className={`rounded-full px-2 py-0.5 text-xs font-medium ${isOnline ? "bg-green-50 text-green-600" : "bg-gray-100 text-gray-500"
-                }`}
+              className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                isOnline
+                  ? "bg-green-50 text-green-600"
+                  : "bg-gray-100 text-gray-500"
+              }`}
             >
               {isOnline ? "Online" : "Offline"}
             </span>
@@ -79,7 +86,6 @@ export default async function AgentDetailPage({ params }: Props) {
             />
           ))}
         </div>
-
       </div>
     </div>
   );

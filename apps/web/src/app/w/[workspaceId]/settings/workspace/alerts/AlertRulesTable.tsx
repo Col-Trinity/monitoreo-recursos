@@ -8,11 +8,19 @@ interface Props {
   isPending: boolean;
 }
 
-export function AlertRulesTable({ rules, onToggle, onDelete, isPending }: Props) {
+export function AlertRulesTable({
+  rules,
+  onToggle,
+  onDelete,
+  isPending,
+}: Props) {
   return (
     <div className="flex flex-col gap-3">
       {rules.map((rule) => (
-        <div key={rule.id} className="rounded-lg border border-gray-200 px-4 py-3 flex items-center justify-between">
+        <div
+          key={rule.id}
+          className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3"
+        >
           <div>
             <p className="text-sm font-medium text-gray-900">{rule.name}</p>
             <p className="text-xs text-gray-500">{rule.description}</p>

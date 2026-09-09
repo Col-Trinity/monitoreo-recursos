@@ -150,7 +150,8 @@ export const authConfig = {
         id: user.id,
         emailVerified:
           (user as { emailVerified?: Date | null }).emailVerified ?? null,
-        isSuperAdmin: (user as { isSuperAdmin?: boolean }).isSuperAdmin ?? false,
+        isSuperAdmin:
+          (user as { isSuperAdmin?: boolean }).isSuperAdmin ?? false,
       },
     }),
   },

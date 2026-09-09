@@ -26,7 +26,12 @@ const getRange = () => {
   return { from, to };
 };
 
-export default function AgentChart({ agentId, agentName, workspaceId, lastHeartbeat: initialHeartbeat }: Props) {
+export default function AgentChart({
+  agentId,
+  agentName,
+  workspaceId,
+  lastHeartbeat: initialHeartbeat,
+}: Props) {
   const [range, setRange] = useState(getRange);
 
   useEffect(() => {
@@ -39,10 +44,11 @@ export default function AgentChart({ agentId, agentName, workspaceId, lastHeartb
   // polling de agentes para mantener lastHeartbeat fresco
   const { data: agents } = api.agents.list.useQuery(
     { workspaceId },
-    { refetchInterval: 10000 }
+    { refetchInterval: 10000 },
   );
 
-  const freshHeartbeat = agents?.find((a) => a.id === agentId)?.lastHeartbeat ?? initialHeartbeat;
+  const freshHeartbeat =
+    agents?.find((a) => a.id === agentId)?.lastHeartbeat ?? initialHeartbeat;
 
   const isOnline =
     freshHeartbeat !== null &&
@@ -56,7 +62,7 @@ export default function AgentChart({ agentId, agentName, workspaceId, lastHeartb
       from: range.from,
       to: range.to,
     },
-    { refetchInterval: false }
+    { refetchInterval: false },
   );
 
   const points = (data ?? []).map((d) => ({
@@ -75,7 +81,9 @@ export default function AgentChart({ agentId, agentName, workspaceId, lastHeartb
         </Link>
         <span
           className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-            isOnline ? "bg-green-50 text-green-600" : "bg-gray-100 text-gray-500"
+            isOnline
+              ? "bg-green-50 text-green-600"
+              : "bg-gray-100 text-gray-500"
           }`}
         >
           {isOnline ? "Online" : "Offline"}
