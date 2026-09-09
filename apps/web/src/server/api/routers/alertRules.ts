@@ -16,7 +16,7 @@ const alertRuleSchema = z.object({
   name: z.string().min(1),
   description: z.string().default(""),
   metricType: z.enum(["cpu", "memory", "disk", "network"]),
-  scope: z.string().uuid().nullable(),
+  scope: z.string().uuid().nullable().optional(),
   operator: z.enum(["gt", "lt", "eq", "gte", "lte"]),
   threshold: z.number().positive(),
   durationSeconds: z.number().int().positive(),
