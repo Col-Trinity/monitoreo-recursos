@@ -109,6 +109,21 @@ export default function Navbar() {
                         </li>
                       )}
                     {currentRole &&
+                      hasPermission(
+                        currentRole,
+                        Permission.workspaceManage,
+                      ) && (
+                        <li>
+                          <Link
+                            href={`/w/${workspaceId}/settings/workspace/alerts`}
+                            className="block px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900"
+                            onClick={() => setOpen(false)}
+                          >
+                            Reglas de alerta
+                          </Link>
+                        </li>
+                      )}
+                    {currentRole &&
                       hasPermission(currentRole, Permission.membersInvite) && (
                         <li>
                           <Link
