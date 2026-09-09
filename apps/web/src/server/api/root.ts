@@ -6,6 +6,7 @@ import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 import { agentsRouter } from "./routers/agents";
 import { auditLogRouter } from "./routers/auditLog";
 import { sliRouter } from "./routers/sli";
+import { alertRulesRouter } from "./routers/alertRules";
 
 export const appRouter = createTRPCRouter({
   metrics: metricsRouter,
@@ -15,6 +16,7 @@ export const appRouter = createTRPCRouter({
   agents: agentsRouter,
   auditLog: auditLogRouter,
   sli: sliRouter,
+  alertRules: alertRulesRouter,
 });
 
 export type AppRouter = typeof appRouter;

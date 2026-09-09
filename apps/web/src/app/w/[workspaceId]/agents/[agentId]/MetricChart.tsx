@@ -29,19 +29,33 @@ interface Props {
   label: string;
 }
 
-export default function MetricChart({ agentId, workspaceId, metric, label }: Props) {
+export default function MetricChart({
+  agentId,
+  workspaceId,
+  metric,
+  label,
+}: Props) {
   const [selectedRange, setSelectedRange] = useState<RangeLabel>("1h");
 
   const hours = RANGES.find((r) => r.label === selectedRange)!.hours;
 
-  const { fromMs, toMs } = useMemo(() => ({
-    toMs: Date.now(),
-    fromMs: Date.now() - hours * 60 * 60 * 1000,
-  }), [selectedRange]);
+  const { fromMs, toMs } = useMemo(
+    () => ({
+      toMs: Date.now(),
+      fromMs: Date.now() - hours * 60 * 60 * 1000,
+    }),
+    [selectedRange],
+  );
 
   const { data, isLoading } = api.metrics.getByAgent.useQuery(
-    { agentId, workspaceId, metric, from: new Date(fromMs), to: new Date(toMs) },
-    { refetchInterval: false }
+    {
+      agentId,
+      workspaceId,
+      metric,
+      from: new Date(fromMs),
+      to: new Date(toMs),
+    },
+    { refetchInterval: false },
   );
 
   const points = (data ?? []).map((d) => ({
@@ -58,10 +72,11 @@ export default function MetricChart({ agentId, workspaceId, metric, label }: Pro
             <button
               key={r.label}
               onClick={() => setSelectedRange(r.label)}
-              className={`rounded px-2 py-0.5 text-xs font-medium transition-colors ${selectedRange === r.label
+              className={`rounded px-2 py-0.5 text-xs font-medium transition-colors ${
+                selectedRange === r.label
                   ? "bg-indigo-600 text-white"
                   : "text-gray-500 hover:bg-gray-100"
-                }`}
+              }`}
             >
               {r.label}
             </button>
@@ -101,4 +116,4 @@ export default function MetricChart({ agentId, workspaceId, metric, label }: Pro
       )}
     </div>
   );
-} 
+}

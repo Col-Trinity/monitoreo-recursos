@@ -77,7 +77,9 @@ export default function AuditLogTable({ workspaceId }: Props) {
           className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500"
         >
           {ACTION_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
           ))}
         </select>
 
@@ -87,7 +89,9 @@ export default function AuditLogTable({ workspaceId }: Props) {
           className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500"
         >
           {RESOURCE_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
           ))}
         </select>
 
@@ -116,9 +120,13 @@ export default function AuditLogTable({ workspaceId }: Props) {
 
       {/* Estado */}
       {isLoading && <p className="text-sm text-gray-400">Cargando...</p>}
-      {isError && <p className="text-sm text-red-500">Error al cargar los logs</p>}
+      {isError && (
+        <p className="text-sm text-red-500">Error al cargar los logs</p>
+      )}
       {!isLoading && data?.length === 0 && (
-        <p className="text-sm text-gray-400">No hay registros para los filtros seleccionados</p>
+        <p className="text-sm text-gray-400">
+          No hay registros para los filtros seleccionados
+        </p>
       )}
 
       {/* Tabla */}
@@ -150,8 +158,10 @@ export default function AuditLogTable({ workspaceId }: Props) {
                       <span className="text-gray-400">Usuario eliminado</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-gray-600">{log.resourceType}</td>
-                  <td className="px-4 py-3 text-gray-400 font-mono text-xs">
+                  <td className="px-4 py-3 text-gray-600">
+                    {log.resourceType}
+                  </td>
+                  <td className="px-4 py-3 font-mono text-xs text-gray-400">
                     {log.resourceId ?? "-"}
                   </td>
                 </tr>

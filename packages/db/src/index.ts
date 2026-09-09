@@ -55,3 +55,12 @@ export {
 } from "./schema/tenancy";
 
 export { auditLogTable, type AuditLog, type NewAuditLog } from "./schema/metrics";
+
+export {
+  alertRulesTable,
+  alertEventsTable,
+  type AlertRule,
+  type NewAlertRule,
+  type AlertEvent,
+  type NewAlertEvent,
+} from "./schema/metrics";

@@ -231,11 +231,11 @@ Cada una agrega `avg`, `min`, `max` y `count` (`sample_count`) por
 
 ##### ¿Cuándo usar cada nivel?
 
-| Vista         | Granularidad | Usar para                                                          |
-| ------------- | ------------- | ------------------------------------------------------------------- |
-| `metrics_1m`  | 1 minuto      | Gráficos en tiempo real / dashboard de las últimas horas            |
-| `metrics_1h`  | 1 hora        | Vistas de "último día" o "última semana", tendencias de mediano plazo |
-| `metrics_1d`  | 1 día         | Reportes históricos, comparativas de meses, retención larga         |
+| Vista        | Granularidad | Usar para                                                             |
+| ------------ | ------------ | --------------------------------------------------------------------- |
+| `metrics_1m` | 1 minuto     | Gráficos en tiempo real / dashboard de las últimas horas              |
+| `metrics_1h` | 1 hora       | Vistas de "último día" o "última semana", tendencias de mediano plazo |
+| `metrics_1d` | 1 día        | Reportes históricos, comparativas de meses, retención larga           |
 
 Regla práctica: **cuanto más largo el rango de tiempo consultado, más alto el nivel
 de agregación que conviene usar.** Consultar `metrics_1m` para un rango de 30 días
@@ -314,11 +314,11 @@ esperar 30s a que corra el job solo) o rellenar un rango histórico.
 Cada nivel tiene un `schedule_interval` distinto, y no es arbitrario — es un balance
 entre **qué tan al día están los datos** y **cuánto trabajo le exige a la base**:
 
-| Vista | `schedule_interval` | Latencia máxima | Costo |
-| ----- | -------------------- | ---------------- | ----- |
-| `metrics_1m` | 30s | ~1-3 min de atraso | Alto: corre ~2,880 veces/día |
-| `metrics_1h` | 5 min | ~1h de atraso | Medio: corre ~288 veces/día |
-| `metrics_1d` | 1h | ~1 día de atraso | Bajo: corre ~24 veces/día |
+| Vista        | `schedule_interval` | Latencia máxima    | Costo                        |
+| ------------ | ------------------- | ------------------ | ---------------------------- |
+| `metrics_1m` | 30s                 | ~1-3 min de atraso | Alto: corre ~2,880 veces/día |
+| `metrics_1h` | 5 min               | ~1h de atraso      | Medio: corre ~288 veces/día  |
+| `metrics_1d` | 1h                  | ~1 día de atraso   | Bajo: corre ~24 veces/día    |
 
 **Más `schedule_interval` (refresca seguido) = menor latencia, mayor costo.**
 `metrics_1m` alimenta dashboards en tiempo real, así que vale la pena pagar el costo
@@ -429,12 +429,12 @@ y registrarla en `_journal.json`.
 Cada nivel de agregación tiene su propia retention policy, cada vez más larga
 a medida que el dato está más comprimido:
 
-| Nivel        | Tabla         | Retención | Motivo                                          |
-| ------------ | ------------- | --------- | ------------------------------------------------ |
-| Raw          | `metrics`     | 7 días    | Alto volumen, solo útil para debug reciente       |
-| 1 minuto     | `metrics_1m`  | 30 días   | Detalle suficiente para el último mes             |
-| 1 hora       | `metrics_1h`  | 1 año     | Tendencias de mediano plazo                       |
-| 1 día        | `metrics_1d`  | Sin límite| Volumen insignificante, historial de largo plazo  |
+| Nivel    | Tabla        | Retención  | Motivo                                           |
+| -------- | ------------ | ---------- | ------------------------------------------------ |
+| Raw      | `metrics`    | 7 días     | Alto volumen, solo útil para debug reciente      |
+| 1 minuto | `metrics_1m` | 30 días    | Detalle suficiente para el último mes            |
+| 1 hora   | `metrics_1h` | 1 año      | Tendencias de mediano plazo                      |
+| 1 día    | `metrics_1d` | Sin límite | Volumen insignificante, historial de largo plazo |
 
 #### Configuración actual
 
