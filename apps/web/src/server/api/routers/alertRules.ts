@@ -5,6 +5,7 @@ import { alertRulesTable } from "@watchdog/db";
 import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 
+
 const alertActionSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("email"), config: z.object({ to: z.string().email() }) }),
   z.object({ type: z.literal("webhook"), config: z.object({ url: z.string().url() }) }),
