@@ -19,7 +19,13 @@ interface FormData {
 }
 
 export function AlertRuleForm({ onSubmit, isPending, defaultValues }: Props) {
-    const { register, handleSubmit, control, watch } = useForm<FormData>({
+    const {
+        register,
+        handleSubmit,
+        control,
+        watch,
+        formState: { errors },
+    } = useForm<FormData>({
         defaultValues: {
             metricType: "cpu",
             operator: "gt",
@@ -33,7 +39,13 @@ export function AlertRuleForm({ onSubmit, isPending, defaultValues }: Props) {
     const { fields, append, remove } = useFieldArray({
         control,
         name: "actions",
+        rules: {
+            validate: (value) =>
+                value.length > 0 || "Agregá al menos una acción para poder guardar la regla.",
+        },
     });
+
+    const actionsError = errors.actions?.root?.message;
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
@@ -110,6 +122,19 @@ export function AlertRuleForm({ onSubmit, isPending, defaultValues }: Props) {
                         + Agregar acción
                     </button>
                 </div>
+
+                {fields.length === 0 && (
+                    <p
+                        className={`rounded-lg border border-dashed px-3 py-4 text-center text-xs ${
+                            actionsError
+                                ? "border-red-300 bg-red-50 text-red-600"
+                                : "border-gray-300 text-gray-500"
+                        }`}
+                    >
+                        {actionsError ??
+                            "No hay acciones configuradas. Agrega una para recibir notificaciones."}
+                    </p>
+                )}
 
                 {fields.map((field, index) => (
                     <div key={field.id} className="rounded-lg border border-gray-200 p-3 flex flex-col gap-2">
