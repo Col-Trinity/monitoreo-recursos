@@ -33,7 +33,7 @@ export function AlertRuleForm({ onSubmit, isPending, defaultValues, agents }: Pr
       metricType: "cpu",
       operator: "gt",
       threshold: 90,
-      durationSeconds: 300,
+      durationSeconds: 60,
       actions: [],
       ...defaultValues,
     },
@@ -126,10 +126,8 @@ export function AlertRuleForm({ onSubmit, isPending, defaultValues, agents }: Pr
         </label>
         <input
           type="number"
-          {...register("durationSeconds", {
-            valueAsNumber: true,
-            required: true,
-          })}
+          min={60}
+          {...register("durationSeconds", { valueAsNumber: true, required: true, min: 60 })}
           className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
         />
       </div>
