@@ -96,11 +96,14 @@ export function AlertRuleForm({ onSubmit, isPending, defaultValues, agents }: Pr
         </select>
       </div>
       <div className="flex flex-col gap-1">
-        <label className="text-sm font-medium text-gray-700">Agente (opcional)</label>
+        <label className="text-sm font-medium text-gray-700">Agentes </label>
         <select
-          {...register("scope")}
+          {...register("scope", {
+            setValueAs: (v) => v === "" ? null : v,
+          })}
           className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
         >
+          <option value="">Todos los agentes</option>
           {(agents ?? []).map((agent) => (
             <option key={agent.id} value={agent.id}>
               {agent.name}
@@ -147,8 +150,8 @@ export function AlertRuleForm({ onSubmit, isPending, defaultValues, agents }: Pr
         {fields.length === 0 && (
           <p
             className={`rounded-lg border border-dashed px-3 py-4 text-center text-xs ${actionsError
-                ? "border-red-300 bg-red-50 text-red-600"
-                : "border-gray-300 text-gray-500"
+              ? "border-red-300 bg-red-50 text-red-600"
+              : "border-gray-300 text-gray-500"
               }`}
           >
             {actionsError ??
