@@ -26,13 +26,17 @@ async function evaluate(_job: Job) {
         .where(eq(alertRulesTable.enabled, true));
 
     logger.info({ count: rules.length }, "rules loaded");
-
     for (const rule of rules) {
         try {
             const sinceMs = Date.now() - rule.durationSeconds * 1000;
 
+            logger.info({ ruleId: rule.id, metricType: rule.metricType }, "evaluating rule");
+
             const metrics = await dbRead()
-                .select({ avg: avg(metrics1mView.avgValue) })
+                .select({
+                    avg: avg(metrics1mView.avgValue),
+                    agentId: metrics1mView.agentId,
+                })
                 .from(metrics1mView)
                 .where(
                     and(
@@ -40,47 +44,46 @@ async function evaluate(_job: Job) {
                         gt(metrics1mView.bucketStart, new Date(sinceMs)),
                         rule.agentId ? eq(metrics1mView.agentId, rule.agentId) : undefined,
                     ),
-                );
-            const avgValue = Number(metrics[0]?.avg ?? 0);
-            logger.info({ ruleId: rule.id, avgValue }, "metric evaluated");
+                )
+                .groupBy(metrics1mView.agentId);
 
-            const firing = meetsCondition(avgValue, rule.operator, rule.threshold);
-            logger.info({ ruleId: rule.id, avgValue, firing }, "condition evaluated");
+            for (const agentMetric of metrics) {
+                const avgValue = Number(agentMetric.avg ?? 0);
+                const agentId = agentMetric.agentId;
 
-            const [activeFiring] = await dbRead()
-                .select()
-                .from(alertEventsTable)
-                .where(
-                    and(
-                        eq(alertEventsTable.alertRuleId, rule.id),
-                        eq(alertEventsTable.status, "active"),
-                    ),
-                );
-            if (firing && !activeFiring) {
-                // Solo crear firing si tenemos un agentId valido 
-                const agentId = rule.agentId;
-                if (!agentId) {
-                    logger.warn({ ruleId: rule.id }, "rule has no agentId, skipping");
-                    continue;
+                const firing = meetsCondition(avgValue, rule.operator, rule.threshold);
+                logger.info({ ruleId: rule.id, agentId, avgValue, firing }, "condition evaluated");
+
+                const [activeFiring] = await dbRead()
+                    .select()
+                    .from(alertEventsTable)
+                    .where(
+                        and(
+                            eq(alertEventsTable.alertRuleId, rule.id),
+                            eq(alertEventsTable.agentId, agentId),
+                            eq(alertEventsTable.status, "active"),
+                        ),
+                    );
+
+                if (firing && !activeFiring) {
+                    await dbWrite()
+                        .insert(alertEventsTable)
+                        .values({
+                            alertRuleId: rule.id,
+                            agentId: agentId,
+                            triggerValue: avgValue,
+                            status: "active",
+                        });
+                    logger.info({ ruleId: rule.id, agentId, avgValue }, "alert fired");
                 }
 
-                await dbWrite()
-                    .insert(alertEventsTable)
-                    .values({
-                        alertRuleId: rule.id,
-                        agentId: agentId,
-                        triggerValue: avgValue,
-                        status: "active",
-                    });
-                logger.info({ ruleId: rule.id, avgValue }, "alert fired");
-            }
-
-            if (!firing && activeFiring) {
-                await dbWrite()
-                    .update(alertEventsTable)
-                    .set({ status: "resolved", resolvedAt: new Date() })
-                    .where(eq(alertEventsTable.id, activeFiring.id));
-                logger.info({ ruleId: rule.id, firingId: activeFiring.id }, "alert resolved");
+                if (!firing && activeFiring) {
+                    await dbWrite()
+                        .update(alertEventsTable)
+                        .set({ status: "resolved", resolvedAt: new Date() })
+                        .where(eq(alertEventsTable.id, activeFiring.id));
+                    logger.info({ ruleId: rule.id, agentId, firingId: activeFiring.id }, "alert resolved");
+                }
             }
 
         } catch (err) {

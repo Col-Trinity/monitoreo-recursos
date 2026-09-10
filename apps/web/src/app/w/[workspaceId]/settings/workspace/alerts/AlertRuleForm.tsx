@@ -1,10 +1,10 @@
 "use client";
 import { useForm, useFieldArray } from "react-hook-form";
-
 interface Props {
   onSubmit: (data: FormData) => void;
   isPending: boolean;
   defaultValues?: Partial<FormData>;
+  agents: { id: string; name: string }[];
 }
 
 interface FormData {
@@ -21,7 +21,7 @@ interface FormData {
   }[];
 }
 
-export function AlertRuleForm({ onSubmit, isPending, defaultValues }: Props) {
+export function AlertRuleForm({ onSubmit, isPending, defaultValues, agents }: Props) {
   const {
     register,
     handleSubmit,
@@ -95,7 +95,19 @@ export function AlertRuleForm({ onSubmit, isPending, defaultValues }: Props) {
           <option value="lte">Menor o igual a</option>
         </select>
       </div>
-
+      <div className="flex flex-col gap-1">
+        <label className="text-sm font-medium text-gray-700">Agente (opcional)</label>
+        <select
+          {...register("scope")}
+          className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+        >
+          {(agents ?? []).map((agent) => (
+            <option key={agent.id} value={agent.id}>
+              {agent.name}
+            </option>
+          ))}
+        </select>
+      </div>
       <div className="flex flex-col gap-1">
         <label className="text-sm font-medium text-gray-700">Umbral (%)</label>
         <input
@@ -134,11 +146,10 @@ export function AlertRuleForm({ onSubmit, isPending, defaultValues }: Props) {
 
         {fields.length === 0 && (
           <p
-            className={`rounded-lg border border-dashed px-3 py-4 text-center text-xs ${
-              actionsError
+            className={`rounded-lg border border-dashed px-3 py-4 text-center text-xs ${actionsError
                 ? "border-red-300 bg-red-50 text-red-600"
                 : "border-gray-300 text-gray-500"
-            }`}
+              }`}
           >
             {actionsError ??
               "No hay acciones configuradas. Agrega una para recibir notificaciones."}
