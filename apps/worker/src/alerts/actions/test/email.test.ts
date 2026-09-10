@@ -4,11 +4,13 @@ import type { AlertEvent, AlertRule } from "@watchdog/db/schema";
 import { createEmailAction } from "../email";
 
 vi.mock("resend", () => ({
-  Resend: vi.fn().mockImplementation(() => ({
-    emails: {
-      send: vi.fn().mockResolvedValue({ data: { id: "email_123" }, error: null }),
-    },
-  })),
+  Resend: vi.fn().mockImplementation(function () {
+    return {
+      emails: {
+        send: vi.fn().mockResolvedValue({ data: { id: "email_123" }, error: null }),
+      },
+    };
+  }),
 }));
 
 vi.mock("@watchdog/env", () => ({
@@ -44,14 +46,13 @@ describe("createEmailAction", () => {
   });
 
   it("tira un error si Resend responde con error", async () => {
-    vi.mocked(Resend).mockImplementationOnce(
-      () =>
-        ({
-          emails: {
-            send: vi.fn().mockResolvedValue({ data: null, error: { message: "invalid domain" } }),
-          },
-        }) as unknown as Resend,
-    );
+    vi.mocked(Resend).mockImplementationOnce(function () {
+      return {
+        emails: {
+          send: vi.fn().mockResolvedValue({ data: null, error: { message: "invalid domain" } }),
+        },
+      } as unknown as Resend;
+    });
 
     const action = createEmailAction();
 
@@ -61,14 +62,13 @@ describe("createEmailAction", () => {
   });
 
   it("tira un error si falla la conexión con Resend", async () => {
-    vi.mocked(Resend).mockImplementationOnce(
-      () =>
-        ({
-          emails: {
-            send: vi.fn().mockRejectedValue(new Error("network down")),
-          },
-        }) as unknown as Resend,
-    );
+    vi.mocked(Resend).mockImplementationOnce(function () {
+      return {
+        emails: {
+          send: vi.fn().mockRejectedValue(new Error("network down")),
+        },
+      } as unknown as Resend;
+    });
 
     const action = createEmailAction();
 
