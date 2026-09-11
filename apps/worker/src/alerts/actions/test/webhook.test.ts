@@ -50,4 +50,46 @@ describe("createWebhookAction", () => {
       action.execute({ rule, event }, { url: "https://example.com/hook" }),
     ).rejects.toThrow("Webhook network error");
   });
+
+  it("reintenta hasta 3 veces si el servidor responde con error 5xx", async () => {
+    vi.mocked(fetch).mockResolvedValue({
+      ok: false,
+      status: 503,
+      statusText: "Service Unavailable",
+    } as Response);
+
+    const action = createWebhookAction();
+
+    await expect(
+      action.execute({ rule, event }, { url: "https://example.com/hook" }),
+    ).rejects.toThrow("503");
+    expect(fetch).toHaveBeenCalledTimes(3);
+  });
+
+  it("no reintenta si el servidor responde con error 4xx", async () => {
+    vi.mocked(fetch).mockResolvedValue({
+      ok: false,
+      status: 404,
+      statusText: "Not Found",
+    } as Response);
+
+    const action = createWebhookAction();
+
+    await expect(
+      action.execute({ rule, event }, { url: "https://example.com/hook" }),
+    ).rejects.toThrow("404");
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("reintenta y se recupera si un intento posterior tiene éxito", async () => {
+    vi.mocked(fetch)
+      .mockResolvedValueOnce({ ok: false, status: 500, statusText: "Internal Server Error" } as Response)
+      .mockResolvedValueOnce({ ok: true, status: 200, statusText: "OK" } as Response);
+
+    const action = createWebhookAction();
+
+    await action.execute({ rule, event }, { url: "https://example.com/hook" });
+
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
 });
