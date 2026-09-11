@@ -1,10 +1,10 @@
 "use client";
 import { useForm, useFieldArray } from "react-hook-form";
-
 interface Props {
   onSubmit: (data: FormData) => void;
   isPending: boolean;
   defaultValues?: Partial<FormData>;
+  agents: { id: string; name: string }[];
 }
 
 interface FormData {
@@ -21,7 +21,12 @@ interface FormData {
   }[];
 }
 
-export function AlertRuleForm({ onSubmit, isPending, defaultValues }: Props) {
+export function AlertRuleForm({
+  onSubmit,
+  isPending,
+  defaultValues,
+  agents,
+}: Props) {
   const {
     register,
     handleSubmit,
@@ -33,7 +38,7 @@ export function AlertRuleForm({ onSubmit, isPending, defaultValues }: Props) {
       metricType: "cpu",
       operator: "gt",
       threshold: 90,
-      durationSeconds: 300,
+      durationSeconds: 60,
       actions: [],
       ...defaultValues,
     },
@@ -95,7 +100,22 @@ export function AlertRuleForm({ onSubmit, isPending, defaultValues }: Props) {
           <option value="lte">Menor o igual a</option>
         </select>
       </div>
-
+      <div className="flex flex-col gap-1">
+        <label className="text-sm font-medium text-gray-700">Agentes </label>
+        <select
+          {...register("scope", {
+            setValueAs: (v: string) => (v === "" ? null : v),
+          })}
+          className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+        >
+          <option value="">Todos los agentes</option>
+          {(agents ?? []).map((agent) => (
+            <option key={agent.id} value={agent.id}>
+              {agent.name}
+            </option>
+          ))}
+        </select>
+      </div>
       <div className="flex flex-col gap-1">
         <label className="text-sm font-medium text-gray-700">Umbral (%)</label>
         <input
@@ -111,9 +131,11 @@ export function AlertRuleForm({ onSubmit, isPending, defaultValues }: Props) {
         </label>
         <input
           type="number"
+          min={60}
           {...register("durationSeconds", {
             valueAsNumber: true,
             required: true,
+            min: 60,
           })}
           className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
         />

@@ -1,7 +1,7 @@
 import { createTRPCRouter, adminProcedure } from "@/server/api/trpc";
 import { dbW } from "@/server/db";
 import { z } from "zod";
-import { alertRulesTable } from "@watchdog/db";
+import { alertEventsTable, alertRulesTable } from "@watchdog/db";
 import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 
@@ -27,9 +27,9 @@ const alertRuleSchema = z.object({
   scope: z.string().uuid().nullable().optional(),
   operator: z.enum(["gt", "lt", "eq", "gte", "lte"]),
   threshold: z.number().positive(),
-  durationSeconds: z.number().int().positive(),
+  durationSeconds: z.number().int().positive().min(60),
   actions: z.array(alertActionSchema).min(1),
-});
+}); 
 
 export const alertRulesRouter = createTRPCRouter({
   list: adminProcedure.query(async ({ ctx }) => {
@@ -91,10 +91,14 @@ export const alertRulesRouter = createTRPCRouter({
 
       return rule;
     }),
-
   delete: adminProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
+      // Primero borrar los eventos relacionados
+      await dbW
+        .delete(alertEventsTable)
+        .where(eq(alertEventsTable.alertRuleId, input.id));
+
       const [rule] = await dbW
         .delete(alertRulesTable)
         .where(eq(alertRulesTable.id, input.id))

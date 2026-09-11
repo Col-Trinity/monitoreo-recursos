@@ -22,10 +22,14 @@ export default function AlertRulesPage() {
   const { workspaceId } = useParams<{ workspaceId: string }>();
   const [error, setError] = useState("");
 
-  const { data: rules, refetch } = api.alertRules.list.useQuery(
-    { workspaceId: workspaceId ?? "" },
-    { enabled: !!workspaceId },
-  );
+  const { data: agentsList } = api.agents.list.useQuery(
+  { workspaceId: workspaceId ?? "" },
+  { enabled: !!workspaceId },
+);
+const { data: rules, refetch } = api.alertRules.list.useQuery(
+  { workspaceId: workspaceId ?? "" },
+  { enabled: !!workspaceId },
+);
 
   const create = api.alertRules.create.useMutation({
     onSuccess: () => {
@@ -57,7 +61,6 @@ export default function AlertRulesPage() {
             {error}
           </div>
         )}
-
         <AlertRuleForm
           onSubmit={(data) => {
             setError("");
@@ -71,8 +74,8 @@ export default function AlertRulesPage() {
             });
           }}
           isPending={create.isPending}
+          agents={agentsList?.map((a) => ({ id: a.id, name: a.name })) ?? []}
         />
-
         <div className="mt-8">
           <AlertRulesTable
             rules={rules ?? []}

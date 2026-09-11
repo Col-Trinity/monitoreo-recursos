@@ -1,5 +1,6 @@
 import * as Sentry from "@sentry/node";
 import { env } from "@watchdog/env";
+import { createAlertEvaluator } from "./processors/alert-evaluator";
 
 Sentry.init({
   dsn: env.SENTRY_DSN,
@@ -18,6 +19,12 @@ const connection = new Redis(env.REDIS_URL, { maxRetriesPerRequest: null });
 const metricsQueue = new Queue(metricsIngestQueue.name, { connection });
 
 const worker = createWorker(connection);
+const alertEvaluator = createAlertEvaluator(connection);
+const alertQueue = new Queue("alert-evaluator", { connection });
+
+void alertQueue.add("evaluate", {}, { repeat: { every: 30_000 } });
+
+alertEvaluator.on("ready", () => logger.info("alert evaluator ready"));
 
 worker.on("ready", () => logger.info("worker ready"));
 
@@ -52,6 +59,8 @@ async function shutdown() {
   await flush();
   await metricsQueue.close();
   await connection.quit();
+  await alertEvaluator.close();
+  await alertQueue.close();
 
   clearTimeout(timer);
   process.exit(0);
