@@ -3,6 +3,12 @@ import { type Redis } from "ioredis";
 import { logger } from "../logger";
 import { dbRead, dbWrite, alertRulesTable, alertEventsTable, metrics1mView } from "@watchdog/db";
 import { eq, and, gt, avg } from "drizzle-orm";
+import { createActionHandler, type ActionType } from "../alerts/actions/factory";
+
+interface RuleAction {
+    type: ActionType;
+    config: Record<string, unknown>;
+}
 
 const QUEUE_NAME = "alert-evaluator";
 
@@ -66,15 +72,34 @@ async function evaluate(_job: Job) {
                     );
 
                 if (firing && !activeFiring) {
-                    await dbWrite()
+                    const [event] = await dbWrite()
                         .insert(alertEventsTable)
                         .values({
                             alertRuleId: rule.id,
                             agentId: agentId,
                             triggerValue: avgValue,
                             status: "active",
-                        });
+                        })
+                        .returning();
                     logger.info({ ruleId: rule.id, agentId, avgValue }, "alert fired");
+
+                    if (event) {
+                        // TODO: rule.actions is jsonb with no runtime validation — this cast trusts
+                        // that every entry's `type` matches ActionType. Consider validating (e.g. Zod)
+                        // before it reaches createActionHandler.
+                        const actions = (rule.actions ?? []) as RuleAction[];
+                        for (const action of actions) {
+                            try {
+                                await createActionHandler(action.type).execute({ rule, event }, action.config);
+                                logger.info({ ruleId: rule.id, agentId, actionType: action.type }, "alert action sent");
+                            } catch (err) {
+                                logger.error(
+                                    { ruleId: rule.id, agentId, actionType: action.type, err },
+                                    "error running alert action",
+                                );
+                            }
+                        }
+                    }
                 }
 
                 if (!firing && activeFiring) {
