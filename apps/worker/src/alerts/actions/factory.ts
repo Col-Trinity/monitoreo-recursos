@@ -13,5 +13,7 @@ export function createActionHandler(type: ActionType): ActionHandler<Record<stri
       return createWebhookAction() as unknown as ActionHandler<Record<string, unknown>>;
     case "betterstack":
       return createBetterstackAction() as unknown as ActionHandler<Record<string, unknown>>;
+    default:
+      throw new Error(`unknown action type: ${type as string}`);
   }
 }
