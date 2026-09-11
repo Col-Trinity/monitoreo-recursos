@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { createBetterstackAction } from "../betterstack";
+import { createBetterstackAction, resolveBetterstackIncident } from "../betterstack";
 import type { AlertEvent, AlertRule } from "@watchdog/db/schema";
 
 vi.mock("@watchdog/env", () => ({
@@ -62,5 +62,37 @@ describe("createBetterstackAction", () => {
     await expect(
       action.execute({ rule, event }, { requesterEmail: "oncall@daztanllc.com" }),
     ).rejects.toThrow("Betterstack network error");
+  });
+});
+
+describe("resolveBetterstackIncident", () => {
+  beforeEach(() => {
+    vi.stubGlobal("fetch", vi.fn());
+  });
+
+  it("resuelve el incidente pegándole al endpoint /resolve con su id", async () => {
+    vi.mocked(fetch).mockResolvedValue({ ok: true, status: 200, statusText: "OK" } as Response);
+
+    await resolveBetterstackIncident("123456789");
+
+    expect(fetch).toHaveBeenCalledWith(
+      "https://uptime.betterstack.com/api/v3/incidents/123456789/resolve",
+      expect.objectContaining({
+        method: "POST",
+        headers: expect.objectContaining({ Authorization: "Bearer test-token" }),
+      }),
+    );
+  });
+
+  it("tira un error si Better Stack responde con error al resolver", async () => {
+    vi.mocked(fetch).mockResolvedValue({ ok: false, status: 404, statusText: "Not Found" } as Response);
+
+    await expect(resolveBetterstackIncident("123456789")).rejects.toThrow("404");
+  });
+
+  it("tira un error si falla la conexión al resolver", async () => {
+    vi.mocked(fetch).mockRejectedValue(new Error("network down"));
+
+    await expect(resolveBetterstackIncident("123456789")).rejects.toThrow("Betterstack network error");
   });
 });

@@ -36,3 +36,25 @@ export function createBetterstackAction(): ActionHandler<BetterstackActionConfig
     },
   };
 }
+
+// Cierra un incidente ya creado en Better Stack. El evaluator es responsable de
+// guardar el id que devuelve create (Better Stack API) y pasarlo acá cuando la
+// alerta pase a "resolved".
+export async function resolveBetterstackIncident(incidentId: string): Promise<void> {
+  let res: Response;
+  try {
+    res = await fetch(`${BETTERSTACK_INCIDENTS_URL}/${incidentId}/resolve`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${env.BETTERSTACK_API_TOKEN}`,
+      },
+    });
+  } catch (cause) {
+    throw new Error(`Betterstack network error: ${String(cause)}`);
+  }
+
+  if (!res.ok) {
+    throw new Error(`Betterstack responded with ${res.status} ${res.statusText}`);
+  }
+}
