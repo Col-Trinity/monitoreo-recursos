@@ -21,7 +21,12 @@ interface FormData {
   }[];
 }
 
-export function AlertRuleForm({ onSubmit, isPending, defaultValues, agents }: Props) {
+export function AlertRuleForm({
+  onSubmit,
+  isPending,
+  defaultValues,
+  agents,
+}: Props) {
   const {
     register,
     handleSubmit,
@@ -99,7 +104,7 @@ export function AlertRuleForm({ onSubmit, isPending, defaultValues, agents }: Pr
         <label className="text-sm font-medium text-gray-700">Agentes </label>
         <select
           {...register("scope", {
-            setValueAs: (v) => v === "" ? null : v,
+            setValueAs: (v: string) => (v === "" ? null : v),
           })}
           className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
         >
@@ -127,7 +132,11 @@ export function AlertRuleForm({ onSubmit, isPending, defaultValues, agents }: Pr
         <input
           type="number"
           min={60}
-          {...register("durationSeconds", { valueAsNumber: true, required: true, min: 60 })}
+          {...register("durationSeconds", {
+            valueAsNumber: true,
+            required: true,
+            min: 60,
+          })}
           className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
         />
       </div>
@@ -147,10 +156,11 @@ export function AlertRuleForm({ onSubmit, isPending, defaultValues, agents }: Pr
 
         {fields.length === 0 && (
           <p
-            className={`rounded-lg border border-dashed px-3 py-4 text-center text-xs ${actionsError
-              ? "border-red-300 bg-red-50 text-red-600"
-              : "border-gray-300 text-gray-500"
-              }`}
+            className={`rounded-lg border border-dashed px-3 py-4 text-center text-xs ${
+              actionsError
+                ? "border-red-300 bg-red-50 text-red-600"
+                : "border-gray-300 text-gray-500"
+            }`}
           >
             {actionsError ??
               "No hay acciones configuradas. Agrega una para recibir notificaciones."}
