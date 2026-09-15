@@ -55,27 +55,25 @@ export const agentsRouter = createTRPCRouter({
       // NA SOLA VEZ
       return { agent, apiKey: plainKey };
     }),
-  list: protectedProcedure
-    .input(z.object({ workspaceId: z.string().uuid() }))
-    .query(async ({ input }) => {
-      return await dbW
-        .select({
-          id: agentsTable.id,
-          name: agentsTable.name,
-          description: agentsTable.description,
-          active: agentsTable.active,
-          lastHeartbeat: agentsTable.lastHeartbeat,
-          createdAt: agentsTable.createdAt,
-          revokedAt: agentsTable.revokedAt,
-        })
-        .from(agentsTable)
-        .where(
-          and(
-            eq(agentsTable.workspaceId, input.workspaceId),
-            isNull(agentsTable.deletedAt),
-          ),
-        );
-    }),
+  list: workspaceProcedure.query(async ({ ctx }) => {
+    return await dbW
+      .select({
+        id: agentsTable.id,
+        name: agentsTable.name,
+        description: agentsTable.description,
+        active: agentsTable.active,
+        lastHeartbeat: agentsTable.lastHeartbeat,
+        createdAt: agentsTable.createdAt,
+        revokedAt: agentsTable.revokedAt,
+      })
+      .from(agentsTable)
+      .where(
+        and(
+          eq(agentsTable.workspaceId, ctx.workspace.id),
+          isNull(agentsTable.deletedAt),
+        ),
+      );
+  }),
 
   getById: workspaceProcedure
     .input(z.object({ agentId: z.string().uuid() }))
