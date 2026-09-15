@@ -1,5 +1,6 @@
 "use client";
 import { useForm, useFieldArray } from "react-hook-form";
+import { ActionType } from "@watchdog/shared-types";
 interface Props {
   onSubmit: (data: FormData) => void;
   isPending: boolean;
@@ -16,7 +17,7 @@ interface FormData {
   threshold: number;
   durationSeconds: number;
   actions: {
-    type: "email" | "webhook" | "betterstack";
+    type: ActionType;
     config: { to?: string; url?: string; incident_name?: string };
   }[];
 }
@@ -147,7 +148,7 @@ export function AlertRuleForm({
           <label className="text-sm font-medium text-gray-700">Acciones</label>
           <button
             type="button"
-            onClick={() => append({ type: "email", config: {} })}
+            onClick={() => append({ type: ActionType.EMAIL, config: {} })}
             className="rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-200"
           >
             + Agregar acción
@@ -177,9 +178,9 @@ export function AlertRuleForm({
                 {...register(`actions.${index}.type`)}
                 className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
               >
-                <option value="email">Email</option>
-                <option value="webhook">Webhook</option>
-                <option value="betterstack">BetterStack</option>
+                <option value={ActionType.EMAIL}>Email</option>
+                <option value={ActionType.WEBHOOK}>Webhook</option>
+                <option value={ActionType.BETTERSTACK}>BetterStack</option>
               </select>
               <button
                 type="button"
@@ -190,21 +191,21 @@ export function AlertRuleForm({
               </button>
             </div>
 
-            {watch(`actions.${index}.type`) === "email" && (
+            {watch(`actions.${index}.type`) === ActionType.EMAIL && (
               <input
                 {...register(`actions.${index}.config.to`)}
                 placeholder="Email destinatario"
                 className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
               />
             )}
-            {watch(`actions.${index}.type`) === "webhook" && (
+            {watch(`actions.${index}.type`) === ActionType.WEBHOOK && (
               <input
                 {...register(`actions.${index}.config.url`)}
                 placeholder="URL del webhook"
                 className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
               />
             )}
-            {watch(`actions.${index}.type`) === "betterstack" && (
+            {watch(`actions.${index}.type`) === ActionType.BETTERSTACK && (
               <input
                 {...register(`actions.${index}.config.incident_name`)}
                 placeholder="Nombre del incidente"
