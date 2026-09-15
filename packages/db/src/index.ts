@@ -59,8 +59,11 @@ export { auditLogTable, type AuditLog, type NewAuditLog } from "./schema/metrics
 export {
   alertRulesTable,
   alertEventsTable,
+  alertEventActionsTable,
   type AlertRule,
   type NewAlertRule,
   type AlertEvent,
   type NewAlertEvent,
+  type AlertEventAction,
+  type NewAlertEventAction,
 } from "./schema/metrics";
