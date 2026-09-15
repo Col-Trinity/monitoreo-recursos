@@ -1,6 +1,7 @@
 import * as p from "drizzle-orm/pg-core";
 import { agentsTable, workspacesTable } from "./tenancy";
 import { usersTable } from "./auth";
+import type { ActionType } from "@watchdog/shared-types";
 
 // TODO: Abel - check if `id` can be replaced with `agentId` in composite PK (TimescaleDB requires created_at in PK)
 // TODO: Add all possible metrics
@@ -116,6 +117,25 @@ export const alertEventsTable = p.pgTable(
     ruleStartedIdx: p.index("alert_event_rule_started_idx").on(table.alertRuleId, table.startedAt),
   }),
 );
+export const actionResultStatusEnum = p.pgEnum("action_result_status", ["sent", "failed"]);
+
+export const alertEventActionsTable = p.pgTable(
+  "alert_event_actions",
+  {
+    id: p.uuid("id").primaryKey().defaultRandom(),
+    alertEventId: p
+      .uuid("alert_event_id")
+      .notNull()
+      .references(() => alertEventsTable.id, { onDelete: "cascade" }),
+    actionType: p.varchar("action_type").$type<ActionType>().notNull(),
+    status: actionResultStatusEnum("status").notNull(),
+    error: p.text("error"),
+    executedAt: p.timestamp("executed_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    eventIdx: p.index("alert_event_action_event_idx").on(table.alertEventId),
+  }),
+);
 
 export type Metric = typeof metricsTable.$inferSelect;
 export type NewMetric = typeof metricsTable.$inferInsert;
@@ -125,6 +145,9 @@ export type NewAlertRule = typeof alertRulesTable.$inferInsert;
 
 export type AlertEvent = typeof alertEventsTable.$inferSelect;
 export type NewAlertEvent = typeof alertEventsTable.$inferInsert;
+
+export type AlertEventAction = typeof alertEventActionsTable.$inferSelect;
+export type NewAlertEventAction = typeof alertEventActionsTable.$inferInsert;
 
 export const auditLogTable = p.pgTable(
   "audit_log",
