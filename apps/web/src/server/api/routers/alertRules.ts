@@ -17,7 +17,7 @@ const alertActionSchema = z.discriminatedUnion("type", [
   }),
   z.object({
     type: z.literal(ActionType.BETTERSTACK),
-    config: z.object({ incident_name: z.string().min(1) }),
+    config: z.object({ requesterEmail: z.string().email() }),
   }),
 ]);
 
@@ -30,7 +30,7 @@ const alertRuleSchema = z.object({
   threshold: z.number().positive(),
   durationSeconds: z.number().int().positive().min(60),
   actions: z.array(alertActionSchema).min(1),
-}); 
+});
 
 export const alertRulesRouter = createTRPCRouter({
   list: adminProcedure.query(async ({ ctx }) => {

@@ -18,7 +18,7 @@ interface FormData {
   durationSeconds: number;
   actions: {
     type: ActionType;
-    config: { to?: string; url?: string; incident_name?: string };
+    config: { to?: string; url?: string; requesterEmail?: string };
   }[];
 }
 
@@ -207,8 +207,9 @@ export function AlertRuleForm({
             )}
             {watch(`actions.${index}.type`) === ActionType.BETTERSTACK && (
               <input
-                {...register(`actions.${index}.config.incident_name`)}
-                placeholder="Nombre del incidente"
+                {...register(`actions.${index}.config.requesterEmail`)}
+                type="email"
+                placeholder="Email del solicitante"
                 className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
               />
             )}
