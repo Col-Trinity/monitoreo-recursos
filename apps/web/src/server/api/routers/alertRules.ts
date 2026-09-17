@@ -19,6 +19,15 @@ const alertActionSchema = z.discriminatedUnion("type", [
     type: z.literal(ActionType.BETTERSTACK),
     config: z.object({ requesterEmail: z.string().email() }),
   }),
+  z.object({
+    type: z.literal(ActionType.DISCORD),
+    config: z.object({
+      url: z
+        .string()
+        .url()
+        .includes("discord.com", { message: "Debe ser una URL de Discord" }),
+    }),
+  }),
 ]);
 
 const alertRuleSchema = z.object({

@@ -181,6 +181,7 @@ export function AlertRuleForm({
                 <option value={ActionType.EMAIL}>Email</option>
                 <option value={ActionType.WEBHOOK}>Webhook</option>
                 <option value={ActionType.BETTERSTACK}>BetterStack</option>
+                <option value={ActionType.DISCORD}>Discord</option>
               </select>
               <button
                 type="button"
@@ -191,6 +192,13 @@ export function AlertRuleForm({
               </button>
             </div>
 
+            {watch(`actions.${index}.type`) === ActionType.DISCORD && (
+              <input
+                {...register(`actions.${index}.config.url`)}
+                placeholder="URL del webhook de Discord"
+                className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+              />
+            )}
             {watch(`actions.${index}.type`) === ActionType.EMAIL && (
               <input
                 {...register(`actions.${index}.config.to`)}
