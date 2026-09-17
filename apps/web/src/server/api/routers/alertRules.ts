@@ -4,18 +4,19 @@ import { z } from "zod";
 import { alertEventsTable, alertRulesTable } from "@watchdog/db";
 import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
+import { ActionType } from "@watchdog/shared-types";
 
 const alertActionSchema = z.discriminatedUnion("type", [
   z.object({
-    type: z.literal("email"),
+    type: z.literal(ActionType.EMAIL),
     config: z.object({ to: z.string().email() }),
   }),
   z.object({
-    type: z.literal("webhook"),
+    type: z.literal(ActionType.WEBHOOK),
     config: z.object({ url: z.string().url() }),
   }),
   z.object({
-    type: z.literal("betterstack"),
+    type: z.literal(ActionType.BETTERSTACK),
     config: z.object({ incident_name: z.string().min(1) }),
   }),
 ]);

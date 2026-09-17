@@ -1,9 +1,17 @@
 import { Worker, type Job } from "bullmq";
 import { type Redis } from "ioredis";
 import { logger } from "../logger";
-import { dbRead, dbWrite, alertRulesTable, alertEventsTable, metrics1mView } from "@watchdog/db";
+import {
+    dbRead,
+    dbWrite,
+    alertRulesTable,
+    alertEventsTable,
+    alertEventActionsTable,
+    metrics1mView,
+} from "@watchdog/db";
 import { eq, and, gt, avg } from "drizzle-orm";
-import { createActionHandler, type ActionType } from "../alerts/actions/factory";
+import { createActionHandler } from "../alerts/actions/factory";
+import { ActionType } from "@watchdog/shared-types";
 
 interface RuleAction {
     type: ActionType;
@@ -91,8 +99,19 @@ async function evaluate(_job: Job) {
                         for (const action of actions) {
                             try {
                                 await createActionHandler(action.type).execute({ rule, event }, action.config);
+                                await dbWrite().insert(alertEventActionsTable).values({
+                                    alertEventId: event.id,
+                                    actionType: action.type,
+                                    status: "sent",
+                                });
                                 logger.info({ ruleId: rule.id, agentId, actionType: action.type }, "alert action sent");
                             } catch (err) {
+                                await dbWrite().insert(alertEventActionsTable).values({
+                                    alertEventId: event.id,
+                                    actionType: action.type,
+                                    status: "failed",
+                                    error: err instanceof Error ? err.message : String(err),
+                                });
                                 logger.error(
                                     { ruleId: rule.id, agentId, actionType: action.type, err },
                                     "error running alert action",

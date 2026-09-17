@@ -3,6 +3,7 @@ import { createActionHandler } from "../factory";
 import { createEmailAction } from "../email";
 import { createWebhookAction } from "../webhook";
 import { createBetterstackAction } from "../betterstack";
+import { ActionType } from "@watchdog/shared-types";
 
 vi.mock("../email", () => ({
   createEmailAction: vi.fn().mockReturnValue({ execute: vi.fn() }),
@@ -16,21 +17,21 @@ vi.mock("../betterstack", () => ({
 
 describe("createActionHandler", () => {
   it("devuelve el handler de email para type 'email'", () => {
-    const handler = createActionHandler("email");
+    const handler = createActionHandler(ActionType.EMAIL);
 
     expect(createEmailAction).toHaveBeenCalled();
     expect(handler.execute).toBeDefined();
   });
 
   it("devuelve el handler de webhook para type 'webhook'", () => {
-    const handler = createActionHandler("webhook");
+    const handler = createActionHandler(ActionType.WEBHOOK);
 
     expect(createWebhookAction).toHaveBeenCalled();
     expect(handler.execute).toBeDefined();
   });
 
   it("devuelve el handler de betterstack para type 'betterstack'", () => {
-    const handler = createActionHandler("betterstack");
+    const handler = createActionHandler(ActionType.BETTERSTACK);
 
     expect(createBetterstackAction).toHaveBeenCalled();
     expect(handler.execute).toBeDefined();

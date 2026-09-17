@@ -2,16 +2,15 @@ import type { ActionHandler } from "./types";
 import { createEmailAction } from "./email";
 import { createWebhookAction } from "./webhook";
 import { createBetterstackAction } from "./betterstack";
-
-export type ActionType = "email" | "webhook" | "betterstack";
+import { ActionType } from "@watchdog/shared-types";
 
 export function createActionHandler(type: ActionType): ActionHandler<Record<string, unknown>> {
   switch (type) {
-    case "email":
+    case ActionType.EMAIL:
       return createEmailAction() as unknown as ActionHandler<Record<string, unknown>>;
-    case "webhook":
+    case ActionType.WEBHOOK:
       return createWebhookAction() as unknown as ActionHandler<Record<string, unknown>>;
-    case "betterstack":
+    case ActionType.BETTERSTACK:
       return createBetterstackAction() as unknown as ActionHandler<Record<string, unknown>>;
     default:
       throw new Error(`unknown action type: ${type as string}`);
