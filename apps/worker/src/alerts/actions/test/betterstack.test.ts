@@ -25,7 +25,12 @@ describe("createBetterstackAction", () => {
   });
 
   it("crea un incidente con el summary y el requester_email de la alerta", async () => {
-    vi.mocked(fetch).mockResolvedValue({ ok: true, status: 201, statusText: "Created" } as Response);
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      status: 201,
+      statusText: "Created",
+      json: async () => ({ data: { id: "inc-123" } }),
+    } as unknown as Response);
 
     const action = createBetterstackAction();
     await action.execute({ rule, event }, { requesterEmail: "oncall@daztanllc.com" });

@@ -18,7 +18,7 @@ interface FormData {
   durationSeconds: number;
   actions: {
     type: ActionType;
-    config: { to?: string; url?: string; incident_name?: string };
+    config: { to?: string; url?: string; requesterEmail?: string };
   }[];
 }
 
@@ -181,6 +181,7 @@ export function AlertRuleForm({
                 <option value={ActionType.EMAIL}>Email</option>
                 <option value={ActionType.WEBHOOK}>Webhook</option>
                 <option value={ActionType.BETTERSTACK}>BetterStack</option>
+                <option value={ActionType.DISCORD}>Discord</option>
               </select>
               <button
                 type="button"
@@ -191,6 +192,13 @@ export function AlertRuleForm({
               </button>
             </div>
 
+            {watch(`actions.${index}.type`) === ActionType.DISCORD && (
+              <input
+                {...register(`actions.${index}.config.url`)}
+                placeholder="URL del webhook de Discord"
+                className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+              />
+            )}
             {watch(`actions.${index}.type`) === ActionType.EMAIL && (
               <input
                 {...register(`actions.${index}.config.to`)}
@@ -207,8 +215,9 @@ export function AlertRuleForm({
             )}
             {watch(`actions.${index}.type`) === ActionType.BETTERSTACK && (
               <input
-                {...register(`actions.${index}.config.incident_name`)}
-                placeholder="Nombre del incidente"
+                {...register(`actions.${index}.config.requesterEmail`)}
+                type="email"
+                placeholder="Email del solicitante"
                 className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
               />
             )}
