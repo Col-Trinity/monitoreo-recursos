@@ -33,6 +33,9 @@ export function createBetterstackAction(): ActionHandler<BetterstackActionConfig
       if (!res.ok) {
         throw new Error(`Betterstack responded with ${res.status} ${res.statusText}`);
       }
+
+      const data = await res.json() as { data: { id: string } };
+      return data.data.id;
     },
   };
 }

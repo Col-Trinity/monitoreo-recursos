@@ -6,5 +6,5 @@ interface ActionHandlerParams {
 }
 
 export interface ActionHandler<TConfig> {
-  execute(params: ActionHandlerParams, config: TConfig): Promise<void>;
+  execute(params: ActionHandlerParams, config: TConfig): Promise<string | void>;
 }
