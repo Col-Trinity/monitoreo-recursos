@@ -2,7 +2,7 @@ import { createTRPCRouter, adminProcedure } from "@/server/api/trpc";
 import { dbW } from "@/server/db";
 import { z } from "zod";
 import { alertEventsTable, alertRulesTable } from "@watchdog/db";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { ActionType } from "@watchdog/shared-types";
 
@@ -92,7 +92,12 @@ export const alertRulesRouter = createTRPCRouter({
           durationSeconds: input.durationSeconds,
           actions: input.actions,
         })
-        .where(eq(alertRulesTable.id, input.id))
+        .where(
+          and(
+            eq(alertRulesTable.id, input.id),
+            eq(alertRulesTable.workspaceId, ctx.workspace.id),
+          ),
+        )
         .returning();
 
       if (!rule) {
@@ -104,6 +109,22 @@ export const alertRulesRouter = createTRPCRouter({
   delete: adminProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
+      // Se comprueba que la regla sea del workspace antes de tocar sus eventos:
+      // el delete de abajo filtra por alertRuleId, que por si solo no acota workspace.
+      const [owned] = await dbW
+        .select({ id: alertRulesTable.id })
+        .from(alertRulesTable)
+        .where(
+          and(
+            eq(alertRulesTable.id, input.id),
+            eq(alertRulesTable.workspaceId, ctx.workspace.id),
+          ),
+        );
+
+      if (!owned) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
       // Primero borrar los eventos relacionados
       await dbW
         .delete(alertEventsTable)
@@ -129,7 +150,12 @@ export const alertRulesRouter = createTRPCRouter({
         .set({
           enabled: input.enabled,
         })
-        .where(eq(alertRulesTable.id, input.id))
+        .where(
+          and(
+            eq(alertRulesTable.id, input.id),
+            eq(alertRulesTable.workspaceId, ctx.workspace.id),
+          ),
+        )
         .returning();
 
       if (!rule) {
