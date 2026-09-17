@@ -1,0 +1,1 @@
+ALTER TABLE "alert_events" ADD COLUMN "betterstack_incident_id" varchar;

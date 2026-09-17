@@ -104,6 +104,7 @@ export const alertEventsTable = p.pgTable(
     startedAt: p.timestamp("started_at", { withTimezone: true }).defaultNow().notNull(),
     ackAt: p.timestamp("ack_at", { withTimezone: true }),
     resolvedAt: p.timestamp("resolved_at", { withTimezone: true }),
+    betterstackIncidentId: p.varchar("betterstack_incident_id"),
     createdAt: p.timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: p
       .timestamp("updated_at", { withTimezone: true })
