@@ -7,6 +7,7 @@ import {
   publicProcedure,
 } from "@/server/api/trpc";
 import { hashPassword, verifyPassword } from "@/server/auth/password";
+import { defaultWorkspaceName } from "@/server/workspaceName";
 import { dbW } from "@/server/db";
 import {
   sessionsTable,
@@ -54,7 +55,7 @@ export const authRouter = createTRPCRouter({
 
       const [workspace] = await dbW
         .insert(workspacesTable)
-        .values({ name: "My Workspace", description: "" })
+        .values({ name: defaultWorkspaceName(user.email), description: "" })
         .returning();
 
       if (workspace) {
