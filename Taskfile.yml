@@ -94,11 +94,12 @@ tasks:
       - air
 
   docker:up:
-    desc: Start Postgres (primary + replica) and Redis
+    desc: Start Postgres (primary + replica), Redis, and Unleash
     cmds:
-      - "{{.COMPOSE}} up -d postgres postgres-replica redis"
+      - "{{.COMPOSE}} up -d postgres postgres-replica redis unleash-db unleash"
     status:
       - docker ps --filter "name=^watchdog-postgres$" --filter "status=running" --format "{{`{{.Names}}`}}" | grep -q watchdog-postgres
+      - docker ps --filter "name=^watchdog-unleash$" --filter "status=running" --format "{{`{{.Names}}`}}" | grep -q watchdog-unleash
 
   docker:stop:
     desc: Stop containers (keep volumes)
