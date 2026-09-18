@@ -94,8 +94,45 @@ export default function Navbar() {
               </button>
 
               {open && (
-                <div className="animate-dropdown-in absolute right-0 z-50 mt-2 w-52 origin-top-right rounded-xl border border-gray-100 bg-white shadow-lg ring-1 ring-black/5">
+                <div className="animate-dropdown-in absolute right-0 z-50 mt-2 w-52 origin-top-right divide-y divide-gray-100 rounded-xl border border-gray-100 bg-white shadow-lg ring-1 ring-black/5">
+                  {data.length > 1 && (
+                    <ul className="py-1.5">
+                      <li className="px-4 py-1 text-xs font-medium tracking-wide text-gray-400 uppercase">
+                        Workspaces
+                      </li>
+                      {data.map(({ workspaces }) => {
+                        const isCurrent = workspaces.id === workspaceId;
+                        return (
+                          <li key={workspaces.id}>
+                            <Link
+                              href={`/w/${workspaces.id}`}
+                              className={`flex items-center justify-between px-4 py-2 text-sm transition-colors hover:bg-gray-50 ${
+                                isCurrent
+                                  ? "font-medium text-indigo-600"
+                                  : "text-gray-700 hover:text-gray-900"
+                              }`}
+                              onClick={() => setOpen(false)}
+                            >
+                              <span className="truncate">
+                                {workspaces.name}
+                              </span>
+                              {isCurrent && <span aria-hidden>✓</span>}
+                            </Link>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
                   <ul className="py-1.5">
+                    <li>
+                      <Link
+                        href={`/w/${workspaceId}/dashboard`}
+                        className="block px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900"
+                        onClick={() => setOpen(false)}
+                      >
+                        Agentes
+                      </Link>
+                    </li>
                     {currentRole &&
                       hasPermission(currentRole, Permission.agentsCreate) && (
                         <li>
@@ -104,7 +141,7 @@ export default function Navbar() {
                             className="block px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900"
                             onClick={() => setOpen(false)}
                           >
-                            Agentes
+                            Administrar agentes
                           </Link>
                         </li>
                       )}

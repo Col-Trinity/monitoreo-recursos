@@ -11,6 +11,7 @@ import {
 } from "@watchdog/db/schema";
 
 import { dbW, db } from "@/server/db";
+import { defaultWorkspaceName } from "@/server/workspaceName";
 import { z } from "zod";
 import Credentials from "next-auth/providers/credentials";
 import { eq } from "drizzle-orm";
@@ -123,7 +124,10 @@ export const authConfig = {
         if (!existingMembership) {
           const [workspace] = await dbW
             .insert(workspacesTable)
-            .values({ name: "My Workspace", description: "" })
+            .values({
+              name: defaultWorkspaceName(user.email, user.name),
+              description: "",
+            })
             .returning();
 
           if (workspace) {
