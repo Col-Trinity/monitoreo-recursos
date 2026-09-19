@@ -5,7 +5,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/trpc/react";
-import { hasPermission, Permission, type Role } from "@watchdog/shared-types";
+import { hasPermission, Permission, Role } from "@watchdog/shared-types";
 export default function Navbar() {
   const { data: session } = useSession();
   const router = useRouter();
@@ -160,6 +160,22 @@ export default function Navbar() {
                           </Link>
                         </li>
                       )}
+                    {/* No hay Permission para "puede ver el historial de
+                        firings" (owner+admin+member, no viewer) — workspaceManage
+                        es solo owner+admin y metricsRead incluye a viewer,
+                        ninguno calza. Se chequea el rol directo, igual que
+                        hace la propia página. */}
+                    {currentRole && currentRole !== Role.viewer && (
+                      <li>
+                        <Link
+                          href={`/w/${workspaceId}/settings/workspace/alerts/history`}
+                          className="block px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900"
+                          onClick={() => setOpen(false)}
+                        >
+                          Historial de firings
+                        </Link>
+                      </li>
+                    )}
                     {currentRole &&
                       hasPermission(currentRole, Permission.membersInvite) && (
                         <li>
@@ -202,10 +218,10 @@ export default function Navbar() {
                 className="flex items-center gap-2 rounded-md px-2 py-1 transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-indigo-500/40 focus:outline-none"
               >
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-indigo-600 text-sm font-medium text-white ring-2 ring-white">
-                  {session?.user?.name?.[0]?.toUpperCase() ?? "?"}
+                  {(session?.user?.name ?? session?.user?.email)?.[0]?.toUpperCase() ?? "?"}
                 </div>
                 <span className="text-sm font-medium text-gray-700">
-                  {session?.user?.name ?? "Usuario"}
+                  {session?.user?.name ?? session?.user?.email ?? "Usuario"}
                 </span>
               </button>
 
