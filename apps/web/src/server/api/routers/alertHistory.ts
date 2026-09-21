@@ -79,10 +79,6 @@ export const alertHistoryRouter = createTRPCRouter({
       }));
     }),
 
-  // Opciones livianas para los dropdowns de filtro de la UI. Separadas de
-  // alertRules.list (adminProcedure) y de agents.list (protectedProcedure sin
-  // chequeo de membership, ver DAZ-XX) porque esta página es memberProcedure
-  // y necesita quedar correctamente scopeada al workspace del usuario.
   rules: memberProcedure.query(async ({ ctx }) => {
     return await ctx.db
       .select({ id: alertRulesTable.id, name: alertRulesTable.name })
