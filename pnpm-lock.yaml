@@ -71,6 +71,9 @@ importers:
       '@watchdog/env':
         specifier: workspace:*
         version: link:../../packages/env
+      '@watchdog/feature-flags':
+        specifier: workspace:*
+        version: link:../../packages/feature-flags
       '@watchdog/shared-types':
         specifier: workspace:*
         version: link:../../packages/shared-types
@@ -268,6 +271,9 @@ importers:
       '@watchdog/env':
         specifier: workspace:*
         version: link:../../packages/env
+      '@watchdog/feature-flags':
+        specifier: workspace:*
+        version: link:../../packages/feature-flags
       '@watchdog/shared-types':
         specifier: workspace:*
         version: link:../../packages/shared-types
@@ -358,6 +364,12 @@ importers:
       typescript:
         specifier: ^5.8.2
         version: 5.9.3
+
+  packages/feature-flags:
+    dependencies:
+      unleash-client:
+        specifier: ^6.12.1
+        version: 6.12.1
 
   packages/shared-types:
     dependencies:
