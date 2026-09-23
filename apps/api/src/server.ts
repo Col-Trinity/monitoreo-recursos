@@ -8,6 +8,7 @@ Sentry.init({
 
 import Fastify from "fastify";
 import cors from "@fastify/cors";
+import { initFlags } from "@watchdog/feature-flags";
 import { EventEmitter } from "node:events";
 import metricsStreamPlugin from "./routes/metrics-stream";
 import adminQueuesPlugin from "./routes/admin-queue";
@@ -29,6 +30,17 @@ const fastify = Fastify({
   genReqId: () => randomUUID(), //generate Request Id
   requestIdLogLabel: "correlation_id",
 });
+
+if (env.UNLEASH_BACKEND_TOKEN) {
+  const flags = initFlags({
+    url: env.UNLEASH_API_URL,
+    token: env.UNLEASH_BACKEND_TOKEN,
+    appName: "watchdog-api",
+  });
+  flags.on("error", (err) => fastify.log.error({ err }, "unleash client error"));
+} else {
+  fastify.log.warn("UNLEASH_BACKEND_TOKEN not set, feature flags disabled");
+}
 
 await fastify.register(cors);
 

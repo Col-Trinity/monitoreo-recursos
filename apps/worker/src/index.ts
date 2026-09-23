@@ -11,9 +11,21 @@ import { Redis } from "ioredis";
 import http from "http";
 import { Queue } from "bullmq";
 import { metricsIngestQueue } from "@watchdog/shared-types";
+import { initFlags } from "@watchdog/feature-flags";
 import { flush, createWorker } from "./processors/metrics-ingest";
 import { handleHealthRequest } from "./health";
 import { logger } from "./logger";
+
+if (env.UNLEASH_BACKEND_TOKEN) {
+  const flags = initFlags({
+    url: env.UNLEASH_API_URL,
+    token: env.UNLEASH_BACKEND_TOKEN,
+    appName: "watchdog-worker",
+  });
+  flags.on("error", (err) => logger.error({ err }, "unleash client error"));
+} else {
+  logger.warn("UNLEASH_BACKEND_TOKEN not set, feature flags disabled");
+}
 
 const connection = new Redis(env.REDIS_URL, { maxRetriesPerRequest: null });
 const metricsQueue = new Queue(metricsIngestQueue.name, { connection });

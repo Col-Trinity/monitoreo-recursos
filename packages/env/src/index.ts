@@ -30,6 +30,9 @@ const schema = z.object({
   SENTRY_DSN: z.string().optional(),
   NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
   NEXT_PUBLIC_APP_URL: z.string().url().default("http://localhost:3000"),
+
+  UNLEASH_API_URL: z.string().url().default("http://localhost:4242/api"),
+  UNLEASH_BACKEND_TOKEN: z.string().optional(),
 });
 
 export type Env = z.infer<typeof schema>;
