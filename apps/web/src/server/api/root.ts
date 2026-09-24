@@ -8,6 +8,7 @@ import { auditLogRouter } from "./routers/auditLog";
 import { sliRouter } from "./routers/sli";
 import { alertRulesRouter } from "./routers/alertRules";
 import { alertHistoryRouter } from "./routers/alertHistory";
+import { dashboardV2Router } from "./routers/dashboardV2";
 
 export const appRouter = createTRPCRouter({
   metrics: metricsRouter,
@@ -19,6 +20,7 @@ export const appRouter = createTRPCRouter({
   sli: sliRouter,
   alertRules: alertRulesRouter,
   alertHistory: alertHistoryRouter,
+  dashboardV2: dashboardV2Router,
 });
 
 export type AppRouter = typeof appRouter;

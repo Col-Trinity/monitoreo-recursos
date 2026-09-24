@@ -1,5 +1,6 @@
 import { api } from "@/trpc/server";
 import AgentChart from "./agentChart";
+import ActiveAlertsWidget from "./activeAlertsWidget";
 
 interface Props {
   params: Promise<{ workspaceId: string }>;
@@ -15,6 +16,8 @@ export default async function DashboardPage({ params }: Props) {
         <h1 className="mb-6 text-2xl font-semibold text-gray-900">
           Dashboard — Agentes
         </h1>
+
+        <ActiveAlertsWidget workspaceId={workspaceId} />
 
         {agents.length === 0 && (
           <p className="text-sm text-gray-500">No hay agentes aún.</p>
